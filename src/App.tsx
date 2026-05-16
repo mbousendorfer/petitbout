@@ -1,20 +1,24 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { NavLink, Route, Routes } from "react-router-dom"
 import {
   Baby,
   CalendarDays,
   Check,
   ChevronRight,
-  Cloud,
-  CloudOff,
+  Copy,
   Home,
   Leaf,
   ListFilter,
   LockKeyhole,
+  LogOut,
+  Monitor,
+  Moon,
   NotebookText,
   RefreshCw,
   Search,
+  Settings,
   Sparkles,
+  Sun,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -72,8 +76,13 @@ type Filter =
 
 const allFilters: Filter[] = ["Tous", ...categories, "Testés", "Non testés", "De saison"]
 
+type ThemeMode = "light" | "system" | "dark"
+
+const themeStorageKey = "diversibebs-theme-v1"
+
 function App() {
   const store = useBabyStore()
+  const [theme, setTheme] = useTheme()
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
   const recentTests = store.tests.slice(0, 4)
 
@@ -91,18 +100,43 @@ function App() {
   return (
     <div className="safe-shell soft-surface">
       <main className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-5">
-        <SyncBanner store={store} />
         <Routes>
           <Route path="/" element={<HomePage store={store} suggestions={suggestions} recentTests={recentTests} />} />
           <Route path="/foods" element={<FoodsPage store={store} />} />
           <Route path="/week" element={<WeekPage suggestions={suggestions} store={store} />} />
           <Route path="/history" element={<HistoryPage store={store} />} />
+          <Route path="/settings" element={<SettingsPage store={store} theme={theme} setTheme={setTheme} />} />
         </Routes>
       </main>
       <BottomNav />
       <Toaster />
     </div>
   )
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const stored = localStorage.getItem(themeStorageKey)
+    if (stored === "light" || stored === "system" || stored === "dark") return stored
+    return "system"
+  })
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    function applyTheme() {
+      const prefersDark = mediaQuery.matches
+      document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && prefersDark))
+    }
+
+    localStorage.setItem(themeStorageKey, theme)
+    applyTheme()
+    mediaQuery.addEventListener("change", applyTheme)
+
+    return () => mediaQuery.removeEventListener("change", applyTheme)
+  }, [theme])
+
+  return [theme, setTheme] as const
 }
 
 function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
@@ -169,38 +203,6 @@ function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
   )
 }
 
-function SyncBanner({ store }: { store: ReturnType<typeof useBabyStore> }) {
-  const isAttentionNeeded = store.syncStatus === "error" || store.syncStatus === "offline"
-
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-between gap-3 rounded-md border bg-card/80 px-3 py-2 text-sm text-muted-foreground",
-        isAttentionNeeded && "border-destructive/30",
-      )}
-    >
-      <div className="flex min-w-0 items-center gap-2">
-        {isAttentionNeeded ? <CloudOff aria-hidden="true" /> : <Cloud aria-hidden="true" />}
-        <span className="truncate">
-          {store.syncStatus === "loading" && "Chargement partagé..."}
-          {store.syncStatus === "syncing" && "Synchronisation..."}
-          {store.syncStatus === "offline" && "Hors ligne, cache local affiché"}
-          {store.syncStatus === "error" && "Synchronisation à vérifier"}
-          {(store.syncStatus === "idle" || store.syncStatus === "not-configured") && "Espace famille partagé"}
-        </span>
-      </div>
-      <div className="flex items-center gap-1">
-        <Button type="button" variant="ghost" size="icon" onClick={() => store.refresh()} aria-label="Rafraîchir">
-          <RefreshCw aria-hidden="true" />
-        </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={() => store.disconnectFamily()}>
-          Changer
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 function HomePage({
   store,
   suggestions,
@@ -217,8 +219,13 @@ function HomePage({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-2xl">Bébé a {store.profile.ageMonths} mois</CardTitle>
-              <CardDescription>{store.testedFoodIds.size} aliment(s) déjà testé(s)</CardDescription>
+              <CardTitle className="text-2xl">
+                {store.profile.childName ? `${store.profile.childName} a` : "Bébé a"} {store.profile.ageMonths} mois
+              </CardTitle>
+              <CardDescription>
+                {store.testedFoodIds.size} aliment(s) déjà testé(s)
+                {store.profile.birthDate && ` · né(e) le ${new Date(`${store.profile.birthDate}T00:00:00`).toLocaleDateString("fr-FR")}`}
+              </CardDescription>
             </div>
             <div className="rounded-full bg-secondary p-3">
               <Baby aria-hidden="true" />
@@ -226,23 +233,25 @@ function HomePage({
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Select
-            value={String(store.profile.ageMonths)}
-            onValueChange={(value) => void store.updateAge(Number(value))}
-          >
-            <SelectTrigger aria-label="Âge du bébé">
-              <SelectValue placeholder="Âge du bébé" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {[4, 5, 6, 7, 8, 9, 10, 11, 12].map((age) => (
-                  <SelectItem key={age} value={String(age)}>
-                    {age} mois
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          {!store.profile.birthDate && (
+            <Select
+              value={String(store.profile.ageMonths)}
+              onValueChange={(value) => void store.updateAge(Number(value))}
+            >
+              <SelectTrigger aria-label="Âge du bébé">
+                <SelectValue placeholder="Âge du bébé" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {[4, 5, 6, 7, 8, 9, 10, 11, 12].map((age) => (
+                    <SelectItem key={age} value={String(age)}>
+                      {age} mois
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          )}
         </CardContent>
       </Card>
 
@@ -421,6 +430,141 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
         </CardContent>
       </Card>
     </>
+  )
+}
+
+function SettingsPage({
+  store,
+  theme,
+  setTheme,
+}: {
+  store: ReturnType<typeof useBabyStore>
+  theme: ThemeMode
+  setTheme: (theme: ThemeMode) => void
+}) {
+  const [childName, setChildName] = useState(store.profile.childName)
+  const [birthDate, setBirthDate] = useState(store.profile.birthDate)
+  const familyCodeLabel = store.familySession?.familyCodeLabel ?? ""
+  const shouldShowSyncStatus = ["loading", "syncing", "offline", "error"].includes(store.syncStatus)
+
+  useEffect(() => {
+    setChildName(store.profile.childName)
+    setBirthDate(store.profile.birthDate)
+  }, [store.profile.birthDate, store.profile.childName])
+
+  async function copyFamilyCode() {
+    if (!familyCodeLabel) {
+      toast.error("Code famille indisponible sur cet appareil")
+      return
+    }
+
+    await navigator.clipboard.writeText(familyCodeLabel)
+    toast.success("Code famille copié")
+  }
+
+  function saveName() {
+    if (childName.trim() === store.profile.childName) return
+    void store.updateProfile({ childName: childName.trim() })
+  }
+
+  function saveBirthDate(value: string) {
+    setBirthDate(value)
+    void store.updateProfile({ birthDate: value })
+  }
+
+  return (
+    <>
+      <Header eyebrow="Préférences" title="Réglages" />
+
+      {shouldShowSyncStatus && (
+        <p className="rounded-md border bg-card/80 p-3 text-sm text-muted-foreground">
+          {store.syncStatus === "loading" && "Chargement des données partagées..."}
+          {store.syncStatus === "syncing" && "Synchronisation en cours..."}
+          {store.syncStatus === "offline" && "Hors ligne, cache local affiché."}
+          {store.syncStatus === "error" && "La synchronisation est à vérifier."}
+        </p>
+      )}
+
+      <Card className="bg-card/90">
+        <CardHeader>
+          <CardTitle>Enfant</CardTitle>
+          <CardDescription>Ces informations sont partagées dans l’espace famille.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <label className="flex flex-col gap-2 text-sm font-medium">
+            Nom de l’enfant
+            <Input
+              placeholder="Ex. Alba"
+              value={childName}
+              onBlur={saveName}
+              onChange={(event) => setChildName(event.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium">
+            Date de naissance
+            <Input type="date" value={birthDate} onChange={(event) => saveBirthDate(event.target.value)} />
+          </label>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card/90">
+        <CardHeader>
+          <CardTitle>Espace famille</CardTitle>
+          <CardDescription>
+            {familyCodeLabel || "Le code original n’est pas disponible sur cet appareil."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Button type="button" variant="outline" onClick={copyFamilyCode} disabled={!familyCodeLabel}>
+            <Copy data-icon="inline-start" aria-hidden="true" />
+            Copier l’identifiant
+          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" variant="ghost" onClick={() => void store.refresh()}>
+              <RefreshCw data-icon="inline-start" aria-hidden="true" />
+              Rafraîchir
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => store.disconnectFamily()}>
+              <LogOut data-icon="inline-start" aria-hidden="true" />
+              Changer
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card/90">
+        <CardHeader>
+          <CardTitle>Apparence</CardTitle>
+          <CardDescription>Le thème reste propre à cet appareil.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-2 rounded-md bg-muted p-1">
+            <ThemeButton active={theme === "light"} icon={Sun} label="Clair" onClick={() => setTheme("light")} />
+            <ThemeButton active={theme === "system"} icon={Monitor} label="Système" onClick={() => setTheme("system")} />
+            <ThemeButton active={theme === "dark"} icon={Moon} label="Sombre" onClick={() => setTheme("dark")} />
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  )
+}
+
+function ThemeButton({
+  active,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  active: boolean
+  icon: typeof Sun
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <Button type="button" variant={active ? "secondary" : "ghost"} className="h-12 flex-col gap-1 px-2 text-xs" onClick={onClick}>
+      <Icon aria-hidden="true" />
+      {label}
+    </Button>
   )
 }
 
@@ -616,11 +760,12 @@ function BottomNav() {
     { to: "/foods", label: "Aliments", icon: Leaf },
     { to: "/week", label: "Semaine", icon: CalendarDays },
     { to: "/history", label: "Journal", icon: NotebookText },
+    { to: "/settings", label: "Réglages", icon: Settings },
   ]
 
   return (
     <nav className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-xl border-t bg-background/92 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 backdrop-blur">
-      <div className="grid grid-cols-4 gap-1">
+      <div className="grid grid-cols-5 gap-1">
         {items.map((item) => (
           <NavLink
             key={item.to}

@@ -14,6 +14,8 @@ export type FoodTest = {
 
 export type BabyProfile = {
   ageMonths: number
+  birthDate: string
+  childName: string
 }
 
 type StoredState = {
@@ -23,6 +25,7 @@ type StoredState = {
 
 type FamilySession = {
   familyCodeHash: string
+  familyCodeLabel?: string
 }
 
 type SyncStatus = "idle" | "loading" | "syncing" | "error" | "offline" | "not-configured"
@@ -32,8 +35,25 @@ const legacyStorageKey = "diversibebs-state-v1"
 const familySessionKey = "diversibebs-family-session-v1"
 
 const initialState: StoredState = {
-  profile: { ageMonths: 4 },
+  profile: { ageMonths: 4, birthDate: "", childName: "" },
   tests: [],
+}
+
+function calculateAgeMonths(birthDate: string) {
+  if (!birthDate) return null
+
+  const birth = new Date(`${birthDate}T00:00:00`)
+  if (Number.isNaN(birth.getTime())) return null
+
+  const today = new Date()
+  let months =
+    (today.getFullYear() - birth.getFullYear()) * 12 +
+    today.getMonth() -
+    birth.getMonth()
+
+  if (today.getDate() < birth.getDate()) months -= 1
+
+  return Math.max(0, months)
 }
 
 function readStoredState() {
@@ -41,7 +61,16 @@ function readStoredState() {
   if (!stored) return initialState
 
   try {
-    return { ...initialState, ...JSON.parse(stored) } as StoredState
+    const parsed = { ...initialState, ...JSON.parse(stored) } as StoredState
+    const profile = { ...initialState.profile, ...parsed.profile }
+    const computedAgeMonths = calculateAgeMonths(profile.birthDate)
+    return {
+      ...parsed,
+      profile: {
+        ...profile,
+        ageMonths: computedAgeMonths ?? profile.ageMonths,
+      },
+    }
   } catch {
     return initialState
   }
@@ -75,7 +104,7 @@ function parseRemoteState(data: unknown): StoredState {
   if (!data || typeof data !== "object") return initialState
 
   const value = data as {
-    profile?: { ageMonths?: number }
+    profile?: { ageMonths?: number; birthDate?: string | null; childName?: string | null }
     tests?: Array<{
       id?: string
       foodId?: string
@@ -85,9 +114,14 @@ function parseRemoteState(data: unknown): StoredState {
     }>
   }
 
+  const birthDate = value.profile?.birthDate ?? ""
+  const computedAgeMonths = calculateAgeMonths(birthDate)
+
   return {
     profile: {
-      ageMonths: value.profile?.ageMonths ?? initialState.profile.ageMonths,
+      ageMonths: computedAgeMonths ?? value.profile?.ageMonths ?? initialState.profile.ageMonths,
+      birthDate,
+      childName: value.profile?.childName ?? "",
     },
     tests: sortTests(
       (value.tests ?? [])
@@ -181,7 +215,7 @@ export function useBabyStore() {
     }
 
     const familyCodeHash = await hashFamilyCode(code)
-    const nextSession = { familyCodeHash }
+    const nextSession = { familyCodeHash, familyCodeLabel: code.trim() }
     setFamilySession(nextSession)
     return true
   }
@@ -212,17 +246,29 @@ export function useBabyStore() {
     setSyncError(null)
   }
 
-  async function updateAge(ageMonths: number) {
+  async function updateProfile(nextProfile: Partial<BabyProfile>) {
+    const mergedProfile = {
+      ...state.profile,
+      ...nextProfile,
+    }
+    const computedAgeMonths = calculateAgeMonths(mergedProfile.birthDate)
+    const profile = {
+      ...mergedProfile,
+      ageMonths: computedAgeMonths ?? mergedProfile.ageMonths,
+    }
+
     setState((current) => ({
       ...current,
-      profile: { ageMonths },
+      profile,
     }))
 
     if (!isSupabaseConfigured || !supabase || !familySession) return
 
     setSyncStatus("syncing")
     const { error } = await supabase.rpc("upsert_baby_profile", {
-      p_age_months: ageMonths,
+      p_age_months: profile.ageMonths,
+      p_birth_date: profile.birthDate || null,
+      p_child_name: profile.childName || null,
       p_family_code_hash: familySession.familyCodeHash,
     })
 
@@ -234,6 +280,10 @@ export function useBabyStore() {
 
     setSyncStatus("idle")
     setSyncError(null)
+  }
+
+  async function updateAge(ageMonths: number) {
+    await updateProfile({ ageMonths, birthDate: "" })
   }
 
   async function addTest(test: Omit<FoodTest, "id">) {
@@ -279,6 +329,7 @@ export function useBabyStore() {
     syncStatus,
     testedFoodIds,
     updateAge,
+    updateProfile,
   }
 }
 

@@ -15,6 +15,8 @@ L'app utilise Supabase comme stockage partagé et garde `localStorage` comme cac
 
 1. Créer un projet Supabase.
 2. Exécuter le SQL dans `supabase/schema.sql` depuis l'éditeur SQL Supabase.
+   Réexécuter ce fichier après chaque mise à jour du schéma : il utilise des `if not exists`
+   et conserve les données existantes.
 3. Créer `.env.local` à partir de `.env.example`.
 4. Renseigner :
 

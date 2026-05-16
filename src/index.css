@@ -26,6 +26,28 @@
     --radius: 0.5rem;
   }
 
+  .dark {
+    --background: 170 16% 10%;
+    --foreground: 45 28% 93%;
+    --card: 168 13% 14%;
+    --card-foreground: 45 28% 93%;
+    --popover: 168 13% 14%;
+    --popover-foreground: 45 28% 93%;
+    --primary: 154 30% 58%;
+    --primary-foreground: 166 24% 11%;
+    --secondary: 31 22% 22%;
+    --secondary-foreground: 45 28% 92%;
+    --muted: 165 10% 20%;
+    --muted-foreground: 48 10% 70%;
+    --accent: 191 20% 24%;
+    --accent-foreground: 45 28% 92%;
+    --destructive: 4 58% 54%;
+    --destructive-foreground: 42 42% 98%;
+    --border: 164 9% 25%;
+    --input: 164 9% 25%;
+    --ring: 154 30% 58%;
+  }
+
   * {
     @apply border-border;
   }
@@ -58,5 +80,11 @@
     background:
       radial-gradient(circle at top left, hsl(31 55% 89% / 0.75), transparent 32rem),
       linear-gradient(180deg, hsl(45 45% 96%), hsl(51 35% 94%));
+  }
+
+  .dark .soft-surface {
+    background:
+      radial-gradient(circle at top left, hsl(154 30% 22% / 0.75), transparent 32rem),
+      linear-gradient(180deg, hsl(var(--background)), hsl(166 18% 8%));
   }
 }

@@ -1,8 +1,14 @@
 create table if not exists public.baby_profiles (
   family_code_hash text primary key,
+  child_name text,
+  birth_date date,
   age_months integer not null default 4,
   updated_at timestamptz not null default now()
 );
+
+alter table public.baby_profiles
+  add column if not exists child_name text,
+  add column if not exists birth_date date;
 
 create table if not exists public.baby_food_tests (
   id uuid primary key,
@@ -37,10 +43,12 @@ as $$
     coalesce(
       (
         select jsonb_build_object('ageMonths', age_months)
+          || jsonb_build_object('childName', coalesce(child_name, ''))
+          || jsonb_build_object('birthDate', coalesce(birth_date::text, ''))
         from public.baby_profiles
         where family_code_hash = p_family_code_hash
       ),
-      jsonb_build_object('ageMonths', 4)
+      jsonb_build_object('ageMonths', 4, 'childName', '', 'birthDate', '')
     ),
     'tests',
     coalesce(
@@ -63,19 +71,39 @@ as $$
   );
 $$;
 
+drop function if exists public.upsert_baby_profile(text, integer);
+
 create or replace function public.upsert_baby_profile(
   p_family_code_hash text,
-  p_age_months integer
+  p_age_months integer,
+  p_child_name text,
+  p_birth_date date
 )
 returns void
 language sql
 security definer
 set search_path = public
 as $$
-  insert into public.baby_profiles (family_code_hash, age_months, updated_at)
-  values (p_family_code_hash, p_age_months, now())
+  insert into public.baby_profiles (
+    family_code_hash,
+    age_months,
+    child_name,
+    birth_date,
+    updated_at
+  )
+  values (
+    p_family_code_hash,
+    p_age_months,
+    nullif(p_child_name, ''),
+    p_birth_date,
+    now()
+  )
   on conflict (family_code_hash)
-  do update set age_months = excluded.age_months, updated_at = now();
+  do update set
+    age_months = excluded.age_months,
+    child_name = excluded.child_name,
+    birth_date = excluded.birth_date,
+    updated_at = now();
 $$;
 
 create or replace function public.add_baby_food_test(
@@ -110,5 +138,5 @@ as $$
 $$;
 
 grant execute on function public.get_baby_family_state(text) to anon, authenticated;
-grant execute on function public.upsert_baby_profile(text, integer) to anon, authenticated;
+grant execute on function public.upsert_baby_profile(text, integer, text, date) to anon, authenticated;
 grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text) to anon, authenticated;
