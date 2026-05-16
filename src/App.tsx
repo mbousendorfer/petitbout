@@ -261,27 +261,6 @@ function HomePage({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {!store.profile.birthDate && (
-            <Select
-              value={String(store.profile.ageMonths)}
-              onValueChange={(value) => void store.updateAge(Number(value))}
-            >
-              <SelectTrigger aria-label="Âge du bébé">
-                <SelectValue placeholder="Âge du bébé" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {[4, 5, 6, 7, 8, 9, 10, 11, 12].map((age) => (
-                    <SelectItem key={age} value={String(age)}>
-                      {age} mois
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          )}
-        </CardContent>
       </Card>
 
       <Card className="border-primary/20 bg-primary text-primary-foreground">
