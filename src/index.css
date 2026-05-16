@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 45 45% 96%;
+    --foreground: 170 18% 14%;
+    --card: 42 42% 99%;
+    --card-foreground: 170 18% 14%;
+    --popover: 42 42% 99%;
+    --popover-foreground: 170 18% 14%;
+    --primary: 154 34% 28%;
+    --primary-foreground: 42 42% 98%;
+    --secondary: 31 55% 90%;
+    --secondary-foreground: 160 16% 18%;
+    --muted: 42 26% 90%;
+    --muted-foreground: 166 9% 43%;
+    --accent: 192 33% 87%;
+    --accent-foreground: 172 20% 17%;
+    --destructive: 4 68% 49%;
+    --destructive-foreground: 42 42% 98%;
+    --border: 38 23% 84%;
+    --input: 38 23% 84%;
+    --ring: 154 34% 28%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background: hsl(var(--background));
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito Sans", system-ui,
+      sans-serif;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .safe-shell {
+    min-height: 100svh;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+  }
+
+  .soft-surface {
+    background:
+      radial-gradient(circle at top left, hsl(31 55% 89% / 0.75), transparent 32rem),
+      linear-gradient(180deg, hsl(45 45% 96%), hsl(51 35% 94%));
+  }
+}
