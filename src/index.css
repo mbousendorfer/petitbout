@@ -54,10 +54,15 @@
 
   html {
     background: hsl(var(--background));
+    min-height: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
+    min-height: 100%;
+    overscroll-behavior-y: none;
     font-family:
       ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito Sans", system-ui,
       sans-serif;
@@ -68,11 +73,29 @@
   textarea {
     font: inherit;
   }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer components {
   .safe-shell {
-    min-height: 100svh;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
     padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
   }
 

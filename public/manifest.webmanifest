@@ -1,0 +1,54 @@
+{
+  "name": "Diversibebs",
+  "short_name": "Diversibebs",
+  "description": "Suivi simple de la diversification alimentaire de bébé.",
+  "id": ".",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#16332A",
+  "background_color": "#F8F5EC",
+  "lang": "fr-FR",
+  "categories": ["health", "food", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cette semaine",
+      "short_name": "Semaine",
+      "description": "Voir l’aliment prioritaire à tester.",
+      "url": "./#/week",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Aliments",
+      "short_name": "Aliments",
+      "description": "Ouvrir le catalogue des aliments.",
+      "url": "./#/foods",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

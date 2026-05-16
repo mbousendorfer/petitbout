@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useState } from "react"
+import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { NavLink, Route, Routes } from "react-router-dom"
 import {
   Baby,
@@ -6,6 +6,7 @@ import {
   Check,
   ChevronRight,
   Copy,
+  Download,
   Home,
   Leaf,
   LockKeyhole,
@@ -21,12 +22,15 @@ import {
   SlidersHorizontal,
   Sparkles,
   Sun,
+  Upload,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { InstallPrompt } from "@/components/InstallPrompt"
+import { PwaStatus } from "@/components/PwaStatus"
 import {
   Card,
   CardContent,
@@ -129,6 +133,7 @@ function App() {
   return (
     <div className="safe-shell soft-surface">
       <main className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-5">
+        <PwaStatus />
         <Routes>
           <Route path="/" element={<HomePage store={store} suggestions={suggestions} recentTests={recentTests} />} />
           <Route path="/foods" element={<FoodsPage store={store} />} />
@@ -136,6 +141,7 @@ function App() {
           <Route path="/history" element={<HistoryPage store={store} />} />
           <Route path="/settings" element={<SettingsPage store={store} theme={theme} setTheme={setTheme} />} />
         </Routes>
+        <InstallPrompt />
       </main>
       <BottomNav />
       <Toaster />
@@ -145,8 +151,12 @@ function App() {
 
 function useTheme() {
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    const stored = localStorage.getItem(themeStorageKey)
-    if (stored === "light" || stored === "system" || stored === "dark") return stored
+    try {
+      const stored = localStorage.getItem(themeStorageKey)
+      if (stored === "light" || stored === "system" || stored === "dark") return stored
+    } catch {
+      return "system"
+    }
     return "system"
   })
 
@@ -158,7 +168,11 @@ function useTheme() {
       document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && prefersDark))
     }
 
-    localStorage.setItem(themeStorageKey, theme)
+    try {
+      localStorage.setItem(themeStorageKey, theme)
+    } catch {
+      // Theme persistence is a local preference; keep the session usable if storage is unavailable.
+    }
     applyTheme()
     mediaQuery.addEventListener("change", applyTheme)
 
@@ -848,6 +862,7 @@ function SettingsPage({
 }) {
   const [childName, setChildName] = useState(store.profile.childName)
   const [birthDate, setBirthDate] = useState(store.profile.birthDate)
+  const importInputRef = useRef<HTMLInputElement>(null)
   const familyCodeLabel = store.familySession?.familyCodeLabel ?? ""
   const shouldShowSyncStatus = ["loading", "syncing", "offline", "error"].includes(store.syncStatus)
 
@@ -874,6 +889,43 @@ function SettingsPage({
   function saveBirthDate(value: string) {
     setBirthDate(value)
     void store.updateProfile({ birthDate: value })
+  }
+
+  function exportBackup() {
+    const backup = store.exportBackup()
+    const backupJson = JSON.stringify(backup, null, 2)
+    const blob = new Blob([backupJson], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    const date = new Date().toISOString().slice(0, 10)
+
+    link.href = url
+    link.download = `diversibebs-sauvegarde-${date}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    toast.success("Sauvegarde exportée")
+  }
+
+  async function importBackup(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text)
+      const confirmed = window.confirm(
+        "Importer cette sauvegarde remplacera les données locales de cet appareil. Continuer ?",
+      )
+
+      if (!confirmed) return
+
+      store.importBackup(parsed)
+      toast.success("Sauvegarde importée")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible d’importer cette sauvegarde")
+    } finally {
+      event.target.value = ""
+    }
   }
 
   return (
@@ -947,6 +999,35 @@ function SettingsPage({
             <ThemeButton active={theme === "system"} icon={Monitor} label="Système" onClick={() => setTheme("system")} />
             <ThemeButton active={theme === "dark"} icon={Moon} label="Sombre" onClick={() => setTheme("dark")} />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card/90">
+        <CardHeader>
+          <CardTitle>Sauvegarde locale</CardTitle>
+          <CardDescription>
+            Exportez un fichier JSON pour garder une copie ou migrer vers un autre appareil.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Button type="button" variant="outline" onClick={exportBackup}>
+            <Download data-icon="inline-start" aria-hidden="true" />
+            Exporter les données
+          </Button>
+          <input
+            ref={importInputRef}
+            className="sr-only"
+            type="file"
+            accept="application/json"
+            onChange={(event) => void importBackup(event)}
+          />
+          <Button type="button" variant="ghost" onClick={() => importInputRef.current?.click()}>
+            <Upload data-icon="inline-start" aria-hidden="true" />
+            Importer une sauvegarde
+          </Button>
+          <p className="text-xs leading-5 text-muted-foreground">
+            L’import demande confirmation avant de remplacer les données locales.
+          </p>
         </CardContent>
       </Card>
     </>

@@ -19,14 +19,22 @@ export type BabyProfile = {
   childName: string
 }
 
-type StoredState = {
+export type StoredState = {
   profile: BabyProfile
   tests: FoodTest[]
 }
 
-type FamilySession = {
+export type FamilySession = {
   familyCodeHash: string
   familyCodeLabel?: string
+}
+
+export type BabyBackup = {
+  app: "diversibebs"
+  exportedAt: string
+  familySession: FamilySession | null
+  state: StoredState
+  version: 1
 }
 
 type SyncStatus = "idle" | "loading" | "syncing" | "error" | "offline" | "not-configured"
@@ -39,6 +47,14 @@ const initialState: StoredState = {
   profile: { ageMonths: 4, birthDate: "", childName: "" },
   tests: [],
 }
+
+const validReactions: Reaction[] = [
+  "aucune réaction",
+  "digestion difficile",
+  "rougeur",
+  "vomissement",
+  "autre",
+]
 
 function calculateAgeMonths(birthDate: string) {
   if (!birthDate) return null
@@ -57,34 +73,74 @@ function calculateAgeMonths(birthDate: string) {
   return Math.max(0, months)
 }
 
+function readLocalStorage(key: string) {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function writeLocalStorage(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    // The in-memory state remains usable even if private browsing or quota blocks writes.
+  }
+}
+
+function removeLocalStorage(key: string) {
+  try {
+    localStorage.removeItem(key)
+  } catch {
+    // Ignore storage cleanup errors; the current session state is still authoritative.
+  }
+}
+
+function isReaction(value: unknown): value is Reaction {
+  return typeof value === "string" && validReactions.includes(value as Reaction)
+}
+
+function normalizeStoredState(value: Partial<StoredState> | null | undefined): StoredState {
+  const profile = { ...initialState.profile, ...(value?.profile ?? {}) }
+  const computedAgeMonths = calculateAgeMonths(profile.birthDate)
+
+  return {
+    profile: {
+      ageMonths: computedAgeMonths ?? profile.ageMonths,
+      birthDate: profile.birthDate ?? "",
+      childName: profile.childName ?? "",
+    },
+    tests: sortTests(
+      (value?.tests ?? [])
+        .filter((test): test is FoodTest =>
+          Boolean(test.id && test.foodId && test.date && isReaction(test.reaction)),
+        )
+        .map((test) => ({
+          id: test.id,
+          foodId: test.foodId,
+          date: test.date,
+          isPopote: test.isPopote ?? false,
+          reaction: test.reaction,
+          note: test.note ?? "",
+        })),
+    ),
+  }
+}
+
 function readStoredState() {
-  const stored = localStorage.getItem(storageKey) ?? localStorage.getItem(legacyStorageKey)
+  const stored = readLocalStorage(storageKey) ?? readLocalStorage(legacyStorageKey)
   if (!stored) return initialState
 
   try {
-    const parsed = { ...initialState, ...JSON.parse(stored) } as StoredState
-    const profile = { ...initialState.profile, ...parsed.profile }
-    const computedAgeMonths = calculateAgeMonths(profile.birthDate)
-    return {
-      ...parsed,
-      profile: {
-        ...profile,
-        ageMonths: computedAgeMonths ?? profile.ageMonths,
-      },
-      tests: sortTests(
-        (parsed.tests ?? []).map((test) => ({
-          ...test,
-          isPopote: test.isPopote ?? false,
-        })),
-      ),
-    }
+    return normalizeStoredState(JSON.parse(stored) as Partial<StoredState>)
   } catch {
     return initialState
   }
 }
 
 function readFamilySession() {
-  const stored = localStorage.getItem(familySessionKey)
+  const stored = readLocalStorage(familySessionKey)
   if (!stored) return null
 
   try {
@@ -122,29 +178,47 @@ function parseRemoteState(data: unknown): StoredState {
     }>
   }
 
-  const birthDate = value.profile?.birthDate ?? ""
-  const computedAgeMonths = calculateAgeMonths(birthDate)
-
-  return {
+  return normalizeStoredState({
     profile: {
-      ageMonths: computedAgeMonths ?? value.profile?.ageMonths ?? initialState.profile.ageMonths,
-      birthDate,
+      ageMonths: value.profile?.ageMonths ?? initialState.profile.ageMonths,
+      birthDate: value.profile?.birthDate ?? "",
       childName: value.profile?.childName ?? "",
     },
-    tests: sortTests(
-      (value.tests ?? [])
-        .filter((test): test is FoodTest =>
-          Boolean(test.id && test.foodId && test.date && test.reaction),
-        )
-        .map((test) => ({
-          id: test.id,
-          foodId: test.foodId,
-          date: test.date,
-          isPopote: test.isPopote ?? false,
-          reaction: test.reaction,
-          note: test.note ?? "",
-        })),
-    ),
+    tests: (value.tests ?? []).map((test) => ({
+      id: test.id ?? "",
+      foodId: test.foodId ?? "",
+      date: test.date ?? "",
+      isPopote: test.isPopote ?? false,
+      reaction: test.reaction ?? "aucune réaction",
+      note: test.note ?? "",
+    })),
+  })
+}
+
+function parseBackupPayload(payload: unknown) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Le fichier sélectionné n’est pas une sauvegarde Diversibebs valide.")
+  }
+
+  const value = payload as Partial<BabyBackup>
+
+  if (value.app !== "diversibebs" || value.version !== 1 || !value.state) {
+    throw new Error("Le format de sauvegarde n’est pas reconnu.")
+  }
+
+  const familySession =
+    value.familySession &&
+    typeof value.familySession === "object" &&
+    typeof value.familySession.familyCodeHash === "string"
+      ? {
+          familyCodeHash: value.familySession.familyCodeHash,
+          familyCodeLabel: value.familySession.familyCodeLabel,
+        }
+      : null
+
+  return {
+    familySession,
+    state: normalizeStoredState(value.state),
   }
 }
 
@@ -157,16 +231,16 @@ export function useBabyStore() {
   const [syncError, setSyncError] = useState<string | null>(null)
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(state))
+    writeLocalStorage(storageKey, JSON.stringify(state))
   }, [state])
 
   useEffect(() => {
     if (!familySession) {
-      localStorage.removeItem(familySessionKey)
+      removeLocalStorage(familySessionKey)
       return
     }
 
-    localStorage.setItem(familySessionKey, JSON.stringify(familySession))
+    writeLocalStorage(familySessionKey, JSON.stringify(familySession))
   }, [familySession])
 
   useEffect(() => {
@@ -326,12 +400,32 @@ export function useBabyStore() {
     setSyncError(null)
   }
 
+  function exportBackup(): BabyBackup {
+    return {
+      app: "diversibebs",
+      exportedAt: new Date().toISOString(),
+      familySession,
+      state,
+      version: 1,
+    }
+  }
+
+  function importBackup(payload: unknown) {
+    const nextBackup = parseBackupPayload(payload)
+    setState(nextBackup.state)
+    setFamilySession(nextBackup.familySession)
+    setSyncError(null)
+    setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
+  }
+
   return {
     ...state,
     addTest,
     connectFamily,
     disconnectFamily,
     familySession,
+    exportBackup,
+    importBackup,
     isConfigured: isSupabaseConfigured,
     latestByFood,
     refresh,
@@ -344,9 +438,5 @@ export function useBabyStore() {
 }
 
 export const reactions: Reaction[] = [
-  "aucune réaction",
-  "digestion difficile",
-  "rougeur",
-  "vomissement",
-  "autre",
+  ...validReactions,
 ]
