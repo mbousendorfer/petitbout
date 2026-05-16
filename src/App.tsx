@@ -685,38 +685,124 @@ function WeekPage({
   suggestions: Food[]
   store: ReturnType<typeof useBabyStore>
 }) {
+  const topFood = suggestions[0]
+  const alternatives = suggestions.slice(1, 3)
+  const weeklyPlan = suggestions.slice(1)
+
   return (
     <>
-      <Header eyebrow="Suggestions" title="Cette semaine" />
-      <div className="flex flex-col gap-3">
-        {suggestions.map((food) => (
-          <Card key={food.id} className="bg-card/90">
-            <CardHeader>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <CardTitle>{food.emoji} {food.name}</CardTitle>
-                  <CardDescription>{food.preparation}</CardDescription>
+      <Header eyebrow="Conseil" title="Cette semaine" />
+      {topFood ? (
+        <>
+          <Card className="overflow-hidden border-primary/20 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-foreground/12 px-3 py-1 text-xs font-semibold uppercase tracking-normal text-primary-foreground/80">
+                    <Sparkles className="size-4" aria-hidden="true" />
+                    À tester en priorité
+                  </div>
+                  <CardTitle className="text-3xl">{topFood.emoji} {topFood.name}</CardTitle>
+                  <CardDescription className="mt-2 text-primary-foreground/75">
+                    Le meilleur choix maintenant : adapté à l’âge, non testé, et priorisé par saison / introduction.
+                  </CardDescription>
                 </div>
-                <FoodDetail food={food} store={store} />
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary-foreground/14 text-4xl" aria-hidden="true">
+                  {topFood.emoji}
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              {suggestionReasons(food).map((reason) =>
-                reason === "de saison" ? (
-                  <SeasonBadge key={reason} />
-                ) : reason.startsWith("introduction") ? (
-                  <IntroductionBadge key={reason} level={food.level} />
-                ) : (
-                  <Badge key={reason} variant="secondary">
-                    {reason}
-                  </Badge>
-                ),
-              )}
+            <CardContent className="flex flex-col gap-4">
+              <div className="rounded-md bg-primary-foreground/10 p-4 text-sm leading-6 text-primary-foreground/85">
+                {topFood.preparation}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge className="h-8 bg-primary-foreground text-primary px-3">priorité n°1</Badge>
+                {isInSeason(topFood) && <SeasonBadge />}
+                <IntroductionBadge level={topFood.level} />
+                {topFood.isPopoteEligible && <PopoteBadge label="Popote possible" />}
+              </div>
+              <div className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-md bg-primary-foreground/10 p-3">
+                <p className="text-sm text-primary-foreground/80">
+                  Faites-le simple : un petit test, puis notez seulement si quelque chose mérite d’être retenu.
+                </p>
+                <FoodDetail food={topFood} store={store} inverted />
+              </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+
+          {alternatives.length > 0 && (
+            <Card className="bg-card/90">
+              <CardHeader className="pb-3">
+                <CardTitle>Options aussi pertinentes</CardTitle>
+                <CardDescription>À garder sous la main si le repas du jour s’y prête mieux.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-2">
+                {alternatives.map((food) => (
+                  <FoodRow key={food.id} food={food} store={store} />
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {weeklyPlan.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Plan léger</p>
+                  <h2 className="text-xl font-semibold">Le reste de la semaine</h2>
+                </div>
+                <Badge variant="secondary" className="h-8 px-3">{weeklyPlan.length} idées</Badge>
+              </div>
+              {weeklyPlan.map((food) => (
+                <WeekSuggestionCard key={food.id} food={food} store={store} />
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <Card className="bg-card/90">
+          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+            <div className="rounded-full bg-secondary p-3">
+              <Check aria-hidden="true" />
+            </div>
+            <div>
+              <p className="font-medium">Tout est à jour</p>
+              <p className="mt-1 text-sm text-muted-foreground">Aucune suggestion nouvelle pour cette semaine.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </>
+  )
+}
+
+function WeekSuggestionCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
+  return (
+    <Card className="bg-card/90">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <CardTitle className="truncate">{food.emoji} {food.name}</CardTitle>
+            <CardDescription>{food.preparation}</CardDescription>
+          </div>
+          <FoodDetail food={food} store={store} />
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-wrap gap-2">
+        {suggestionReasons(food).map((reason) =>
+          reason === "de saison" ? (
+            <SeasonBadge key={reason} />
+          ) : reason.startsWith("introduction") ? (
+            <IntroductionBadge key={reason} level={food.level} />
+          ) : (
+            <Badge key={reason} variant="secondary" className="h-8 px-3">
+              {reason}
+            </Badge>
+          ),
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -1047,7 +1133,6 @@ function FoodDetail({
                   Marquer comme testé
                 </Button>
               </div>
-              <Disclaimer compact />
             </div>
           </ScrollArea>
         </DrawerContent>
