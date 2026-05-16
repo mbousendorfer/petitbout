@@ -227,7 +227,6 @@ function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
           </p>
         </CardContent>
       </Card>
-      <Disclaimer />
     </>
   )
 }
@@ -308,7 +307,6 @@ function HomePage({
         </CardContent>
       </Card>
 
-      <Disclaimer />
     </>
   )
 }
