@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react"
+import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useState } from "react"
 import { NavLink, Route, Routes } from "react-router-dom"
 import {
   Baby,
@@ -985,29 +985,57 @@ function ThemeButton({
 function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const status = getStatus(food.id, store.latestByFood)
 
+  const [open, setOpen] = useState(false)
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return
+    event.preventDefault()
+    setOpen(true)
+  }
+
   return (
-    <Card className="bg-card/90">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-2xl" aria-hidden="true">
-              {food.emoji}
-            </span>
-            <div className="min-w-0">
-              <CardTitle className="truncate">{food.name}</CardTitle>
-              <CardDescription>{food.category} · dès {food.minAgeMonths} mois</CardDescription>
+    <>
+      <Card
+        className="cursor-pointer bg-card/90 transition-colors hover:border-primary/35 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-2xl" aria-hidden="true">
+                {food.emoji}
+              </span>
+              <div className="min-w-0">
+                <CardTitle className="truncate">{food.name}</CardTitle>
+                <CardDescription>{food.category} · dès {food.minAgeMonths} mois</CardDescription>
+              </div>
             </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={(event) => {
+                event.stopPropagation()
+                setOpen(true)
+              }}
+              aria-label={`Marquer ${food.name} comme testé`}
+            >
+              <Plus data-icon="inline-start" aria-hidden="true" />
+              Tester
+            </Button>
           </div>
-          <FoodDetail food={food} store={store} />
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <StatusBadge status={status} />
-        {isInSeason(food) && <SeasonBadge />}
-        <IntroductionBadge level={food.level} />
-        {food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <StatusBadge status={status} />
+          {isInSeason(food) && <SeasonBadge />}
+          <IntroductionBadge level={food.level} />
+          {food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
+        </CardContent>
+      </Card>
+      <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />
+    </>
   )
 }
 
@@ -1047,20 +1075,6 @@ function FoodDetail({
   inverted?: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
-  const [isPopote, setIsPopote] = useState(false)
-  const [note, setNote] = useState("")
-  const [showNote, setShowNote] = useState(false)
-  const status = getStatus(food.id, store.latestByFood)
-
-  async function saveTest() {
-    await store.addTest({ foodId: food.id, date, isPopote: food.isPopoteEligible && isPopote, reaction: "aucune réaction", note })
-    toast.success(`${food.name} ajouté à l’historique`)
-    setOpen(false)
-    setIsPopote(false)
-    setNote("")
-    setShowNote(false)
-  }
 
   return (
     <>
@@ -1073,7 +1087,40 @@ function FoodDetail({
       >
         {compact ? <ChevronRight aria-hidden="true" /> : <><Plus data-icon="inline-start" aria-hidden="true" /> Tester</>}
       </Button>
-      <Drawer open={open} onOpenChange={setOpen}>
+      <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />
+    </>
+  )
+}
+
+function FoodTestDrawer({
+  food,
+  onOpenChange,
+  open,
+  store,
+}: {
+  food: Food
+  onOpenChange: (open: boolean) => void
+  open: boolean
+  store: ReturnType<typeof useBabyStore>
+}) {
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [isPopote, setIsPopote] = useState(false)
+  const [note, setNote] = useState("")
+  const [showNote, setShowNote] = useState(false)
+  const status = getStatus(food.id, store.latestByFood)
+
+  async function saveTest() {
+    await store.addTest({ foodId: food.id, date, isPopote: food.isPopoteEligible && isPopote, reaction: "aucune réaction", note })
+    toast.success(`${food.name} ajouté à l’historique`)
+    onOpenChange(false)
+    setIsPopote(false)
+    setNote("")
+    setShowNote(false)
+  }
+
+  return (
+    <>
+      <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent side="bottom" className="flex h-[90svh] max-h-[90svh] flex-col gap-0 p-0">
           <DrawerHeader className="shrink-0 px-6 pb-4 pt-6">
             <DrawerTitle>{food.emoji} {food.name}</DrawerTitle>
