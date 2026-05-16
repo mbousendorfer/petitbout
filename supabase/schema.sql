@@ -15,10 +15,14 @@ create table if not exists public.baby_food_tests (
   family_code_hash text not null,
   food_id text not null,
   date date not null,
+  is_popote boolean not null default false,
   reaction text not null,
   note text not null default '',
   created_at timestamptz not null default now()
 );
+
+alter table public.baby_food_tests
+  add column if not exists is_popote boolean not null default false;
 
 create index if not exists baby_food_tests_family_code_hash_created_at_idx
   on public.baby_food_tests (family_code_hash, created_at desc);
@@ -58,6 +62,7 @@ as $$
             'id', id,
             'foodId', food_id,
             'date', date,
+            'isPopote', is_popote,
             'reaction', reaction,
             'note', note
           )
@@ -106,13 +111,16 @@ as $$
     updated_at = now();
 $$;
 
+drop function if exists public.add_baby_food_test(uuid, text, text, date, text, text);
+
 create or replace function public.add_baby_food_test(
   p_id uuid,
   p_family_code_hash text,
   p_food_id text,
   p_date date,
   p_reaction text,
-  p_note text
+  p_note text,
+  p_is_popote boolean
 )
 returns void
 language sql
@@ -124,6 +132,7 @@ as $$
     family_code_hash,
     food_id,
     date,
+    is_popote,
     reaction,
     note
   )
@@ -132,6 +141,7 @@ as $$
     p_family_code_hash,
     p_food_id,
     p_date,
+    coalesce(p_is_popote, false),
     p_reaction,
     coalesce(p_note, '')
   );
@@ -139,4 +149,4 @@ $$;
 
 grant execute on function public.get_baby_family_state(text) to anon, authenticated;
 grant execute on function public.upsert_baby_profile(text, integer, text, date) to anon, authenticated;
-grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text) to anon, authenticated;
+grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text, boolean) to anon, authenticated;

@@ -15,6 +15,7 @@ export type Food = {
   name: string
   emoji: string
   category: FoodCategory
+  isPopoteEligible: boolean
   minAgeMonths: number
   seasonMonths: number[]
   preparation: string
@@ -117,6 +118,39 @@ const legumeNames = new Set([
 
 const nutNames = new Set(["Amande", "Noisette", "Noix"])
 
+const popoteEligibleFoodIds = new Set([
+  "artichaut",
+  "banane",
+  "betterave",
+  "boeuf",
+  "brasse-nature",
+  "brocoli",
+  "carotte",
+  "cerise",
+  "colin-d-alaska",
+  "courge-butternut",
+  "dinde",
+  "epinards",
+  "figue",
+  "framboise",
+  "haricots-verts",
+  "mirabelle",
+  "mure",
+  "myrtille",
+  "panais",
+  "patate-douce",
+  "peche",
+  "petits-pois",
+  "poire",
+  "polenta",
+  "pomme",
+  "pomme-de-terre",
+  "porridge",
+  "prune",
+  "tomate",
+  "veau",
+])
+
 function preparationFor(source: FoodSource) {
   if (source.preparation) return source.preparation
 
@@ -167,12 +201,14 @@ function makeFood(source: FoodSource): Food {
   const tags = [...(source.tags ?? [])]
   if (source.level === "conseillé") tags.unshift("introduction conseillée")
   if (source.level === "possible") tags.unshift("introduction possible")
+  const id = slugify(source.name)
 
   return {
-    id: slugify(source.name),
+    id,
     name: source.name,
     emoji: source.emoji,
     category: source.category,
+    isPopoteEligible: popoteEligibleFoodIds.has(id),
     minAgeMonths: source.minAgeMonths ?? 4,
     seasonMonths: source.season ? seasonByLabel[source.season] ?? allYear : allYear,
     preparation: preparationFor(source),
@@ -201,6 +237,7 @@ const vegetableSources: FoodSource[] = [
   { name: "Chou-rave", emoji: "🥬", category: "Légumes", level: "possible", season: "mars à novembre" },
   { name: "Citrouille", emoji: "🎃", category: "Légumes", level: "conseillé", season: "septembre à décembre" },
   { name: "Concombre", emoji: "🥒", category: "Légumes", level: "conseillé", season: "avril à octobre" },
+  { name: "Courge butternut", emoji: "🎃", category: "Légumes", level: "conseillé" },
   { name: "Courgette", emoji: "🥒", category: "Légumes", level: "conseillé", season: "mai à septembre" },
   { name: "Endive", emoji: "🥬", category: "Légumes", level: "conseillé", season: "octobre à avril" },
   { name: "Épinards", emoji: "🥬", category: "Légumes", level: "conseillé", season: "septembre à juin" },
@@ -282,6 +319,7 @@ const starchSources: FoodSource[] = [
   { name: "Pâtes", emoji: "🍝", category: "Féculents", level: "possible", minAgeMonths: 6, tags: ["gluten"] },
   { name: "Pois chiches", emoji: "🫘", category: "Féculents", level: "possible" },
   { name: "Polenta", emoji: "🌽", category: "Féculents", level: "possible" },
+  { name: "Porridge", emoji: "🥣", category: "Féculents", level: "possible" },
   { name: "Pomme de terre", emoji: "🥔", category: "Féculents", level: "conseillé" },
   { name: "Quinoa", emoji: "🌾", category: "Féculents", level: "possible" },
   { name: "Riz blanc", emoji: "🍚", category: "Féculents", level: "possible" },
@@ -292,6 +330,10 @@ const starchSources: FoodSource[] = [
 ]
 
 const animalProteinSources: FoodSource[] = [
+  { name: "Boeuf", emoji: "🥩", category: "Protéines", level: "possible", preparation: "Très cuits et mixés, puis bien cuits et mixés ou hachés. Repère du tableau : 10 g par jour puis 20 g par jour à 1 an." },
+  { name: "Colin d’Alaska", emoji: "🐟", category: "Protéines", level: "possible", preparation: "Très cuits et mixés, puis bien cuits et mixés ou hachés. Repère du tableau : 10 g par jour puis 20 g par jour à 1 an." },
+  { name: "Dinde", emoji: "🍗", category: "Protéines", level: "possible", preparation: "Très cuits et mixés, puis bien cuits et mixés ou hachés. Repère du tableau : 10 g par jour puis 20 g par jour à 1 an." },
+  { name: "Veau", emoji: "🥩", category: "Protéines", level: "possible", preparation: "Très cuits et mixés, puis bien cuits et mixés ou hachés. Repère du tableau : 10 g par jour puis 20 g par jour à 1 an." },
   { name: "Viande blanche", emoji: "🍗", category: "Protéines", level: "possible", preparation: "Très cuits et mixés, puis bien cuits et mixés ou hachés. Repère du tableau : 10 g par jour puis 20 g par jour à 1 an." },
   { name: "Viande rouge", emoji: "🥩", category: "Protéines", level: "possible", preparation: "Très cuits et mixés, puis bien cuits et mixés ou hachés. Repère du tableau : 10 g par jour puis 20 g par jour à 1 an." },
   { name: "Poisson maigre", emoji: "🐟", category: "Protéines", level: "possible", preparation: "Très cuits et mixés, puis bien cuits et mixés ou hachés. Repère du tableau : 10 g par jour puis 20 g par jour à 1 an." },
@@ -311,6 +353,7 @@ const fatSources: FoodSource[] = [
 const miscellaneousSources: FoodSource[] = [
   { name: "Miel", emoji: "🍯", category: "Divers", level: "possible", minAgeMonths: 12 },
   { name: "Yaourt", emoji: "🥛", category: "Produits laitiers", level: "possible" },
+  { name: "Brassé nature", emoji: "🥛", category: "Produits laitiers", level: "possible" },
   { name: "Fromage blanc", emoji: "🥛", category: "Produits laitiers", level: "possible" },
   { name: "Petit-suisse", emoji: "🥛", category: "Produits laitiers", level: "possible" },
   { name: "Fromage pasteurisé", emoji: "🧀", category: "Produits laitiers", level: "possible" },

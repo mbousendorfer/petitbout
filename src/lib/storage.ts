@@ -8,6 +8,7 @@ export type FoodTest = {
   id: string
   foodId: string
   date: string
+  isPopote: boolean
   reaction: Reaction
   note: string
 }
@@ -70,6 +71,12 @@ function readStoredState() {
         ...profile,
         ageMonths: computedAgeMonths ?? profile.ageMonths,
       },
+      tests: sortTests(
+        (parsed.tests ?? []).map((test) => ({
+          ...test,
+          isPopote: test.isPopote ?? false,
+        })),
+      ),
     }
   } catch {
     return initialState
@@ -108,6 +115,7 @@ function parseRemoteState(data: unknown): StoredState {
     tests?: Array<{
       id?: string
       foodId?: string
+      isPopote?: boolean
       date?: string
       reaction?: Reaction
       note?: string
@@ -132,6 +140,7 @@ function parseRemoteState(data: unknown): StoredState {
           id: test.id,
           foodId: test.foodId,
           date: test.date,
+          isPopote: test.isPopote ?? false,
           reaction: test.reaction,
           note: test.note ?? "",
         })),
@@ -302,6 +311,7 @@ export function useBabyStore() {
       p_family_code_hash: familySession.familyCodeHash,
       p_food_id: nextTest.foodId,
       p_id: nextTest.id,
+      p_is_popote: nextTest.isPopote,
       p_note: nextTest.note,
       p_reaction: nextTest.reaction,
     })

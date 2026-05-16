@@ -14,6 +14,8 @@ import {
   Monitor,
   Moon,
   NotebookText,
+  PackageCheck,
+  Plus,
   RefreshCw,
   Search,
   Settings,
@@ -286,8 +288,11 @@ function HomePage({
               return (
                 <div key={test.id} className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-medium">{food.emoji} {food.name}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(test.date).toLocaleDateString("fr-FR")}</p>
+                    <p className="font-medium">{food.emoji} {food.name}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <p className="text-sm text-muted-foreground">{new Date(test.date).toLocaleDateString("fr-FR")}</p>
+                      {test.isPopote && <PopoteBadge />}
+                    </div>
                   </div>
                   <StatusBadge status={test.reaction === "aucune réaction" ? "testé" : "réaction"} />
                 </div>
@@ -307,18 +312,20 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
   const [filter, setFilter] = useState<Filter>("Tous")
 
   const filteredFoods = useMemo(() => {
-    return foods.filter((food) => {
-      const status = getStatus(food.id, store.latestByFood)
-      const matchesQuery = food.name.toLowerCase().includes(query.toLowerCase().trim())
-      const matchesFilter =
-        filter === "Tous" ||
-        food.category === filter ||
-        (filter === "Allergènes" && food.tags.includes("allergène")) ||
-        (filter === "Testés" && status !== "non testé") ||
-        (filter === "Non testés" && status === "non testé") ||
-        (filter === "De saison" && isInSeason(food))
-      return matchesQuery && matchesFilter && isAgeReady(food, store.profile.ageMonths)
-    })
+    return foods
+      .filter((food) => {
+        const status = getStatus(food.id, store.latestByFood)
+        const matchesQuery = food.name.toLowerCase().includes(query.toLowerCase().trim())
+        const matchesFilter =
+          filter === "Tous" ||
+          food.category === filter ||
+          (filter === "Allergènes" && food.tags.includes("allergène")) ||
+          (filter === "Testés" && status !== "non testé") ||
+          (filter === "Non testés" && status === "non testé") ||
+          (filter === "De saison" && isInSeason(food))
+        return matchesQuery && matchesFilter && isAgeReady(food, store.profile.ageMonths)
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }))
   }, [filter, query, store.latestByFood, store.profile.ageMonths])
 
   return (
@@ -383,11 +390,17 @@ function WeekPage({
               </div>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
-              {suggestionReasons(food).map((reason) => (
-                <Badge key={reason} variant="secondary">
-                  {reason}
-                </Badge>
-              ))}
+              {suggestionReasons(food).map((reason) =>
+                reason === "de saison" ? (
+                  <SeasonBadge key={reason} />
+                ) : reason.startsWith("introduction") ? (
+                  <IntroductionBadge key={reason} level={food.level} />
+                ) : (
+                  <Badge key={reason} variant="secondary">
+                    {reason}
+                  </Badge>
+                ),
+              )}
             </CardContent>
           </Card>
         ))}
@@ -421,7 +434,10 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
                       <p className="font-medium">{food.emoji} {food.name}</p>
                       <p className="text-xs text-muted-foreground">{new Date(test.date).toLocaleDateString("fr-FR")}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{test.reaction}</p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      <p className="text-sm text-muted-foreground">{test.reaction}</p>
+                      {test.isPopote && <PopoteBadge />}
+                    </div>
                     {test.note && <p className="mt-2 rounded-md bg-muted p-3 text-sm">{test.note}</p>}
                   </div>
                 </div>
@@ -590,8 +606,9 @@ function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBab
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
         <StatusBadge status={status} />
-        {isInSeason(food) && <Badge variant="secondary">de saison</Badge>}
-        <Badge variant="outline">{food.level}</Badge>
+        {isInSeason(food) && <SeasonBadge />}
+        <IntroductionBadge level={food.level} />
+        {food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
       </CardContent>
     </Card>
   )
@@ -634,15 +651,17 @@ function FoodDetail({
 }) {
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [isPopote, setIsPopote] = useState(false)
   const [reaction, setReaction] = useState<Reaction>("aucune réaction")
   const [note, setNote] = useState("")
   const tests = store.tests.filter((test) => test.foodId === food.id)
   const status = getStatus(food.id, store.latestByFood)
 
   async function saveTest() {
-    await store.addTest({ foodId: food.id, date, reaction, note })
+    await store.addTest({ foodId: food.id, date, isPopote: food.isPopoteEligible && isPopote, reaction, note })
     toast.success(`${food.name} ajouté à l’historique`)
     setOpen(false)
+    setIsPopote(false)
     setNote("")
     setReaction("aucune réaction")
   }
@@ -651,12 +670,12 @@ function FoodDetail({
     <>
       <Button
         type="button"
-        variant={inverted ? "secondary" : compact ? "outline" : "ghost"}
+        variant={inverted ? "secondary" : compact ? "outline" : "default"}
         size={compact ? "icon" : "sm"}
         onClick={() => setOpen(true)}
-        aria-label={`Voir ${food.name}`}
+        aria-label={compact ? `Voir ${food.name}` : `Marquer ${food.name} comme testé`}
       >
-        {compact ? <ChevronRight aria-hidden="true" /> : "Détail"}
+        {compact ? <ChevronRight aria-hidden="true" /> : <><Plus data-icon="inline-start" aria-hidden="true" /> Tester</>}
       </Button>
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerContent side="bottom" className="max-h-[90svh]">
@@ -670,7 +689,9 @@ function FoodDetail({
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap gap-2">
                 <StatusBadge status={status} />
-                {isInSeason(food) && <Badge variant="secondary">de saison</Badge>}
+                {isInSeason(food) && <SeasonBadge />}
+                <IntroductionBadge level={food.level} />
+                {food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
                 <Badge variant="outline">{monthNames(food.seasonMonths)}</Badge>
               </div>
               <p className="rounded-md bg-muted p-4 text-sm leading-6">{food.preparation}</p>
@@ -702,6 +723,20 @@ function FoodDetail({
                       </SelectContent>
                     </Select>
                   </label>
+                  {food.isPopoteEligible && (
+                    <label className="flex items-center justify-between gap-3 rounded-md border bg-card p-3 text-sm font-medium">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <PackageCheck aria-hidden="true" />
+                        Testé via une gourde Popote
+                      </span>
+                      <input
+                        className="size-5 accent-primary"
+                        type="checkbox"
+                        checked={isPopote}
+                        onChange={(event) => setIsPopote(event.target.checked)}
+                      />
+                    </label>
+                  )}
                   <label className="flex flex-col gap-2 text-sm font-medium">
                     Note libre
                     <Textarea
@@ -724,6 +759,7 @@ function FoodDetail({
                           <p className="font-medium">{test.reaction}</p>
                           <p className="text-xs text-muted-foreground">{new Date(test.date).toLocaleDateString("fr-FR")}</p>
                         </div>
+                        {test.isPopote && <div className="mt-2"><PopoteBadge /></div>}
                         {test.note && <p className="mt-2 text-sm text-muted-foreground">{test.note}</p>}
                       </div>
                     ))
@@ -743,6 +779,41 @@ function StatusBadge({ status }: { status: string }) {
   if (status === "réaction") return <Badge variant="destructive">réaction</Badge>
   if (status === "testé") return <Badge>testé</Badge>
   return <Badge variant="outline">non testé</Badge>
+}
+
+function SeasonBadge() {
+  return (
+    <Badge className="border-emerald-500/25 bg-emerald-500 text-white shadow-sm shadow-emerald-900/10 dark:bg-emerald-400 dark:text-emerald-950">
+      <Leaf data-icon="inline-start" aria-hidden="true" />
+      de saison
+    </Badge>
+  )
+}
+
+function IntroductionBadge({ level }: { level: Food["level"] }) {
+  const label = level === "conseillé" ? "introduction conseillée" : "introduction possible"
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        level === "conseillé"
+          ? "border-primary/25 bg-primary/10 text-primary"
+          : "border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-200",
+      )}
+    >
+      {label}
+    </Badge>
+  )
+}
+
+function PopoteBadge({ label = "Popote" }: { label?: string }) {
+  return (
+    <Badge variant="outline" className="border-sky-500/25 bg-sky-500/10 text-sky-800 dark:text-sky-200">
+      <PackageCheck data-icon="inline-start" aria-hidden="true" />
+      {label}
+    </Badge>
+  )
 }
 
 function Header({ eyebrow, title }: { eyebrow: string; title: string }) {

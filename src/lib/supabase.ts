@@ -24,6 +24,7 @@ export type BabyFoodTestRow = {
   family_code_hash: string
   food_id: string
   date: string
+  is_popote: boolean
   reaction: string
   note: string
   created_at: string
