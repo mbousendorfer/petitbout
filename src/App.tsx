@@ -313,6 +313,7 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
       const matchesFilter =
         filter === "Tous" ||
         food.category === filter ||
+        (filter === "Allergènes" && food.tags.includes("allergène")) ||
         (filter === "Testés" && status !== "non testé") ||
         (filter === "Non testés" && status === "non testé") ||
         (filter === "De saison" && isInSeason(food))
