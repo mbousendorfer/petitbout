@@ -63,7 +63,7 @@ import {
   suggestionReasons,
   weeklySuggestions,
 } from "@/lib/food-utils"
-import { reactions, useBabyStore, type Reaction } from "@/lib/storage"
+import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 
 const disclaimer =
@@ -963,17 +963,17 @@ function FoodDetail({
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [isPopote, setIsPopote] = useState(false)
-  const [reaction, setReaction] = useState<Reaction>("aucune réaction")
   const [note, setNote] = useState("")
+  const [showNote, setShowNote] = useState(false)
   const status = getStatus(food.id, store.latestByFood)
 
   async function saveTest() {
-    await store.addTest({ foodId: food.id, date, isPopote: food.isPopoteEligible && isPopote, reaction, note })
+    await store.addTest({ foodId: food.id, date, isPopote: food.isPopoteEligible && isPopote, reaction: "aucune réaction", note })
     toast.success(`${food.name} ajouté à l’historique`)
     setOpen(false)
     setIsPopote(false)
     setNote("")
-    setReaction("aucune réaction")
+    setShowNote(false)
   }
 
   return (
@@ -1011,23 +1011,6 @@ function FoodDetail({
                   Date
                   <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
                 </label>
-                <label className="flex flex-col gap-2 text-sm font-medium">
-                  Réaction
-                  <Select value={reaction} onValueChange={(value) => setReaction(value as Reaction)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {reactions.map((item) => (
-                          <SelectItem key={item} value={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </label>
                 {food.isPopoteEligible && (
                   <label className="flex items-center justify-between gap-3 rounded-md border bg-card p-3 text-sm font-medium">
                     <span className="flex min-w-0 items-center gap-2">
@@ -1042,14 +1025,22 @@ function FoodDetail({
                     />
                   </label>
                 )}
-                <label className="flex flex-col gap-2 text-sm font-medium">
-                  Note libre
-                  <Textarea
-                    placeholder="Quantité, texture, contexte du repas..."
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                  />
-                </label>
+                {showNote ? (
+                  <label className="flex flex-col gap-2 text-sm font-medium">
+                    Note
+                    <Textarea
+                      autoFocus
+                      placeholder="Quantité, texture, contexte du repas..."
+                      value={note}
+                      onChange={(event) => setNote(event.target.value)}
+                    />
+                  </label>
+                ) : (
+                  <Button type="button" variant="outline" onClick={() => setShowNote(true)}>
+                    <Plus data-icon="inline-start" aria-hidden="true" />
+                    Ajouter une note
+                  </Button>
+                )}
                 <Button type="button" onClick={saveTest}>
                   Marquer comme testé
                 </Button>
