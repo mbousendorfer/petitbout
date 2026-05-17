@@ -1296,17 +1296,17 @@ function FoodTestDrawer({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent
           side="bottom"
-          className="flex h-[90svh] max-h-[90svh] flex-col gap-0 p-0"
+          className="flex max-h-[82svh] min-h-[58svh] flex-col gap-0 overflow-hidden p-0"
           onOpenAutoFocus={(event) => event.preventDefault()}
         >
-          <DrawerHeader className="shrink-0 px-6 pb-4 pt-6">
+          <DrawerHeader className="shrink-0 px-5 pb-3 pt-5">
             <DrawerTitle>{food.emoji} {food.name}</DrawerTitle>
             <DrawerDescription>
               {food.category} · adapté dès {food.minAgeMonths} mois
             </DrawerDescription>
           </DrawerHeader>
-          <ScrollArea className="min-h-0 flex-1 px-6">
-            <div className="flex flex-col gap-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pr-3">
+          <ScrollArea className="min-h-0 flex-1 px-5">
+            <div className="flex min-w-0 flex-col gap-4 pb-4 pr-2">
               <div className="flex flex-wrap gap-2">
                 <StatusBadge status={status} />
                 {isInSeason(food) && <SeasonBadge />}
@@ -1318,10 +1318,15 @@ function FoodTestDrawer({
               </div>
               <p className="rounded-md bg-muted p-4 text-sm leading-6">{food.preparation}</p>
               <Separator />
-              <div className="flex flex-col gap-4">
-                <label className="flex flex-col gap-2 text-sm font-medium">
+              <div className="flex min-w-0 flex-col gap-4">
+                <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
                   Date
-                  <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+                  <Input
+                    className="min-w-0 max-w-full"
+                    type="date"
+                    value={date}
+                    onChange={(event) => setDate(event.target.value)}
+                  />
                 </label>
                 {food.isPopoteEligible && (
                   <label className="flex items-center justify-between gap-3 rounded-md border bg-card p-3 text-sm font-medium">
@@ -1353,12 +1358,14 @@ function FoodTestDrawer({
                     Ajouter une note
                   </Button>
                 )}
-                <Button type="button" onClick={saveTest}>
-                  Marquer comme testé
-                </Button>
               </div>
             </div>
           </ScrollArea>
+          <div className="shrink-0 border-t bg-background/95 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur">
+            <Button type="button" className="h-12 w-full" onClick={saveTest}>
+              Marquer comme testé
+            </Button>
+          </div>
         </DrawerContent>
       </Drawer>
     </>
