@@ -16,6 +16,8 @@ export type Food = {
   category: FoodCategory
   isPopoteEligible: boolean
   minAgeMonths: number
+  possibleAgeMonths?: number
+  recommendedAgeMonths?: number
   seasonMonths: number[]
   preparation: string
   level: RecommendationLevel
@@ -28,7 +30,9 @@ type FoodSource = {
   level: RecommendationLevel
   minAgeMonths?: number
   name: string
+  possibleAgeMonths?: number
   preparation?: string
+  recommendedAgeMonths?: number
   season?: string
   tags?: string[]
 }
@@ -201,6 +205,16 @@ function makeFood(source: FoodSource): Food {
   if (source.level === "conseillé") tags.unshift("introduction conseillée")
   if (source.level === "possible") tags.unshift("introduction possible")
   const id = slugify(source.name)
+  const sourceAges = sourceAgeByFoodId[id] ?? {}
+  let possibleAgeMonths = source.possibleAgeMonths ?? sourceAges.possibleAgeMonths
+  let recommendedAgeMonths = source.recommendedAgeMonths ?? sourceAges.recommendedAgeMonths
+  const ageCandidates = [source.minAgeMonths, possibleAgeMonths, recommendedAgeMonths].filter(
+    (age): age is number => typeof age === "number",
+  )
+  const minAgeMonths =
+    ageCandidates.length > 0 ? Math.min(...ageCandidates) : 4
+  if (source.level === "possible" && !possibleAgeMonths) possibleAgeMonths = minAgeMonths
+  if (source.level === "conseillé" && !recommendedAgeMonths) recommendedAgeMonths = minAgeMonths
 
   return {
     id,
@@ -208,7 +222,9 @@ function makeFood(source: FoodSource): Food {
     emoji: source.emoji,
     category: source.category,
     isPopoteEligible: popoteEligibleFoodIds.has(id),
-    minAgeMonths: source.minAgeMonths ?? 4,
+    minAgeMonths,
+    possibleAgeMonths,
+    recommendedAgeMonths,
     seasonMonths: source.season ? seasonByLabel[source.season] ?? allYear : allYear,
     preparation: preparationFor(source),
     level: source.level,
@@ -362,6 +378,90 @@ const miscellaneousSources: FoodSource[] = [
   { name: "Sel ajouté", emoji: "🧂", category: "Divers", level: "possible", minAgeMonths: 36, tags: ["à éviter"], preparation: "À éviter. Ne pas ajouter de sel dans les préparations, limiter les produits salés." },
   { name: "Sucre ajouté", emoji: "🍬", category: "Divers", level: "possible", minAgeMonths: 36, tags: ["à éviter"], preparation: "À éviter. Ne pas ajouter de sucre dans les préparations, limiter les produits sucrés." },
 ]
+
+type SourceAge = {
+  possibleAgeMonths?: number
+  recommendedAgeMonths?: number
+}
+
+const possibleAt4RecommendedAt6 = [
+  "artichaut",
+  "avocat",
+  "celeri-branche",
+  "champignon",
+  "patisson",
+  "poivron",
+  "radis",
+  "salsifis",
+  "tomate",
+  "amande",
+  "ananas",
+  "cassis",
+  "cerise",
+  "chataigne",
+  "figue",
+  "fraise",
+  "framboise",
+  "fruit-de-la-passion",
+  "grenade",
+  "groseille",
+  "kiwi",
+  "litchi",
+  "mure",
+  "myrtille",
+  "noisette",
+  "noix",
+  "rhubarbe",
+  "avoine",
+  "ble-farine",
+  "yaourt",
+  "brasse-nature",
+  "fromage-blanc",
+  "petit-suisse",
+  "fromage-pasteurise",
+]
+
+const possibleAt4RecommendedAt9 = [
+  "chou-blanc",
+  "chou-de-bruxelles",
+  "chou-rouge",
+  "chou-vert",
+  "chou-fleur",
+  "chou-rave",
+  "oignon",
+  "polenta",
+  "quinoa",
+  "riz-blanc",
+  "sarrasin",
+  "semoule-boulgour",
+  "tapioca",
+]
+
+const possibleAt4RecommendedAt12 = [
+  "feves",
+  "haricots-blancs",
+  "haricots-rouges",
+  "lentilles-corail",
+  "lentilles-vertes",
+  "pois-chiches",
+]
+
+const sourceAgeByFoodId: Record<string, SourceAge> = {
+  ...Object.fromEntries(possibleAt4RecommendedAt6.map((id) => [id, { possibleAgeMonths: 4, recommendedAgeMonths: 6 }])),
+  ...Object.fromEntries(possibleAt4RecommendedAt9.map((id) => [id, { possibleAgeMonths: 4, recommendedAgeMonths: 9 }])),
+  ...Object.fromEntries(possibleAt4RecommendedAt12.map((id) => [id, { possibleAgeMonths: 4, recommendedAgeMonths: 12 }])),
+  asperge: { possibleAgeMonths: 4, recommendedAgeMonths: 9 },
+  datte: { possibleAgeMonths: 4, recommendedAgeMonths: 9 },
+  pain: { possibleAgeMonths: 6, recommendedAgeMonths: 9 },
+  pates: { possibleAgeMonths: 6, recommendedAgeMonths: 9 },
+  "riz-semi-complet": { possibleAgeMonths: 6, recommendedAgeMonths: 9 },
+  miel: { possibleAgeMonths: 12 },
+  chocolat: { possibleAgeMonths: 12 },
+  charcuterie: { possibleAgeMonths: 36 },
+  "jambon-blanc": { possibleAgeMonths: 36 },
+  "fromage-au-lait-cru": { possibleAgeMonths: 60 },
+  "herbes-et-epices": { recommendedAgeMonths: 6 },
+}
 
 const mergedSources = [
   ...vegetableSources,

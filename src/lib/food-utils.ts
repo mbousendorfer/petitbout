@@ -13,6 +13,20 @@ export function isAgeReady(food: Food, ageMonths: number) {
   return food.minAgeMonths <= ageMonths
 }
 
+export function ageSummary(food: Food) {
+  if (
+    food.possibleAgeMonths &&
+    food.recommendedAgeMonths &&
+    food.possibleAgeMonths !== food.recommendedAgeMonths
+  ) {
+    return `possible dès ${food.possibleAgeMonths} mois · conseillé dès ${food.recommendedAgeMonths} mois`
+  }
+
+  if (food.recommendedAgeMonths) return `conseillé dès ${food.recommendedAgeMonths} mois`
+  if (food.possibleAgeMonths) return `possible dès ${food.possibleAgeMonths} mois`
+  return `dès ${food.minAgeMonths} mois`
+}
+
 export function getStatus(foodId: string, latestByFood: Map<string, FoodTest>) {
   const latest = latestByFood.get(foodId)
   if (!latest) return "non testé"
@@ -65,7 +79,7 @@ export function weeklySuggestions(
 }
 
 export function suggestionReasons(food: Food, month = currentMonth()) {
-  const reasons = [`adapté dès ${food.minAgeMonths} mois`, "non encore testé"]
+  const reasons = [ageSummary(food), "non encore testé"]
   if (food.level === "conseillé") reasons.push("aliment conseillé")
   if (isInSeason(food, month)) reasons.push("de saison")
   if (food.tags[0]) reasons.push(food.tags[0])

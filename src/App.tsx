@@ -64,6 +64,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { categories, foods, type Food } from "@/data/foods"
 import {
   getStatus,
+  ageSummary,
   isAgeReady,
   isInSeason,
   monthNames,
@@ -1183,7 +1184,7 @@ function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBab
               </span>
               <div className="min-w-0">
                 <CardTitle className="truncate">{food.name}</CardTitle>
-                <CardDescription>{food.category} · dès {food.minAgeMonths} mois</CardDescription>
+                <CardDescription>{food.category} · {ageSummary(food)}</CardDescription>
               </div>
             </div>
             <Button
@@ -1302,7 +1303,7 @@ function FoodTestDrawer({
           <DrawerHeader className="shrink-0 px-5 pb-3 pt-5">
             <DrawerTitle>{food.emoji} {food.name}</DrawerTitle>
             <DrawerDescription>
-              {food.category} · adapté dès {food.minAgeMonths} mois
+              {food.category} · {ageSummary(food)}
             </DrawerDescription>
           </DrawerHeader>
           <ScrollArea className="min-h-0 flex-1 px-5">
