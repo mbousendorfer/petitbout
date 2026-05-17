@@ -14,6 +14,7 @@ import {
   Monitor,
   Moon,
   NotebookText,
+  Award,
   PackageCheck,
   Plus,
   RefreshCw,
@@ -29,6 +30,7 @@ import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DiscoveriesPage } from "@/components/DiscoveriesPage"
 import { InstallPrompt } from "@/components/InstallPrompt"
 import { PwaStatus } from "@/components/PwaStatus"
 import {
@@ -67,6 +69,12 @@ import {
   suggestionReasons,
   weeklySuggestions,
 } from "@/lib/food-utils"
+import {
+  calculateBadges,
+  readBadgeUnlockDates,
+  writeBadgeUnlockDates,
+  type BadgeUnlockDates,
+} from "@/lib/gamification"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 
@@ -116,6 +124,7 @@ const themeStorageKey = "diversibebs-theme-v1"
 function App() {
   const store = useBabyStore()
   const [theme, setTheme] = useTheme()
+  const badgeUnlockDates = useBadgeUnlockDates(store.tests)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
   const recentTests = store.tests.slice(0, 4)
 
@@ -139,6 +148,7 @@ function App() {
           <Route path="/foods" element={<FoodsPage store={store} />} />
           <Route path="/week" element={<WeekPage suggestions={suggestions} store={store} />} />
           <Route path="/history" element={<HistoryPage store={store} />} />
+          <Route path="/discoveries" element={<DiscoveriesPage tests={store.tests} badgeUnlockDates={badgeUnlockDates} />} />
           <Route path="/settings" element={<SettingsPage store={store} theme={theme} setTheme={setTheme} />} />
         </Routes>
         <InstallPrompt />
@@ -180,6 +190,40 @@ function useTheme() {
   }, [theme])
 
   return [theme, setTheme] as const
+}
+
+function useBadgeUnlockDates(tests: ReturnType<typeof useBabyStore>["tests"]) {
+  const [unlockDates, setUnlockDates] = useState<BadgeUnlockDates>(() => readBadgeUnlockDates())
+  const hasCheckedExistingBadges = useRef(false)
+
+  useEffect(() => {
+    const badges = calculateBadges(foods, tests, unlockDates)
+    const newlyUnlocked = badges.filter((badge) => badge.unlocked && !unlockDates[badge.id])
+
+    if (newlyUnlocked.length === 0) {
+      hasCheckedExistingBadges.current = true
+      return
+    }
+
+    const unlockedAt = new Date().toISOString()
+    const nextUnlockDates = { ...unlockDates }
+    newlyUnlocked.forEach((badge) => {
+      nextUnlockDates[badge.id] = unlockedAt
+    })
+
+    setUnlockDates(nextUnlockDates)
+    writeBadgeUnlockDates(nextUnlockDates)
+
+    if (hasCheckedExistingBadges.current) {
+      newlyUnlocked.slice(0, 3).forEach((badge) => {
+        toast.success(`Badge débloqué : ${badge.name} ${badge.emoji}`)
+      })
+    }
+
+    hasCheckedExistingBadges.current = true
+  }, [tests, unlockDates])
+
+  return unlockDates
 }
 
 function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
@@ -1324,12 +1368,13 @@ function BottomNav() {
     { to: "/foods", label: "Aliments", icon: Leaf },
     { to: "/week", label: "Semaine", icon: CalendarDays },
     { to: "/history", label: "Journal", icon: NotebookText },
+    { to: "/discoveries", label: "Découv.", icon: Award },
     { to: "/settings", label: "Réglages", icon: Settings },
   ]
 
   return (
     <nav className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-xl border-t bg-background/92 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 backdrop-blur">
-      <div className="grid grid-cols-5 gap-1">
+      <div className="grid grid-cols-6 gap-1">
         {items.map((item) => (
           <NavLink
             key={item.to}
