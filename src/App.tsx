@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { NavLink, Route, Routes } from "react-router-dom"
 import {
@@ -1166,7 +1166,7 @@ function ThemeButton({
   )
 }
 
-function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
+const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const status = getStatus(food.id, store.latestByFood)
 
   const [open, setOpen] = useState(false)
@@ -1205,10 +1205,10 @@ function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBab
           </CardContent>
         </Card>
       </button>
-      <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />
+      {open && <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />}
     </>
   )
-}
+})
 
 function FoodRow({
   food,
@@ -1258,7 +1258,7 @@ function FoodDetail({
       >
         {compact ? <ChevronRight aria-hidden="true" /> : <><Plus data-icon="inline-start" aria-hidden="true" /> Tester</>}
       </Button>
-      <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />
+      {open && <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />}
     </>
   )
 }
