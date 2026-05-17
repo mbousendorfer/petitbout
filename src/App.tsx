@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { NavLink, Route, Routes } from "react-router-dom"
 import {
@@ -1161,53 +1161,40 @@ function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBab
 
   const [open, setOpen] = useState(false)
 
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return
-    event.preventDefault()
-    setOpen(true)
-  }
-
   return (
     <>
-      <Card
-        className="cursor-pointer bg-card/90 transition-colors hover:border-primary/35 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
+        className="block w-full touch-manipulation rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => setOpen(true)}
-        onKeyDown={handleKeyDown}
+        aria-label={`Tester ${food.name}`}
       >
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-2xl" aria-hidden="true">
-                {food.emoji}
-              </span>
-              <div className="min-w-0">
-                <CardTitle className="truncate">{food.name}</CardTitle>
-                <CardDescription>{food.category} · {ageSummary(food)}</CardDescription>
+        <Card className="pointer-events-none bg-card/90 transition-colors hover:border-primary/35 hover:bg-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-2xl" aria-hidden="true">
+                  {food.emoji}
+                </span>
+                <div className="min-w-0">
+                  <CardTitle className="truncate">{food.name}</CardTitle>
+                  <CardDescription>{food.category} · {ageSummary(food)}</CardDescription>
+                </div>
               </div>
+              <span className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow">
+                <Plus data-icon="inline-start" aria-hidden="true" />
+                Tester
+              </span>
             </div>
-            <Button
-              type="button"
-              size="sm"
-              onClick={(event) => {
-                event.stopPropagation()
-                setOpen(true)
-              }}
-              aria-label={`Marquer ${food.name} comme testé`}
-            >
-              <Plus data-icon="inline-start" aria-hidden="true" />
-              Tester
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <StatusBadge status={status} />
-          {isInSeason(food) && <SeasonBadge />}
-          <IntroductionBadge level={food.level} />
-          {food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <StatusBadge status={status} />
+            {isInSeason(food) && <SeasonBadge />}
+            <IntroductionBadge level={food.level} />
+            {food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
+          </CardContent>
+        </Card>
+      </button>
       <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />
     </>
   )
