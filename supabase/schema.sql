@@ -147,6 +147,45 @@ as $$
   );
 $$;
 
+create or replace function public.update_baby_food_test(
+  p_id uuid,
+  p_family_code_hash text,
+  p_date date,
+  p_reaction text,
+  p_note text,
+  p_is_popote boolean
+)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.baby_food_tests
+  set
+    date = p_date,
+    reaction = p_reaction,
+    note = coalesce(p_note, ''),
+    is_popote = coalesce(p_is_popote, false)
+  where id = p_id
+    and family_code_hash = p_family_code_hash;
+$$;
+
+create or replace function public.delete_baby_food_test(
+  p_id uuid,
+  p_family_code_hash text
+)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.baby_food_tests
+  where id = p_id
+    and family_code_hash = p_family_code_hash;
+$$;
+
 grant execute on function public.get_baby_family_state(text) to anon, authenticated;
 grant execute on function public.upsert_baby_profile(text, integer, text, date) to anon, authenticated;
 grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text, boolean) to anon, authenticated;
+grant execute on function public.update_baby_food_test(uuid, text, date, text, text, boolean) to anon, authenticated;
+grant execute on function public.delete_baby_food_test(uuid, text) to anon, authenticated;

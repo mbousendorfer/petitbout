@@ -24,6 +24,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Sun,
+  Trash2,
   Upload,
   X,
 } from "lucide-react"
@@ -77,7 +78,7 @@ import {
   writeBadgeUnlockDates,
   type BadgeUnlockDates,
 } from "@/lib/gamification"
-import { useBabyStore } from "@/lib/storage"
+import { useBabyStore, type FoodTest } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 
 const disclaimer =
@@ -392,7 +393,10 @@ function HomePage({
                       {test.isPopote && <PopoteBadge />}
                     </div>
                   </div>
-                  <StatusBadge status={test.reaction === "aucune réaction" ? "testé" : "réaction"} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={test.reaction === "aucune réaction" ? "testé" : "réaction"} />
+                    <FoodDetail food={food} store={store} test={test} compact />
+                  </div>
                 </AnimatedListItem>
               )
             })}
@@ -901,6 +905,16 @@ function WeekSuggestionCard({ food, store }: { food: Food; store: ReturnType<typ
 }
 
 function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
+  async function removeTest(test: FoodTest) {
+    const food = foods.find((item) => item.id === test.foodId)
+    const label = food ? food.name : "cet aliment"
+
+    if (!window.confirm(`Retirer le test de ${label} ?`)) return
+
+    await store.deleteTest(test.id)
+    toast.success(`${label} retiré du journal`)
+  }
+
   return (
     <>
       <Header eyebrow="Journal" title="Historique" />
@@ -931,6 +945,13 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
                       {test.isPopote && <PopoteBadge />}
                     </div>
                     {test.note && <p className="mt-2 rounded-md bg-muted p-3 text-sm">{test.note}</p>}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <FoodDetail food={food} store={store} test={test} />
+                      <Button type="button" variant="outline" size="sm" onClick={() => removeTest(test)}>
+                        <Trash2 data-icon="inline-start" aria-hidden="true" />
+                        Retirer
+                      </Button>
+                    </div>
                   </div>
                 </AnimatedListItem>
               )
@@ -1168,6 +1189,7 @@ function ThemeButton({
 
 const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const status = getStatus(food.id, store.latestByFood)
+  const existingTest = store.latestByFood.get(food.id)
 
   const [open, setOpen] = useState(false)
 
@@ -1177,7 +1199,7 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
         type="button"
         className="block w-full touch-manipulation rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => setOpen(true)}
-        aria-label={`Tester ${food.name}`}
+        aria-label={`${existingTest ? "Modifier" : "Tester"} ${food.name}`}
       >
         <Card className="pointer-events-none bg-card/90 transition-colors hover:border-primary/35 hover:bg-card">
           <CardHeader className="pb-3">
@@ -1193,7 +1215,7 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
               </div>
               <span className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow">
                 <Plus data-icon="inline-start" aria-hidden="true" />
-                Tester
+                {existingTest ? "Modifier" : "Tester"}
               </span>
             </div>
           </CardHeader>
@@ -1205,7 +1227,7 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
           </CardContent>
         </Card>
       </button>
-      {open && <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />}
+      {open && <FoodTestDrawer food={food} store={store} test={existingTest} open={open} onOpenChange={setOpen} />}
     </>
   )
 })
@@ -1237,15 +1259,18 @@ function FoodRow({
 function FoodDetail({
   food,
   store,
+  test,
   compact = false,
   inverted = false,
 }: {
   food: Food
   store: ReturnType<typeof useBabyStore>
+  test?: FoodTest
   compact?: boolean
   inverted?: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const existingTest = test ?? store.latestByFood.get(food.id)
 
   return (
     <>
@@ -1254,11 +1279,22 @@ function FoodDetail({
         variant={inverted ? "secondary" : compact ? "outline" : "default"}
         size={compact ? "icon" : "sm"}
         onClick={() => setOpen(true)}
-        aria-label={compact ? `Voir ${food.name}` : `Marquer ${food.name} comme testé`}
+        aria-label={
+          compact
+            ? `${existingTest ? "Modifier" : "Tester"} ${food.name}`
+            : `${existingTest ? "Modifier le test de" : "Marquer"} ${food.name}`
+        }
       >
-        {compact ? <ChevronRight aria-hidden="true" /> : <><Plus data-icon="inline-start" aria-hidden="true" /> Tester</>}
+        {compact ? (
+          <ChevronRight aria-hidden="true" />
+        ) : (
+          <>
+            <Plus data-icon="inline-start" aria-hidden="true" />
+            {existingTest ? "Modifier" : "Tester"}
+          </>
+        )}
       </Button>
-      {open && <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />}
+      {open && <FoodTestDrawer food={food} store={store} test={test} open={open} onOpenChange={setOpen} />}
     </>
   )
 }
@@ -1268,16 +1304,21 @@ function FoodTestDrawer({
   onOpenChange,
   open,
   store,
+  test,
 }: {
   food: Food
   onOpenChange: (open: boolean) => void
   open: boolean
   store: ReturnType<typeof useBabyStore>
+  test?: FoodTest
 }) {
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
-  const [isPopote, setIsPopote] = useState(false)
-  const [note, setNote] = useState("")
-  const [showNote, setShowNote] = useState(false)
+  const existingTest = test ?? store.latestByFood.get(food.id)
+  const isEditing = Boolean(existingTest)
+  const [date, setDate] = useState(() => existingTest?.date ?? new Date().toISOString().slice(0, 10))
+  const [isPopote, setIsPopote] = useState(() => existingTest?.isPopote ?? false)
+  const [note, setNote] = useState(() => existingTest?.note ?? "")
+  const [showNote, setShowNote] = useState(() => Boolean(existingTest?.note))
+  const [confirmingRemoval, setConfirmingRemoval] = useState(false)
   const titleId = useId()
   const status = getStatus(food.id, store.latestByFood)
 
@@ -1299,12 +1340,38 @@ function FoodTestDrawer({
   }, [onOpenChange, open])
 
   async function saveTest() {
-    await store.addTest({ foodId: food.id, date, isPopote: food.isPopoteEligible && isPopote, reaction: "aucune réaction", note })
-    toast.success(`${food.name} ajouté à l’historique`)
+    const nextTest = {
+      foodId: food.id,
+      date,
+      isPopote: food.isPopoteEligible && isPopote,
+      reaction: existingTest?.reaction ?? "aucune réaction" as const,
+      note,
+    }
+
+    if (existingTest) {
+      await store.updateTest(existingTest.id, nextTest)
+      toast.success(`${food.name} mis à jour`)
+    } else {
+      await store.addTest(nextTest)
+      toast.success(`${food.name} ajouté à l’historique`)
+    }
+
     onOpenChange(false)
     setIsPopote(false)
     setNote("")
     setShowNote(false)
+  }
+
+  async function removeTest() {
+    if (!existingTest) return
+    if (!confirmingRemoval) {
+      setConfirmingRemoval(true)
+      return
+    }
+
+    await store.deleteTest(existingTest.id)
+    toast.success(`${food.name} retiré du journal`)
+    onOpenChange(false)
   }
 
   if (!open) return null
@@ -1329,7 +1396,7 @@ function FoodTestDrawer({
             {food.emoji} {food.name}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {food.category} · {ageSummary(food)}
+            {food.category} · {isEditing ? "test déjà enregistré" : ageSummary(food)}
           </p>
           <button
             type="button"
@@ -1397,9 +1464,17 @@ function FoodTestDrawer({
           </div>
         </div>
         <div className="shrink-0 border-t bg-background/95 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur">
-          <Button type="button" className="h-12 w-full" onClick={saveTest}>
-            Marquer comme testé
-          </Button>
+          <div className="grid gap-2">
+            <Button type="button" className="h-12 w-full" onClick={saveTest}>
+              {isEditing ? "Sauvegarder les changements" : "Marquer comme testé"}
+            </Button>
+            {existingTest && (
+              <Button type="button" variant="outline" className="h-11 w-full text-destructive" onClick={removeTest}>
+                <Trash2 data-icon="inline-start" aria-hidden="true" />
+                {confirmingRemoval ? "Confirmer le retrait" : "Retirer ce test"}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </>

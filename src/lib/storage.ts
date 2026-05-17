@@ -407,6 +407,60 @@ export function useBabyStore() {
     setSyncError(null)
   }
 
+  async function updateTest(testId: string, nextTest: Omit<FoodTest, "id">) {
+    const testWithId = { ...nextTest, id: testId }
+
+    setState((current) => ({
+      ...current,
+      tests: sortTests(current.tests.map((test) => (test.id === testId ? testWithId : test))),
+    }))
+
+    if (!isSupabaseConfigured || !supabase || !familySession) return
+
+    setSyncStatus("syncing")
+    const { error } = await supabase.rpc("update_baby_food_test", {
+      p_date: testWithId.date,
+      p_family_code_hash: familySession.familyCodeHash,
+      p_id: testWithId.id,
+      p_is_popote: testWithId.isPopote,
+      p_note: testWithId.note,
+      p_reaction: testWithId.reaction,
+    })
+
+    if (error) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(error.message)
+      return
+    }
+
+    setSyncStatus("idle")
+    setSyncError(null)
+  }
+
+  async function deleteTest(testId: string) {
+    setState((current) => ({
+      ...current,
+      tests: current.tests.filter((test) => test.id !== testId),
+    }))
+
+    if (!isSupabaseConfigured || !supabase || !familySession) return
+
+    setSyncStatus("syncing")
+    const { error } = await supabase.rpc("delete_baby_food_test", {
+      p_family_code_hash: familySession.familyCodeHash,
+      p_id: testId,
+    })
+
+    if (error) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(error.message)
+      return
+    }
+
+    setSyncStatus("idle")
+    setSyncError(null)
+  }
+
   function exportBackup(): BabyBackup {
     return {
       app: "diversibebs",
@@ -429,6 +483,7 @@ export function useBabyStore() {
     ...state,
     addTest,
     connectFamily,
+    deleteTest,
     disconnectFamily,
     familySession,
     exportBackup,
@@ -441,6 +496,7 @@ export function useBabyStore() {
     testedFoodIds,
     updateAge,
     updateProfile,
+    updateTest,
   }
 }
 
