@@ -1287,19 +1287,7 @@ function ThemeButton({
   )
 }
 
-const foodCategoryVisuals: Record<Food["category"], typeof Leaf> = {
-  Légumes: Leaf,
-  Fruits: Cookie,
-  Féculents: Coffee,
-  Protéines: Utensils,
-  "Matières grasses": PackageCheck,
-  "Produits laitiers": Coffee,
-  Divers: SlidersHorizontal,
-}
-
-function FoodVisual({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" }) {
-  const Icon = foodCategoryVisuals[food.category]
-
+function FoodEmoji({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" }) {
   return (
     <span
       className={cn(
@@ -1310,7 +1298,7 @@ function FoodVisual({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "l
       )}
       aria-hidden="true"
     >
-      <Icon className={cn(size === "sm" ? "size-4" : "size-5")} />
+      <span className={cn(size === "sm" ? "text-xl" : "text-2xl")}>{food.emoji}</span>
     </span>
   )
 }
@@ -1333,7 +1321,7 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
         <Card className="pointer-events-none bg-card/90 transition-colors hover:border-primary/35 hover:bg-card">
           <CardHeader className="pb-3">
             <div className="flex min-w-0 items-center gap-3">
-              <FoodVisual food={food} />
+              <FoodEmoji food={food} />
               <div className="min-w-0">
                 <CardTitle className="truncate">{food.name}</CardTitle>
                 <CardDescription>{food.category} · {ageSummary(food)}</CardDescription>
@@ -1515,7 +1503,7 @@ function FoodTestDrawer({
         data-state="open"
       >
         <div className="relative flex shrink-0 items-start gap-3 px-5 pb-3 pt-5">
-          <FoodVisual food={food} size="sm" />
+          <FoodEmoji food={food} size="sm" />
           <div className="min-w-0 flex-1 pr-10">
             <h2 id={titleId} className="truncate text-lg font-semibold text-foreground">
               {food.name}
