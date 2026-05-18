@@ -1709,6 +1709,7 @@ function FoodTestDrawer({
               <SeasonMonthsGrid activeMonths={food.seasonMonths} />
             </div>
             <p className="rounded-xl bg-muted/65 p-4 text-sm leading-6">{food.preparation}</p>
+            <FoodSourceNote food={food} />
             <Separator />
             <div className="flex min-w-0 flex-col gap-4">
               <div className="grid gap-4">
@@ -1862,6 +1863,62 @@ function FoodTestDrawer({
       </div>
     </>,
     document.body,
+  )
+}
+
+function FoodSourceNote({ food }: { food: Food }) {
+  const cautionTags = food.tags.filter((tag) =>
+    ["allergène", "gluten", "à éviter", "pas avant 3 ans", "pas avant 5 ans"].includes(tag),
+  )
+  const primarySource = food.sourceIds
+    .map((id) => foodSourceReferences.find((source) => source.id === id))
+    .find((source): source is (typeof foodSourceReferences)[number] => Boolean(source))
+
+  if (cautionTags.length === 0 && !food.sourceNote && !food.cautionLevel) {
+    return null
+  }
+
+  return (
+    <div className="rounded-xl border bg-card/85 p-4 text-sm leading-6 shadow-sm">
+      {cautionTags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {cautionTags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+      {food.sourceNote && (
+        <p
+          className={cn(
+            "flex items-start gap-2 leading-6",
+            cautionTags.length > 0 && "mt-3",
+            food.cautionLevel === "attention" && "text-status-reaction-foreground",
+          )}
+        >
+          <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          <span>{food.sourceNote}</span>
+        </p>
+      )}
+      {primarySource && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Source :{" "}
+          <a
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+            href={primarySource.url}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {primarySource.organization}
+          </a>
+          {food.lastReviewedAt && <> · vérifié en {food.lastReviewedAt}</>}
+        </p>
+      )}
+    </div>
   )
 }
 
