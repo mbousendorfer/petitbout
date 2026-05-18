@@ -91,7 +91,7 @@ import { reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/sto
 import { cn } from "@/lib/utils"
 
 const disclaimer =
-  "Cette application est un outil personnel de suivi. Elle ne remplace pas les conseils d’un pédiatre ou professionnel de santé."
+  "Diversibebs garde des repères de suivi. En cas de doute, de réaction importante ou de question médicale, demandez l’avis d’un professionnel de santé."
 
 const DiscoveriesPage = lazy(() =>
   import("@/components/DiscoveriesPage").then((module) => ({ default: module.DiscoveriesPage })),
@@ -405,7 +405,7 @@ function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
         <p className="text-sm font-semibold text-muted-foreground">Carnet de découvertes</p>
         <h2 className="mt-1 text-2xl font-semibold">Un suivi doux, partagé et toujours sous la main.</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Connectez l’espace famille ou continuez en local pour noter les essais simplement.
+          Ouvrez votre espace famille avec un code partagé pour retrouver le suivi sur vos appareils.
         </p>
       </HeroPanel>
       <Card className="paper-surface">
@@ -418,27 +418,26 @@ function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={submitFamilyCode}>
             <label className="flex flex-col gap-2 text-sm font-medium">
-              Code secret partagé
+              Code famille
               <Input
                 autoComplete="off"
-                placeholder="Ex. purée-carotte-2026"
+                placeholder="Ex. puree-carotte-2026"
                 value={familyCode}
                 onChange={(event) => setFamilyCode(event.target.value)}
               />
             </label>
             <Button type="submit" disabled={isSubmitting || !familyCode.trim()}>
-              {isSubmitting ? "Connexion..." : store.isConfigured ? "Ouvrir l’espace famille" : "Continuer en local"}
+              {isSubmitting ? "Ouverture..." : "Ouvrir mon espace famille"}
             </Button>
           </form>
           {!store.isConfigured && (
             <p className="mt-4 rounded-md border bg-muted p-3 text-sm text-muted-foreground">
-              Mode local disponible. Ajoutez `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`
-              dans `.env.local` pour activer le partage entre appareils.
+              Les données seront gardées sur cet appareil. L’espace famille pourra être retrouvé sur
+              plusieurs appareils après configuration du stockage partagé.
             </p>
           )}
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Le code n’est pas envoyé en clair : l’app envoie uniquement son hash. Toute personne ayant ce
-            code peut accéder au même suivi.
+            Utilisez le même code sur vos appareils. Toute personne ayant ce code peut ouvrir le même suivi.
           </p>
         </CardContent>
       </Card>
@@ -1221,9 +1220,9 @@ function SettingsPage({
         <p className="rounded-lg border bg-card/85 p-3 text-sm text-muted-foreground shadow-sm">
           {store.syncStatus === "loading" && "Chargement des données partagées..."}
           {store.syncStatus === "syncing" && "Synchronisation en cours..."}
-          {store.syncStatus === "offline" && "Hors ligne, cache local affiché."}
-          {store.syncStatus === "error" && "La synchronisation est à vérifier."}
-          {store.syncStatus === "not-configured" && "Mode local actif : le partage entre appareils sera disponible après configuration Supabase."}
+          {store.syncStatus === "offline" && "Hors connexion, les dernières données restent disponibles sur cet appareil."}
+          {store.syncStatus === "error" && "La synchronisation est à vérifier. Essayez de rafraîchir dans quelques instants."}
+          {store.syncStatus === "not-configured" && "Les données sont gardées sur cet appareil. Le suivi partagé sera disponible après configuration du stockage."}
         </p>
       )}
 
