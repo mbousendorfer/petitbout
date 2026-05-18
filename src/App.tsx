@@ -1540,9 +1540,7 @@ function FoodTestDrawer({
               {isInSeason(food) && <SeasonBadge />}
               <IntroductionBadge level={food.level} />
               {popoteEnabled && food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
-              <Badge variant="outline" className="h-8 max-w-full gap-1.5 truncate px-3">
-                {monthNames(food.seasonMonths)}
-              </Badge>
+              <SeasonMonthsGrid activeMonths={food.seasonMonths} />
             </div>
             <p className="rounded-md bg-muted p-4 text-sm leading-6">{food.preparation}</p>
             <Separator />
@@ -1707,6 +1705,39 @@ function PopoteBadge({ label = "Popote" }: { label?: string }) {
       <PackageCheck className="size-4" aria-hidden="true" />
       {label}
     </Badge>
+  )
+}
+
+const seasonMonthAbbreviations = ["jan", "fév", "mar", "avr", "mai", "juin", "juil", "août", "sep", "oct", "nov", "déc"]
+
+function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
+  const activeMonthSet = new Set(activeMonths)
+
+  return (
+    <div
+      className="grid w-full grid-cols-12 gap-1"
+      aria-label={`Mois de saison : ${monthNames(activeMonths)}`}
+    >
+      {seasonMonthAbbreviations.map((month, index) => {
+        const monthNumber = index + 1
+        const isActive = activeMonthSet.has(monthNumber)
+
+        return (
+          <span
+            key={month}
+            className={cn(
+              "flex h-7 min-w-0 items-center justify-center rounded-sm border px-0.5 text-[0.625rem] font-semibold leading-none",
+              isActive
+                ? "border-primary/35 bg-primary text-primary-foreground shadow-sm shadow-primary/10"
+                : "border-border bg-muted/45 text-muted-foreground",
+            )}
+            aria-hidden="true"
+          >
+            {month}
+          </span>
+        )
+      })}
+    </div>
   )
 }
 
