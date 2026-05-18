@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { NavLink, Route, Routes } from "react-router-dom"
 import {
   Baby,
@@ -1461,7 +1462,7 @@ function FoodTestDrawer({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <>
       <div
         className="sheet-overlay fixed inset-0 z-50 bg-foreground/30 backdrop-blur-sm"
@@ -1562,7 +1563,8 @@ function FoodTestDrawer({
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   )
 }
 
