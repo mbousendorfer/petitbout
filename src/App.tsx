@@ -900,42 +900,41 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
   return (
     <>
       <Header eyebrow="Journal" title="Historique" />
-      <Card className="bg-card/90">
-        <CardContent className="flex flex-col gap-4 pt-5">
-          {store.tests.length === 0 ? (
+      {store.tests.length === 0 ? (
+        <Card className="bg-card/90">
+          <CardContent className="py-5">
             <p className="text-sm text-muted-foreground">Les tests ajoutés apparaîtront ici par ordre récent.</p>
-          ) : (
-            <AnimatedList className="flex flex-col gap-4">
-              {store.tests.map((test, index) => {
+          </CardContent>
+        </Card>
+      ) : (
+        <AnimatedList className="flex flex-col gap-3">
+          {store.tests.map((test) => {
               const food = foods.find((item) => item.id === test.foodId)
               if (!food) return null
               return (
-                <AnimatedListItem key={test.id} className="grid grid-cols-[auto_1fr] gap-3">
-                  <div className="flex flex-col items-center">
-                    <span className="mt-1 rounded-full bg-primary p-1.5 text-primary-foreground">
-                      <Check aria-hidden="true" />
-                    </span>
-                    {index < store.tests.length - 1 && <span className="min-h-10 w-px flex-1 bg-border" />}
-                  </div>
-                  <div className="pb-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="font-medium">{food.emoji} {food.name}</p>
-                      <p className="text-xs text-muted-foreground">{testDateTimeLabel(test)}</p>
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      <p className="text-sm text-muted-foreground">{test.reaction}</p>
-                      {popoteEnabled && test.isPopote && <PopoteBadge />}
-                    </div>
-                    {test.note && <p className="mt-2 rounded-md bg-muted p-3 text-sm">{test.note}</p>}
-                    <HistoryTestActions food={food} store={store} test={test} />
-                  </div>
+                <AnimatedListItem key={test.id}>
+                  <Card className="bg-card/90">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium">{food.emoji} {food.name}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{testDateTimeLabel(test)}</p>
+                        </div>
+                        <StatusBadge status={test.reaction === "aucune réaction" ? "testé" : "réaction"} />
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <p className="text-sm text-muted-foreground">{test.reaction}</p>
+                        {popoteEnabled && test.isPopote && <PopoteBadge />}
+                      </div>
+                      {test.note && <p className="mt-3 rounded-md bg-muted p-3 text-sm">{test.note}</p>}
+                      <HistoryTestActions food={food} store={store} test={test} />
+                    </CardContent>
+                  </Card>
                 </AnimatedListItem>
               )
             })}
-            </AnimatedList>
-          )}
-        </CardContent>
-      </Card>
+        </AnimatedList>
+      )}
     </>
   )
 }
@@ -962,13 +961,13 @@ function HistoryTestActions({
   }
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="mt-3 grid grid-cols-2 gap-2">
       <FoodDetail food={food} store={store} test={test} />
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className={cn(confirmingRemoval && "border-destructive/50 text-destructive")}
+        className={cn("h-10", confirmingRemoval && "border-destructive/50 text-destructive")}
         onClick={removeTest}
       >
         <Trash2 data-icon="inline-start" aria-hidden="true" />
@@ -1311,6 +1310,7 @@ function FoodDetail({
         type="button"
         variant={inverted ? "secondary" : compact ? "outline" : "default"}
         size={compact ? "icon" : "sm"}
+        className={cn(!compact && "h-10")}
         onClick={() => setOpen(true)}
         aria-label={
           compact
