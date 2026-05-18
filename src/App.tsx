@@ -3,7 +3,6 @@ import { createPortal } from "react-dom"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom"
 import {
   Baby,
-  CalendarDays,
   Check,
   ChevronRight,
   Clock,
@@ -1548,20 +1547,15 @@ function FoodTestDrawer({
             <p className="rounded-md bg-muted p-4 text-sm leading-6">{food.preparation}</p>
             <Separator />
             <div className="flex min-w-0 flex-col gap-4">
-              <div className="grid gap-3 rounded-lg border bg-card/70 p-3">
-                <label className="flex min-w-0 items-center gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
-                    <CalendarDays className="size-5" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">Date</span>
-                    <Input
-                      className="h-11 min-w-0 max-w-full border-0 bg-background/70 px-3 shadow-none"
-                      type="date"
-                      value={date}
-                      onChange={(event) => setDate(event.target.value)}
-                    />
-                  </span>
+              <div className="grid gap-4">
+                <label className="grid min-w-0 gap-2">
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">Date</span>
+                  <Input
+                    className="h-11 min-w-0 max-w-full bg-background/70 px-3 shadow-none"
+                    type="date"
+                    value={date}
+                    onChange={(event) => setDate(event.target.value)}
+                  />
                 </label>
 
                 <div className="flex min-w-0 flex-col gap-2">
