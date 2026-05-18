@@ -40,7 +40,7 @@
       "name": "Cette semaine",
       "short_name": "Semaine",
       "description": "Voir l’aliment prioritaire à tester.",
-      "url": "./#/week",
+      "url": "./#/",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
