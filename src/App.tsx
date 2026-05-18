@@ -1114,8 +1114,7 @@ function SettingsPage({
         </p>
       )}
 
-      <div className="relative grid gap-1 pl-2">
-        <span className="absolute bottom-8 left-7 top-8 w-px bg-border/70" aria-hidden="true" />
+      <div className="grid gap-1">
         <section className="relative rounded-xl bg-gradient-to-br from-secondary/55 via-card/75 to-accent/20 p-4 shadow-sm">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/75 text-primary shadow-sm">
@@ -1160,7 +1159,6 @@ function SettingsPage({
 
         <SettingsSection
           description={familyCodeLabel || "Le code original n’est pas disponible sur cet appareil."}
-          icon={LockKeyhole}
           title="Espace famille"
         >
           <Button type="button" variant="outline" className="h-11 justify-start" onClick={copyFamilyCode} disabled={!familyCodeLabel}>
@@ -1179,7 +1177,7 @@ function SettingsPage({
           </div>
         </SettingsSection>
 
-        <SettingsSection description="Le thème reste propre à cet appareil." icon={Monitor} title="Apparence">
+        <SettingsSection description="Le thème reste propre à cet appareil." title="Apparence">
           <div className="grid grid-cols-3 gap-1.5 rounded-lg bg-muted/70 p-1.5">
             <ThemeButton active={theme === "light"} icon={Sun} label="Clair" onClick={() => setTheme("light")} />
             <ThemeButton active={theme === "system"} icon={Monitor} label="Système" onClick={() => setTheme("system")} />
@@ -1187,7 +1185,7 @@ function SettingsPage({
           </div>
         </SettingsSection>
 
-        <SettingsSection description="Affichez uniquement les informations utiles à votre suivi." icon={PackageCheck} title="Options">
+        <SettingsSection description="Affichez uniquement les informations utiles à votre suivi." title="Options">
           <button
             type="button"
             className="flex w-full items-center justify-between gap-3 rounded-lg bg-muted/55 p-3 text-left transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -1217,7 +1215,7 @@ function SettingsPage({
           </button>
         </SettingsSection>
 
-        <SettingsSection description="Gardez une copie ou migrez vers un autre appareil." icon={Download} title="Sauvegarde locale">
+        <SettingsSection description="Gardez une copie ou migrez vers un autre appareil." title="Sauvegarde locale">
           <Button type="button" variant="outline" className="h-11 justify-start" onClick={exportBackup}>
             <Download data-icon="inline-start" aria-hidden="true" />
             Exporter les données
@@ -1247,24 +1245,17 @@ function SettingsPage({
 function SettingsSection({
   children,
   description,
-  icon: Icon,
   title,
 }: {
   children: ReactNode
   description: string
-  icon: typeof Baby
   title: string
 }) {
   return (
-    <section className="relative grid grid-cols-[2.5rem_1fr] gap-3 py-4">
-      <span className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground shadow-sm">
-        <Icon className="size-5" aria-hidden="true" />
-      </span>
-      <div className="min-w-0">
-        <h2 className="font-semibold">{title}</h2>
-        <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
-        <div className="mt-3 grid gap-3">{children}</div>
-      </div>
+    <section className="py-4">
+      <h2 className="font-semibold">{title}</h2>
+      <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+      <div className="mt-3 grid gap-3">{children}</div>
     </section>
   )
 }
