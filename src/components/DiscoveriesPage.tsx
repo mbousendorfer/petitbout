@@ -48,7 +48,6 @@ type DiscoveriesPageProps = {
 }
 
 type ProgressCard = {
-  accent: string
   current: number
   description: string
   icon: typeof Sparkles
@@ -99,7 +98,6 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Sparkles,
       current: progress.testedFoods,
       target: Math.min(50, foods.length),
-      accent: "from-primary/10 to-secondary/35",
     },
     {
       title: "Légumes",
@@ -107,7 +105,6 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Check,
       current: progress.vegetables,
       target: foods.filter((food) => food.category === "Légumes").length,
-      accent: "from-status-season/15 to-secondary/25",
     },
     {
       title: "Fruits",
@@ -115,7 +112,6 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Sparkles,
       current: progress.fruits,
       target: foods.filter((food) => food.category === "Fruits").length,
-      accent: "from-secondary/60 to-status-attention/10",
     },
     {
       title: "Textures explorées",
@@ -123,7 +119,6 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: CalendarDays,
       current: progress.textures,
       target: 4,
-      accent: "from-accent/70 to-card/75",
     },
     {
       title: "Réactions gardées",
@@ -131,7 +126,6 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: LockKeyhole,
       current: progress.reactions,
       target: 10,
-      accent: "from-accent/70 to-secondary/25",
     },
     {
       title: "Notes ajoutées",
@@ -139,7 +133,6 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Check,
       current: progress.notes,
       target: 10,
-      accent: "from-status-attention/15 to-secondary/35",
     },
     {
       title: "Aliments de saison",
@@ -147,7 +140,6 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Sparkles,
       current: progress.seasonalFoods,
       target: 10,
-      accent: "from-status-season/10 to-status-attention/10",
     },
   ]
 
@@ -159,7 +151,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       </header>
 
       <Card className="paper-surface soft-ring overflow-hidden border-primary/15">
-        <CardHeader className="bg-gradient-to-br from-primary/10 via-secondary/45 to-accent/35">
+        <CardHeader className="bg-muted/35">
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle className="text-2xl">Album des petites victoires</CardTitle>
@@ -255,7 +247,7 @@ function ProgressionCard({ card }: { card: ProgressCard }) {
 
   return (
     <motion.div variants={cardMotion}>
-      <Card className={cn("paper-surface overflow-hidden", `bg-gradient-to-br ${card.accent}`)}>
+      <Card className="paper-surface overflow-hidden">
         <CardContent className="flex flex-col gap-3 p-4">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-background/70 text-2xl shadow-soft" aria-hidden="true">

@@ -237,30 +237,19 @@
   }
 
   .soft-surface {
-    background:
-      radial-gradient(circle at 12% 0%, hsl(25 80% 89% / 0.78), transparent 24rem),
-      radial-gradient(circle at 100% 18%, hsl(221 52% 90% / 0.68), transparent 22rem),
-      linear-gradient(180deg, hsl(var(--background)), hsl(47 46% 94%));
+    background: hsl(var(--background));
   }
 
   .dark .soft-surface {
-    background:
-      radial-gradient(circle at 8% 0%, hsl(24 48% 28% / 0.58), transparent 23rem),
-      radial-gradient(circle at 100% 16%, hsl(224 38% 31% / 0.72), transparent 24rem),
-      radial-gradient(circle at 50% 100%, hsl(151 28% 20% / 0.42), transparent 28rem),
-      linear-gradient(180deg, hsl(232 25% 12%), hsl(232 27% 9%));
+    background: hsl(var(--background));
   }
 
   .paper-surface {
-    background:
-      linear-gradient(135deg, hsl(var(--card) / 0.96), hsl(36 62% 97% / 0.9)),
-      hsl(var(--card));
+    background: hsl(var(--card) / 0.96);
   }
 
   .dark .paper-surface {
-    background:
-      linear-gradient(135deg, hsl(var(--card) / 0.98), hsl(24 26% 18% / 0.56)),
-      hsl(var(--card));
+    background: hsl(var(--card) / 0.96);
   }
 
   .soft-ring {
