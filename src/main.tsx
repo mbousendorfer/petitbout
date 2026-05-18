@@ -4,6 +4,7 @@ import { HashRouter } from "react-router-dom"
 
 import App from "@/App"
 import "@/index.css"
+import "@/lib/viewport"
 import "@/lib/pwa"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
