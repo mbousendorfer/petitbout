@@ -21,6 +21,7 @@ import {
   NotebookText,
   Award,
   PackageCheck,
+  PencilLine,
   Plus,
   RefreshCw,
   Search,
@@ -154,6 +155,14 @@ const reactionLabels: Record<Reaction, string> = {
   rougeur: "Rougeur",
   vomissement: "Vomissement",
   autre: "Autre",
+}
+
+const reactionDisplay: Record<Reaction, { emoji: string; label: string }> = {
+  "aucune réaction": { emoji: "😊", label: "RAS" },
+  "digestion difficile": { emoji: "😣", label: "Digestion" },
+  rougeur: { emoji: "🔴", label: "Rougeur" },
+  vomissement: { emoji: "🤢", label: "Vomi" },
+  autre: { emoji: "✍️", label: "Autre" },
 }
 
 type AppOptions = {
@@ -991,20 +1000,38 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
           {store.tests.map((test) => {
               const food = foods.find((item) => item.id === test.foodId)
               if (!food) return null
+              const status = test.reaction === "aucune réaction" ? "testé" : "réaction"
               return (
                 <AnimatedListItem key={test.id}>
-                  <Card className="paper-surface">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3">
+                  <Card className="paper-surface overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <FoodEmoji food={food} />
                         <div className="min-w-0">
-                          <p className="font-medium">{food.name}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{testDateTimeLabel(test)}</p>
+                          <CardTitle className="truncate">{food.name}</CardTitle>
+                          <CardDescription>{food.category} · {ageSummary(food)}</CardDescription>
                         </div>
-                        <StatusBadge status={test.reaction === "aucune réaction" ? "testé" : "réaction"} />
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <p className="text-sm text-muted-foreground">{test.reaction}</p>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex flex-wrap gap-2">
+                        <StatusBadge status={status} />
+                        {isInSeason(food) && <SeasonBadge />}
+                        <IntroductionBadge level={food.level} />
                         {popoteEnabled && test.isPopote && <PopoteBadge />}
+                      </div>
+                      <div className="mt-3 rounded-xl border bg-muted/35 p-3">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground">Dernier test</p>
+                        <div className="mt-2 grid gap-2 text-sm text-muted-foreground">
+                          <p className="flex items-center gap-2">
+                            <Clock className="size-4" aria-hidden="true" />
+                            <span>{testDateTimeLabel(test)}</span>
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <span aria-hidden="true">{reactionDisplay[test.reaction].emoji}</span>
+                            <span>{reactionLabels[test.reaction]}</span>
+                          </p>
+                        </div>
                       </div>
                       {test.note && <p className="mt-3 rounded-xl bg-muted/65 p-3 text-sm leading-5">{test.note}</p>}
                       <HistoryTestActions food={food} store={store} test={test} />
@@ -1058,7 +1085,7 @@ function HistoryTestActions({
           onClick={() => setOpen(true)}
           aria-label={`Modifier le test de ${food.name}`}
         >
-          <Plus data-icon="inline-start" aria-hidden="true" />
+          <PencilLine data-icon="inline-start" aria-hidden="true" />
           Modifier
         </Button>
         <Button
@@ -1216,25 +1243,31 @@ function SettingsPage({
           </div>
         </section>
 
-        <SettingsSection
-          description={familyCodeLabel || "Le code original n’est pas disponible sur cet appareil."}
-          title="Espace famille"
-        >
-          <Button type="button" variant="outline" className="h-11 justify-start" onClick={copyFamilyCode} disabled={!familyCodeLabel}>
-            <Copy data-icon="inline-start" aria-hidden="true" />
-            Copier l’identifiant
-          </Button>
-          <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="secondary" className="h-11" onClick={() => void store.refresh()}>
-              <RefreshCw data-icon="inline-start" aria-hidden="true" />
-              Rafraîchir
-            </Button>
-            <Button type="button" variant="ghost" className="h-11" onClick={() => store.disconnectFamily()}>
-              <LogOut data-icon="inline-start" aria-hidden="true" />
-              Changer
+        <section className="border-t border-border/60 py-4 first:border-t-0">
+          <h2 className="font-semibold">Espace famille</h2>
+          <div className="mt-3 flex min-w-0 items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-lg font-semibold tracking-normal text-foreground">
+                {familyCodeLabel || "Code indisponible"}
+              </p>
+              {!familyCodeLabel && (
+                <p className="mt-1 text-sm leading-5 text-muted-foreground">
+                  Le code original n’est pas disponible sur cet appareil.
+                </p>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 shrink-0 px-3"
+              onClick={copyFamilyCode}
+              disabled={!familyCodeLabel}
+            >
+              <Copy data-icon="inline-start" aria-hidden="true" />
+              Copier
             </Button>
           </div>
-        </SettingsSection>
+        </section>
 
         <SettingsSection description="Le thème reste propre à cet appareil." title="Apparence">
           <div className="grid grid-cols-3 gap-1.5 rounded-lg bg-muted/70 p-1.5">
@@ -1294,6 +1327,13 @@ function SettingsPage({
             L’import demande confirmation avant de remplacer les données locales.
           </p>
         </SettingsSection>
+
+        <section className="border-t border-border/60 py-4 lg:col-span-2">
+          <Button type="button" variant="ghost" className="h-11 w-full justify-start text-muted-foreground sm:w-auto" onClick={() => store.disconnectFamily()}>
+            <LogOut data-icon="inline-start" aria-hidden="true" />
+            Se déconnecter
+          </Button>
+        </section>
       </div>
 
       <InstallPrompt />
@@ -1678,26 +1718,29 @@ function FoodTestDrawer({
               )}
               <div className="grid gap-2">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">Réaction observée</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-5 gap-1.5">
                   {reactions.map((reactionOption) => {
                     const isSelected = reaction === reactionOption
+                    const display = reactionDisplay[reactionOption]
 
                     return (
                       <button
                         key={reactionOption}
                         type="button"
                         className={cn(
-                          "min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-1 py-1.5 text-center text-[0.625rem] font-semibold leading-none transition-colors sm:min-h-16 sm:px-1.5 sm:py-2 sm:text-[0.68rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                           isSelected
                             ? reactionOption === "aucune réaction"
-                              ? "border-status-tested/35 bg-status-tested/10 text-status-tested"
-                              : "border-status-reaction/35 bg-status-reaction/10 text-status-reaction"
-                            : "border-border bg-card/70 text-foreground hover:bg-muted/65",
+                              ? "border-status-tested/35 bg-status-tested/12 text-status-tested shadow-sm"
+                              : "border-status-reaction/35 bg-status-reaction/12 text-status-reaction shadow-sm"
+                            : "border-border bg-card/70 text-muted-foreground hover:bg-muted/65 hover:text-foreground",
                         )}
                         onClick={() => setReaction(reactionOption)}
                         aria-pressed={isSelected}
+                        aria-label={reactionLabels[reactionOption]}
                       >
-                        {reactionLabels[reactionOption]}
+                        <span className="text-lg leading-none" aria-hidden="true">{display.emoji}</span>
+                        <span className="max-w-full truncate">{display.label}</span>
                       </button>
                     )
                   })}
@@ -1828,7 +1871,7 @@ function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
             className={cn(
               "flex h-7 min-w-0 items-center justify-center rounded-sm border px-0.5 text-[0.625rem] font-semibold leading-none",
               isActive
-                ? "border-status-season/35 bg-status-season text-status-season-foreground shadow-sm shadow-primary/10"
+                ? "border-status-season-month bg-status-season-month text-status-season-month-foreground shadow-sm"
                 : "border-border bg-muted/45 text-muted-foreground",
             )}
             aria-hidden="true"

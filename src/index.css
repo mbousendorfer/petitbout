@@ -31,6 +31,8 @@
     --status-reaction-foreground: 42 62% 98%;
     --status-season: 116 34% 35%;
     --status-season-foreground: 42 62% 98%;
+    --status-season-month: 21 67% 48%;
+    --status-season-month-foreground: 42 62% 98%;
     --status-attention: 37 79% 43%;
     --status-attention-foreground: 37 60% 12%;
     --shadow-color: 169 22% 13%;
@@ -65,6 +67,8 @@
     --status-reaction-foreground: 39 48% 98%;
     --status-season: 105 36% 64%;
     --status-season-foreground: 150 28% 10%;
+    --status-season-month: 24 78% 67%;
+    --status-season-month-foreground: 28 38% 12%;
     --status-attention: 38 82% 64%;
     --status-attention-foreground: 35 42% 11%;
     --shadow-color: 0 0% 0%;

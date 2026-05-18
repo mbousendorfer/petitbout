@@ -44,6 +44,8 @@ const config = {
           "reaction-foreground": "hsl(var(--status-reaction-foreground))",
           season: "hsl(var(--status-season))",
           "season-foreground": "hsl(var(--status-season-foreground))",
+          "season-month": "hsl(var(--status-season-month))",
+          "season-month-foreground": "hsl(var(--status-season-month-foreground))",
           attention: "hsl(var(--status-attention))",
           "attention-foreground": "hsl(var(--status-attention-foreground))",
         },
