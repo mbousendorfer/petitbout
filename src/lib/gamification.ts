@@ -124,7 +124,7 @@ function notesCount(context: GamificationContext) {
 }
 
 function reactionCount(context: GamificationContext) {
-  return context.tests.filter((test) => Boolean(test.reaction)).length
+  return negativeReactionCount(context)
 }
 
 function negativeReactionCount(context: GamificationContext) {

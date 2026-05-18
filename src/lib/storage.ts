@@ -229,10 +229,11 @@ function parseBackupPayload(payload: unknown) {
 }
 
 export function useBabyStore() {
+  const initialFamilySession = useMemo(() => readFamilySession(), [])
   const [state, setState] = useState<StoredState>(() => readStoredState())
-  const [familySession, setFamilySession] = useState<FamilySession | null>(() => readFamilySession())
+  const [familySession, setFamilySession] = useState<FamilySession | null>(initialFamilySession)
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() =>
-    isSupabaseConfigured ? "idle" : "not-configured",
+    isSupabaseConfigured ? (initialFamilySession ? "loading" : "idle") : "not-configured",
   )
   const [syncError, setSyncError] = useState<string | null>(null)
 

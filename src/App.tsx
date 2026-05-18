@@ -130,7 +130,7 @@ const themeStorageKey = "diversibebs-theme-v1"
 function App() {
   const store = useBabyStore()
   const [theme, setTheme] = useTheme()
-  const badgeUnlockDates = useBadgeUnlockDates(store.tests)
+  const badgeUnlockDates = useBadgeUnlockDates(store.tests, store.syncStatus)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
   const recentTests = store.tests.slice(0, 4)
 
@@ -217,11 +217,16 @@ function useTheme() {
   return [theme, setTheme] as const
 }
 
-function useBadgeUnlockDates(tests: ReturnType<typeof useBabyStore>["tests"]) {
+function useBadgeUnlockDates(
+  tests: ReturnType<typeof useBabyStore>["tests"],
+  syncStatus: ReturnType<typeof useBabyStore>["syncStatus"],
+) {
   const [unlockDates, setUnlockDates] = useState<BadgeUnlockDates>(() => readBadgeUnlockDates())
   const hasCheckedExistingBadges = useRef(false)
 
   useEffect(() => {
+    if (syncStatus === "loading") return
+
     const badges = calculateBadges(foods, tests, unlockDates)
     const newlyUnlocked = badges.filter((badge) => badge.unlocked && !unlockDates[badge.id])
 
@@ -246,7 +251,7 @@ function useBadgeUnlockDates(tests: ReturnType<typeof useBabyStore>["tests"]) {
     }
 
     hasCheckedExistingBadges.current = true
-  }, [tests, unlockDates])
+  }, [syncStatus, tests, unlockDates])
 
   return unlockDates
 }
