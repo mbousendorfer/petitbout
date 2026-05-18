@@ -156,6 +156,14 @@ const reactionLabels: Record<Reaction, string> = {
   autre: "Autre",
 }
 
+const reactionDisplay: Record<Reaction, { emoji: string; label: string }> = {
+  "aucune réaction": { emoji: "😊", label: "RAS" },
+  "digestion difficile": { emoji: "😣", label: "Digestion" },
+  rougeur: { emoji: "🔴", label: "Rougeur" },
+  vomissement: { emoji: "🤢", label: "Vomi" },
+  autre: { emoji: "✍️", label: "Autre" },
+}
+
 type AppOptions = {
   popoteEnabled: boolean
   setPopoteEnabled: (enabled: boolean) => void
@@ -1691,26 +1699,29 @@ function FoodTestDrawer({
               )}
               <div className="grid gap-2">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">Réaction observée</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-5 gap-1.5">
                   {reactions.map((reactionOption) => {
                     const isSelected = reaction === reactionOption
+                    const display = reactionDisplay[reactionOption]
 
                     return (
                       <button
                         key={reactionOption}
                         type="button"
                         className={cn(
-                          "min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-1 py-1.5 text-center text-[0.625rem] font-semibold leading-none transition-colors sm:min-h-16 sm:px-1.5 sm:py-2 sm:text-[0.68rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                           isSelected
                             ? reactionOption === "aucune réaction"
-                              ? "border-status-tested/35 bg-status-tested/10 text-status-tested"
-                              : "border-status-reaction/35 bg-status-reaction/10 text-status-reaction"
-                            : "border-border bg-card/70 text-foreground hover:bg-muted/65",
+                              ? "border-status-tested/35 bg-status-tested/12 text-status-tested shadow-sm"
+                              : "border-status-reaction/35 bg-status-reaction/12 text-status-reaction shadow-sm"
+                            : "border-border bg-card/70 text-muted-foreground hover:bg-muted/65 hover:text-foreground",
                         )}
                         onClick={() => setReaction(reactionOption)}
                         aria-pressed={isSelected}
+                        aria-label={reactionLabels[reactionOption]}
                       >
-                        {reactionLabels[reactionOption]}
+                        <span className="text-lg leading-none" aria-hidden="true">{display.emoji}</span>
+                        <span className="max-w-full truncate">{display.label}</span>
                       </button>
                     )
                   })}
