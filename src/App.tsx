@@ -775,7 +775,6 @@ function WeekPage({
   const [discardedSuggestionIds, setDiscardedSuggestionIds] = useState<string[]>([])
   const visibleSuggestions = suggestions.filter((food) => !discardedSuggestionIds.includes(food.id))
   const topFood = visibleSuggestions[0]
-  const alternatives = visibleSuggestions.slice(1, 3)
   const weeklyPlan = visibleSuggestions.slice(1)
 
   function postponeTopFood() {
@@ -789,25 +788,19 @@ function WeekPage({
       <Header eyebrow="Conseil" title="Cette semaine" />
       {topFood ? (
         <>
-          <PriorityFoodCard food={topFood} store={store} onPostpone={postponeTopFood} />
-
-          {alternatives.length > 0 && (
-            <Card className="bg-card/90">
-              <CardHeader className="pb-3">
-                <CardTitle>Options aussi pertinentes</CardTitle>
-                <CardDescription>À garder sous la main si le repas du jour s’y prête mieux.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AnimatedList className="grid gap-2">
-                {alternatives.map((food) => (
-                  <AnimatedListItem key={food.id}>
-                    <FoodRow food={food} store={store} />
-                  </AnimatedListItem>
-                ))}
-                </AnimatedList>
-              </CardContent>
-            </Card>
-          )}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Priorité</p>
+                <h2 className="text-xl font-semibold">À tester en priorité</h2>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={postponeTopFood}>
+                <RefreshCw data-icon="inline-start" aria-hidden="true" />
+                Plus tard
+              </Button>
+            </div>
+            <FoodCard food={topFood} store={store} />
+          </div>
 
           {weeklyPlan.length > 0 && (
             <div className="flex flex-col gap-3">
@@ -821,7 +814,7 @@ function WeekPage({
               <AnimatedList className="flex flex-col gap-3">
                 {weeklyPlan.map((food) => (
                   <AnimatedListItem key={food.id}>
-                    <WeekSuggestionCard food={food} store={store} />
+                    <FoodCard food={food} store={store} />
                   </AnimatedListItem>
                 ))}
               </AnimatedList>
@@ -841,122 +834,6 @@ function WeekPage({
           </CardContent>
         </Card>
       )}
-    </>
-  )
-}
-
-function WeekSuggestionCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
-  const [open, setOpen] = useState(false)
-  const existingTest = store.latestByFood.get(food.id)
-
-  return (
-    <>
-      <button
-        type="button"
-        className="block w-full touch-manipulation rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        onClick={() => setOpen(true)}
-        aria-label={`${existingTest ? "Modifier" : "Tester"} ${food.name}`}
-      >
-        <Card className="pointer-events-none bg-card/90 transition-colors hover:border-primary/35 hover:bg-card">
-          <CardHeader className="pb-3">
-            <div className="min-w-0">
-              <CardTitle className="truncate">{food.emoji} {food.name}</CardTitle>
-              <CardDescription>{food.preparation}</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {suggestionReasons(food).map((reason) =>
-              reason === "de saison" ? (
-                <SeasonBadge key={reason} />
-              ) : reason.startsWith("introduction") ? (
-                <IntroductionBadge key={reason} level={food.level} />
-              ) : (
-                <Badge key={reason} variant="secondary" className="h-8 px-3">
-                  {reason}
-                </Badge>
-              ),
-            )}
-          </CardContent>
-        </Card>
-      </button>
-      {open && <FoodTestDrawer food={food} store={store} test={existingTest} open={open} onOpenChange={setOpen} />}
-    </>
-  )
-}
-
-function PriorityFoodCard({
-  food,
-  onPostpone,
-  store,
-}: {
-  food: Food
-  onPostpone: () => void
-  store: ReturnType<typeof useBabyStore>
-}) {
-  const [open, setOpen] = useState(false)
-  const existingTest = store.latestByFood.get(food.id)
-
-  return (
-    <>
-      <Card
-        role="button"
-        tabIndex={0}
-        className="cursor-pointer overflow-hidden border-primary/20 bg-primary text-primary-foreground shadow-lg shadow-primary/10 transition-transform active:scale-[0.99]"
-        onClick={() => setOpen(true)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault()
-            setOpen(true)
-          }
-        }}
-        aria-label={`${existingTest ? "Modifier" : "Tester"} ${food.name}`}
-      >
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-foreground/12 px-3 py-1 text-xs font-semibold uppercase tracking-normal text-primary-foreground/80">
-                <Sparkles className="size-4" aria-hidden="true" />
-                À tester en priorité
-              </div>
-              <CardTitle className="text-3xl">{food.emoji} {food.name}</CardTitle>
-              <CardDescription className="mt-2 text-primary-foreground/75">
-                Le meilleur choix maintenant : adapté à l’âge, non testé, et priorisé par saison / introduction.
-              </CardDescription>
-            </div>
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary-foreground/14 text-4xl" aria-hidden="true">
-              {food.emoji}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="rounded-md bg-primary-foreground/10 p-4 text-sm leading-6 text-primary-foreground/85">
-            {food.preparation}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge className="h-8 bg-primary-foreground text-primary px-3">priorité n°1</Badge>
-            {isInSeason(food) && <SeasonBadge />}
-            <IntroductionBadge level={food.level} />
-            {food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
-          </div>
-          <div className="grid gap-3 rounded-md bg-primary-foreground/10 p-3 sm:grid-cols-[1fr_auto] sm:items-center">
-            <p className="text-sm text-primary-foreground/80">
-              Faites-le simple : un petit test, puis notez seulement si quelque chose mérite d’être retenu.
-            </p>
-            <Button
-              type="button"
-              variant="ghost"
-              className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground"
-              onClick={(event) => {
-                event.stopPropagation()
-                onPostpone()
-              }}
-            >
-              Plus tard
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      {open && <FoodTestDrawer food={food} store={store} test={existingTest} open={open} onOpenChange={setOpen} />}
     </>
   )
 }
