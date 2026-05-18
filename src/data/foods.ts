@@ -9,6 +9,8 @@ export type FoodCategory =
 
 export type RecommendationLevel = "conseillé" | "possible"
 
+export type CautionLevel = "info" | "attention"
+
 export type Food = {
   id: string
   name: string
@@ -21,6 +23,10 @@ export type Food = {
   seasonMonths: number[]
   preparation: string
   level: RecommendationLevel
+  cautionLevel?: CautionLevel
+  lastReviewedAt?: string
+  sourceIds: string[]
+  sourceNote?: string
   tags: string[]
 }
 
@@ -34,6 +40,8 @@ type FoodSource = {
   preparation?: string
   recommendedAgeMonths?: number
   season?: string
+  sourceIds?: string[]
+  sourceNote?: string
   tags?: string[]
 }
 
@@ -215,6 +223,8 @@ function makeFood(source: FoodSource): Food {
     ageCandidates.length > 0 ? Math.min(...ageCandidates) : 4
   if (source.level === "possible" && !possibleAgeMonths) possibleAgeMonths = minAgeMonths
   if (source.level === "conseillé" && !recommendedAgeMonths) recommendedAgeMonths = minAgeMonths
+  const sourceIds = source.sourceIds ?? sourceIdsForFood(id, tags, minAgeMonths)
+  const sourceNote = source.sourceNote ?? sourceNoteForFood(id, tags)
 
   return {
     id,
@@ -228,8 +238,61 @@ function makeFood(source: FoodSource): Food {
     seasonMonths: source.season ? seasonByLabel[source.season] ?? allYear : allYear,
     preparation: preparationFor(source),
     level: source.level,
+    cautionLevel: sourceNote ? "attention" : undefined,
+    lastReviewedAt: sourceNote ? "mai 2026" : undefined,
+    sourceIds,
+    sourceNote,
     tags,
   }
+}
+
+function sourceIdsForFood(id: string, tags: string[], minAgeMonths: number) {
+  const sourceIds = new Set<string>()
+  if (tags.includes("allergène")) sourceIds.add("ameli-allergies")
+  if (tags.includes("à éviter") || tags.includes("pas avant 3 ans") || tags.includes("pas avant 5 ans")) {
+    sourceIds.add("ameli-repas-8-mois-3-ans")
+  }
+  if (minAgeMonths >= 12) sourceIds.add("ameli-diversification")
+  if (["miel", "fromage-au-lait-cru", "sel-ajoute", "sucre-ajoute", "charcuterie", "jambon-blanc"].includes(id)) {
+    sourceIds.add("ameli-repas-8-mois-3-ans")
+  }
+  if (["oeuf", "ble-farine", "amande", "noisette", "noix", "huile-de-noix", "fruits-de-mer-cuits"].includes(id)) {
+    sourceIds.add("ameli-diversification")
+  }
+
+  return [...sourceIds]
+}
+
+function sourceNoteForFood(id: string, tags: string[]) {
+  if (id === "miel") {
+    return "Repère officiel : pas de miel avant 1 an, en raison du risque infectieux chez le nourrisson."
+  }
+
+  if (id === "fromage-au-lait-cru") {
+    return "Repère officiel : éviter le lait cru et les fromages au lait cru chez les jeunes enfants, sauf exceptions à pâte pressée cuite."
+  }
+
+  if (id === "sel-ajoute") {
+    return "Repère officiel : ne pas ajouter de sel dans les préparations et limiter les produits salés."
+  }
+
+  if (id === "sucre-ajoute") {
+    return "Repère officiel : limiter les produits sucrés, qui ne sont pas nécessaires au début de l'alimentation."
+  }
+
+  if (id === "charcuterie" || id === "jambon-blanc") {
+    return "Repère officiel : les charcuteries sont à éviter ou à garder exceptionnelles chez le jeune enfant."
+  }
+
+  if (tags.includes("allergène")) {
+    return "Repère officiel : les allergènes majeurs peuvent être introduits sans retard une fois la diversification commencée, sauf avis médical particulier."
+  }
+
+  if (tags.includes("à éviter") || tags.includes("pas avant 3 ans") || tags.includes("pas avant 5 ans")) {
+    return "Repère officiel : cet aliment demande une précaution particulière avant d'être proposé."
+  }
+
+  return undefined
 }
 
 const vegetableSources: FoodSource[] = [
