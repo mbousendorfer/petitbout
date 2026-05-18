@@ -1361,6 +1361,8 @@ function SettingsPage({
 
         <SourcesSettingsSection />
 
+        <InstallHelpSection />
+
         <section className="border-t border-border/60 py-4 lg:col-span-2">
           <Button type="button" variant="ghost" className="h-11 w-full justify-start text-muted-foreground sm:w-auto" onClick={() => store.disconnectFamily()}>
             <LogOut data-icon="inline-start" aria-hidden="true" />
@@ -1413,6 +1415,41 @@ function SourcesSettingsSection() {
       <p className="flex items-center gap-2 text-xs leading-5 text-muted-foreground">
         <ShieldCheck aria-hidden="true" className="size-4" />
         {foodSourceReferences.length} références suivies, à revérifier régulièrement.
+      </p>
+    </SettingsSection>
+  )
+}
+
+function InstallHelpSection() {
+  return (
+    <SettingsSection
+      description="Installez Diversibebs sur l’écran d’accueil pour y revenir d’un geste, hors connexion."
+      title="Installation"
+    >
+      <div className="rounded-lg border bg-card/85 p-3 text-sm leading-6 shadow-sm">
+        <p className="flex items-center gap-2 font-semibold">
+          <Home aria-hidden="true" className="size-4 text-muted-foreground" />
+          iPhone et iPad
+        </p>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-5 text-muted-foreground">
+          <li>Ouvrez l’app dans Safari.</li>
+          <li>Touchez le bouton Partager (icône en forme de flèche).</li>
+          <li>Choisissez « Sur l’écran d’accueil » puis Ajouter.</li>
+        </ol>
+      </div>
+      <div className="rounded-lg border bg-card/85 p-3 text-sm leading-6 shadow-sm">
+        <p className="flex items-center gap-2 font-semibold">
+          <Home aria-hidden="true" className="size-4 text-muted-foreground" />
+          Android
+        </p>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-5 text-muted-foreground">
+          <li>Ouvrez l’app dans Chrome.</li>
+          <li>Touchez le menu (trois points) en haut à droite.</li>
+          <li>Choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».</li>
+        </ol>
+      </div>
+      <p className="text-xs leading-5 text-muted-foreground">
+        Une fois installée, Diversibebs s’ouvre comme une app, garde le suivi récent disponible hors connexion et propose les raccourcis Semaine et Aliments.
       </p>
     </SettingsSection>
   )
