@@ -41,7 +41,6 @@ import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { InstallPrompt } from "@/components/InstallPrompt"
 import { PwaStatus } from "@/components/PwaStatus"
 import {
   Card,
@@ -64,7 +63,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/sonner"
 import { categories, foods, type Food } from "@/data/foods"
 import { foodSourceReferences, reviewedAt, sourcesByTheme } from "@/data/sources"
-import { backupFileName, backupToJson, journalCsvFileName, testsToCsv } from "@/lib/backup"
+import { backupFileName, backupToJson } from "@/lib/backup"
 import {
   getStatus,
   ageSummary,
@@ -507,7 +506,7 @@ function EmptyState({
 }) {
   return (
     <Card className="paper-surface">
-      <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+      <CardContent className="flex flex-col items-center gap-4 px-4 py-10 text-center sm:px-5 sm:py-10">
         <div className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm">
           <Icon className="size-5" aria-hidden="true" />
         </div>
@@ -1083,26 +1082,31 @@ function HistoryTestActions({
 
   return (
     <>
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="mt-3 flex items-center justify-end gap-1">
         <Button
           type="button"
-          variant="default"
-          className="h-11 min-h-11 w-full px-3"
+          variant="ghost"
+          size="icon"
+          className="size-9 text-muted-foreground hover:text-foreground"
           onClick={() => setOpen(true)}
           aria-label={`Modifier le test de ${food.name}`}
+          title="Modifier"
         >
-          <PencilLine data-icon="inline-start" aria-hidden="true" />
-          Modifier
+          <PencilLine aria-hidden="true" />
         </Button>
         <Button
           type="button"
-          variant={confirmingRemoval ? "destructive" : "outline"}
-          className="h-11 min-h-11 w-full px-3"
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "size-9",
+            confirmingRemoval ? "text-destructive" : "text-muted-foreground hover:text-destructive",
+          )}
           onClick={removeTest}
           aria-label={confirmingRemoval ? `Confirmer le retrait de ${food.name}` : `Retirer ${food.name} du journal`}
+          title={confirmingRemoval ? "Confirmer le retrait" : "Retirer"}
         >
-          <Trash2 data-icon="inline-start" aria-hidden="true" />
-          {confirmingRemoval ? "Confirmer" : "Retirer"}
+          <Trash2 aria-hidden="true" />
         </Button>
       </div>
       {open && <FoodTestDrawer food={food} store={store} test={test} open={open} onOpenChange={setOpen} />}
@@ -1164,11 +1168,6 @@ function SettingsPage({
     toast.success("Sauvegarde exportée")
   }
 
-  function exportJournalCsv() {
-    downloadTextFile(testsToCsv(store.tests), journalCsvFileName(), "text/csv;charset=utf-8")
-    toast.success("Journal exporté")
-  }
-
   async function importBackup(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
@@ -1219,48 +1218,11 @@ function SettingsPage({
       )}
 
       <div className="grid gap-1 lg:grid-cols-2 lg:gap-4">
-        <section className="paper-surface soft-ring relative rounded-2xl p-4">
-          <SectionHeader title="Enfant" eyebrow="Profil partagé" action={
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm" aria-hidden="true">
-              <Baby className="size-5" />
-            </span>
-          } />
-          <p className="mt-2 text-sm leading-5 text-muted-foreground">
-            Ces informations sont partagées dans l’espace famille.
-          </p>
-          <div className="mt-4 grid gap-3">
-            <label className="grid gap-1.5 text-sm font-medium">
-              <span className="text-xs font-semibold uppercase text-muted-foreground">Nom de l’enfant</span>
-              <Input
-                className="h-11 bg-background/70"
-                placeholder="Ex. Alba"
-                value={childName}
-                onChange={(event) => setChildName(event.target.value)}
-              />
-            </label>
-            <label className="grid min-w-0 gap-1.5 text-sm font-medium">
-              <span className="text-xs font-semibold uppercase text-muted-foreground">Date de naissance</span>
-              <Input
-                className="h-11 min-w-0 max-w-full bg-background/70"
-                type="date"
-                value={birthDate}
-                onChange={(event) => setBirthDate(event.target.value)}
-              />
-            </label>
-            <Button
-              type="button"
-              onClick={() => void saveChildProfile()}
-              disabled={!hasChildProfileChanges || isSavingChildProfile}
-            >
-              <Check data-icon="inline-start" aria-hidden="true" />
-              {isSavingChildProfile ? "Sauvegarde..." : "Sauvegarder"}
-            </Button>
-          </div>
-        </section>
-
-        <section className="border-t border-border/60 py-4 first:border-t-0">
-          <h2 className="font-semibold">Espace famille</h2>
-          <div className="mt-3 flex min-w-0 items-center gap-2">
+        <SettingsSection
+          description="Profil et code partagés entre vos appareils."
+          title="Espace famille"
+        >
+          <div className="flex min-w-0 items-center gap-2">
             <div className="min-w-0 flex-1">
               <p className="truncate text-lg font-semibold tracking-normal text-foreground">
                 {familyCodeLabel || "Code indisponible"}
@@ -1282,7 +1244,33 @@ function SettingsPage({
               Copier
             </Button>
           </div>
-        </section>
+          <label className="grid gap-1.5 text-sm font-medium">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Nom de l’enfant</span>
+            <Input
+              className="h-11 bg-background/70"
+              placeholder="Ex. Alba"
+              value={childName}
+              onChange={(event) => setChildName(event.target.value)}
+            />
+          </label>
+          <label className="grid min-w-0 gap-1.5 text-sm font-medium">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Date de naissance</span>
+            <Input
+              className="h-11 min-w-0 max-w-full bg-background/70"
+              type="date"
+              value={birthDate}
+              onChange={(event) => setBirthDate(event.target.value)}
+            />
+          </label>
+          <Button
+            type="button"
+            onClick={() => void saveChildProfile()}
+            disabled={!hasChildProfileChanges || isSavingChildProfile}
+          >
+            <Check data-icon="inline-start" aria-hidden="true" />
+            {isSavingChildProfile ? "Sauvegarde..." : "Sauvegarder"}
+          </Button>
+        </SettingsSection>
 
         <SettingsSection description="Le thème reste propre à cet appareil." title="Apparence">
           <div className="grid grid-cols-3 gap-1.5 rounded-lg bg-muted/70 p-1.5">
@@ -1327,10 +1315,6 @@ function SettingsPage({
             <Download data-icon="inline-start" aria-hidden="true" />
             Exporter les données
           </Button>
-          <Button type="button" variant="outline" className="h-11 justify-start" onClick={exportJournalCsv}>
-            <NotebookText data-icon="inline-start" aria-hidden="true" />
-            Exporter le journal CSV
-          </Button>
           <input
             ref={importInputRef}
             className="sr-only"
@@ -1344,7 +1328,7 @@ function SettingsPage({
           </Button>
           <Button type="button" variant="ghost" className="h-11 justify-start text-destructive" onClick={clearDeviceData}>
             <Trash2 data-icon="inline-start" aria-hidden="true" />
-            Supprimer de cet appareil
+            Supprimer les données
           </Button>
           <p className="text-xs leading-5 text-muted-foreground">
             L’import demande confirmation et télécharge une sauvegarde de sécurité avant remplacement.
@@ -1362,8 +1346,6 @@ function SettingsPage({
           </Button>
         </section>
       </div>
-
-      <InstallPrompt />
     </>
   )
 }

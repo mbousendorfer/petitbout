@@ -151,7 +151,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       </header>
 
       <Card className="paper-surface soft-ring overflow-hidden border-primary/15">
-        <CardHeader className="bg-muted/35">
+        <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle className="text-2xl">Album des petites victoires</CardTitle>
@@ -248,26 +248,20 @@ function ProgressionCard({ card }: { card: ProgressCard }) {
   return (
     <motion.div variants={cardMotion}>
       <Card className="paper-surface overflow-hidden">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <div className="flex items-start gap-3">
+        <CardContent className="flex flex-col gap-4 px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex items-center gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-background/70 text-2xl shadow-soft" aria-hidden="true">
               <Icon className="size-5 text-primary" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-semibold">{card.title}</h2>
-                  <p className="text-sm leading-5 text-muted-foreground">{card.description}</p>
-                </div>
-                <p className="shrink-0 text-sm font-medium text-muted-foreground">
-                  {card.current}/{card.target}
-                </p>
-              </div>
-              <div className="mt-3">
-                <AnimatedProgress current={card.current} target={card.target} />
-              </div>
+              <h2 className="font-semibold leading-tight">{card.title}</h2>
+              <p className="text-sm leading-5 text-muted-foreground">{card.description}</p>
             </div>
+            <p className="shrink-0 text-sm font-medium text-muted-foreground">
+              {card.current}/{card.target}
+            </p>
           </div>
+          <AnimatedProgress current={card.current} target={card.target} />
         </CardContent>
       </Card>
     </motion.div>
@@ -372,7 +366,7 @@ function GoalCard({ goal }: { goal: Goal }) {
   return (
     <motion.div variants={cardMotion}>
       <Card className={cn("paper-surface", goal.completed && "border-primary/25 bg-primary/5")}>
-        <CardContent className="flex flex-col gap-3 p-4">
+        <CardContent className="flex flex-col gap-3 px-4 py-4 sm:px-5 sm:py-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
