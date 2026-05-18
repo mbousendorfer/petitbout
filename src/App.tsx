@@ -1114,63 +1114,54 @@ function SettingsPage({
         </p>
       )}
 
-      <Card className="overflow-hidden border-primary/15 bg-card/92 shadow-sm">
-        <CardHeader className="bg-gradient-to-br from-secondary/55 via-card to-accent/25 pb-4">
+      <div className="overflow-hidden rounded-xl border border-primary/15 bg-card/92 shadow-sm">
+        <section className="bg-gradient-to-br from-secondary/55 via-card to-accent/25 p-4">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/75 text-primary shadow-sm">
               <Baby className="size-5" aria-hidden="true" />
             </span>
-            <div>
-              <CardTitle>Enfant</CardTitle>
-              <CardDescription className="mt-1">Ces informations sont partagées dans l’espace famille.</CardDescription>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-semibold">Enfant</h2>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">
+                Ces informations sont partagées dans l’espace famille.
+              </p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="flex min-w-0 flex-col gap-3 pt-4">
-          <label className="grid gap-1.5 text-sm font-medium">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">Nom de l’enfant</span>
-            <Input
-              className="h-11 bg-background/70"
-              placeholder="Ex. Alba"
-              value={childName}
-              onChange={(event) => setChildName(event.target.value)}
-            />
-          </label>
-          <label className="grid min-w-0 gap-1.5 text-sm font-medium">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">Date de naissance</span>
-            <Input
-              className="h-11 min-w-0 max-w-full bg-background/70"
-              type="date"
-              value={birthDate}
-              onChange={(event) => setBirthDate(event.target.value)}
-            />
-          </label>
-          <Button
-            type="button"
-            onClick={() => void saveChildProfile()}
-            disabled={!hasChildProfileChanges || isSavingChildProfile}
-          >
-            <Check data-icon="inline-start" aria-hidden="true" />
-            {isSavingChildProfile ? "Sauvegarde..." : "Sauvegarder"}
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="mt-4 grid gap-3">
+            <label className="grid gap-1.5 text-sm font-medium">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Nom de l’enfant</span>
+              <Input
+                className="h-11 bg-background/70"
+                placeholder="Ex. Alba"
+                value={childName}
+                onChange={(event) => setChildName(event.target.value)}
+              />
+            </label>
+            <label className="grid min-w-0 gap-1.5 text-sm font-medium">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Date de naissance</span>
+              <Input
+                className="h-11 min-w-0 max-w-full bg-background/70"
+                type="date"
+                value={birthDate}
+                onChange={(event) => setBirthDate(event.target.value)}
+              />
+            </label>
+            <Button
+              type="button"
+              onClick={() => void saveChildProfile()}
+              disabled={!hasChildProfileChanges || isSavingChildProfile}
+            >
+              <Check data-icon="inline-start" aria-hidden="true" />
+              {isSavingChildProfile ? "Sauvegarde..." : "Sauvegarder"}
+            </Button>
+          </div>
+        </section>
 
-      <Card className="overflow-hidden bg-card/92 shadow-sm">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-              <LockKeyhole className="size-5" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <CardTitle>Espace famille</CardTitle>
-              <CardDescription className="mt-1 truncate">
-                {familyCodeLabel || "Le code original n’est pas disponible sur cet appareil."}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
+        <SettingsSection
+          description={familyCodeLabel || "Le code original n’est pas disponible sur cet appareil."}
+          icon={LockKeyhole}
+          title="Espace famille"
+        >
           <Button type="button" variant="outline" className="h-11 justify-start" onClick={copyFamilyCode} disabled={!familyCodeLabel}>
             <Copy data-icon="inline-start" aria-hidden="true" />
             Copier l’identifiant
@@ -1185,45 +1176,17 @@ function SettingsPage({
               Changer
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </SettingsSection>
 
-      <Card className="bg-card/92 shadow-sm">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-              <Monitor className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <CardTitle>Apparence</CardTitle>
-              <CardDescription className="mt-1">Le thème reste propre à cet appareil.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <SettingsSection description="Le thème reste propre à cet appareil." icon={Monitor} title="Apparence">
           <div className="grid grid-cols-3 gap-1.5 rounded-lg border bg-muted/70 p-1.5">
             <ThemeButton active={theme === "light"} icon={Sun} label="Clair" onClick={() => setTheme("light")} />
             <ThemeButton active={theme === "system"} icon={Monitor} label="Système" onClick={() => setTheme("system")} />
             <ThemeButton active={theme === "dark"} icon={Moon} label="Sombre" onClick={() => setTheme("dark")} />
           </div>
-        </CardContent>
-      </Card>
+        </SettingsSection>
 
-      <InstallPrompt />
-
-      <Card className="bg-card/92 shadow-sm">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-              <PackageCheck className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <CardTitle>Options</CardTitle>
-              <CardDescription className="mt-1">Affichez uniquement les informations utiles à votre suivi.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <SettingsSection description="Affichez uniquement les informations utiles à votre suivi." icon={PackageCheck} title="Options">
           <button
             type="button"
             className="flex w-full items-center justify-between gap-3 rounded-lg border bg-background/55 p-3 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -1251,24 +1214,9 @@ function SettingsPage({
               />
             </span>
           </button>
-        </CardContent>
-      </Card>
+        </SettingsSection>
 
-      <Card className="bg-card/92 shadow-sm">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-              <Download className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <CardTitle>Sauvegarde locale</CardTitle>
-              <CardDescription className="mt-1">
-                Gardez une copie ou migrez vers un autre appareil.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
+        <SettingsSection description="Gardez une copie ou migrez vers un autre appareil." icon={Download} title="Sauvegarde locale">
           <Button type="button" variant="outline" className="h-11 justify-start" onClick={exportBackup}>
             <Download data-icon="inline-start" aria-hidden="true" />
             Exporter les données
@@ -1287,9 +1235,38 @@ function SettingsPage({
           <p className="text-xs leading-5 text-muted-foreground">
             L’import demande confirmation avant de remplacer les données locales.
           </p>
-        </CardContent>
-      </Card>
+        </SettingsSection>
+      </div>
+
+      <InstallPrompt />
     </>
+  )
+}
+
+function SettingsSection({
+  children,
+  description,
+  icon: Icon,
+  title,
+}: {
+  children: ReactNode
+  description: string
+  icon: typeof Baby
+  title: string
+}) {
+  return (
+    <section className="border-t p-4">
+      <div className="flex items-start gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+          <Icon className="size-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-semibold">{title}</h2>
+          <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+          <div className="mt-4 grid gap-3">{children}</div>
+        </div>
+      </div>
+    </section>
   )
 }
 
