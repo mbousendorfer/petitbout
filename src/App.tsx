@@ -948,6 +948,7 @@ function HistoryTestActions({
   store: ReturnType<typeof useBabyStore>
   test: FoodTest
 }) {
+  const [open, setOpen] = useState(false)
   const [confirmingRemoval, setConfirmingRemoval] = useState(false)
 
   async function removeTest() {
@@ -961,19 +962,30 @@ function HistoryTestActions({
   }
 
   return (
-    <div className="mt-3 grid grid-cols-2 gap-2">
-      <FoodDetail food={food} store={store} test={test} />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className={cn("h-10", confirmingRemoval && "border-destructive/50 text-destructive")}
-        onClick={removeTest}
-      >
-        <Trash2 data-icon="inline-start" aria-hidden="true" />
-        {confirmingRemoval ? "Confirmer" : "Retirer"}
-      </Button>
-    </div>
+    <>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="default"
+          className="h-11 min-h-11 w-full px-3"
+          onClick={() => setOpen(true)}
+          aria-label={`Modifier le test de ${food.name}`}
+        >
+          <Plus data-icon="inline-start" aria-hidden="true" />
+          Modifier
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn("h-11 min-h-11 w-full px-3", confirmingRemoval && "border-destructive/50 text-destructive")}
+          onClick={removeTest}
+        >
+          <Trash2 data-icon="inline-start" aria-hidden="true" />
+          {confirmingRemoval ? "Confirmer" : "Retirer"}
+        </Button>
+      </div>
+      {open && <FoodTestDrawer food={food} store={store} test={test} open={open} onOpenChange={setOpen} />}
+    </>
   )
 }
 
