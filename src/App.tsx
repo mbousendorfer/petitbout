@@ -4,6 +4,7 @@ import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom"
 import {
   Baby,
   BadgeCheck,
+  BookOpen,
   Check,
   ChevronRight,
   Clock,
@@ -26,6 +27,7 @@ import {
   RefreshCw,
   Search,
   Settings,
+  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Sun,
@@ -69,6 +71,7 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/sonner"
 import { categories, foods, type Food } from "@/data/foods"
+import { foodSourceReferences, reviewedAt, sourcesByTheme } from "@/data/sources"
 import {
   getStatus,
   ageSummary,
@@ -1328,6 +1331,8 @@ function SettingsPage({
           </p>
         </SettingsSection>
 
+        <SourcesSettingsSection />
+
         <section className="border-t border-border/60 py-4 lg:col-span-2">
           <Button type="button" variant="ghost" className="h-11 w-full justify-start text-muted-foreground sm:w-auto" onClick={() => store.disconnectFamily()}>
             <LogOut data-icon="inline-start" aria-hidden="true" />
@@ -1338,6 +1343,50 @@ function SettingsPage({
 
       <InstallPrompt />
     </>
+  )
+}
+
+function SourcesSettingsSection() {
+  const groups = sourcesByTheme()
+  const themes = Object.entries(groups).filter(([, items]) => items.length > 0)
+
+  return (
+    <SettingsSection
+      description={`Les repères s’appuient sur des sources officielles. Repères vérifiés en ${reviewedAt}.`}
+      title="Sources & repères"
+    >
+      <ul className="grid gap-3">
+        {themes.map(([theme, items]) => (
+          <li key={theme} className="rounded-lg border bg-card/85 p-3 shadow-sm">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <BookOpen aria-hidden="true" className="size-4 text-muted-foreground" />
+              {theme}
+            </p>
+            <ul className="mt-2 grid gap-2 text-sm leading-5 text-muted-foreground">
+              {items.map((source) => (
+                <li key={source.id}>
+                  <a
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                    href={source.url}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {source.title}
+                  </a>
+                  <span className="block text-xs text-muted-foreground">
+                    {source.organization} · consulté le {source.accessedAt}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+      <p className="flex items-center gap-2 text-xs leading-5 text-muted-foreground">
+        <ShieldCheck aria-hidden="true" className="size-4" />
+        {foodSourceReferences.length} références suivies, à revérifier régulièrement.
+      </p>
+    </SettingsSection>
   )
 }
 
