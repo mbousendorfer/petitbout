@@ -28,7 +28,6 @@ import {
   Search,
   Settings,
   ShieldCheck,
-  SlidersHorizontal,
   Sparkles,
   Sun,
   Trash2,
@@ -65,12 +64,20 @@ import { categories, foods, isFoodInPack, popotePacks, type Food } from "@/data/
 import { foodSourceReferences, reviewedAt, sourcesByTheme } from "@/data/sources"
 import { backupFileName, backupToJson } from "@/lib/backup"
 import {
-  getStatus,
   ageSummary,
+  applyFoodFilters,
+  countWithFilterChange,
+  getStatus,
+  hasActiveFoodFilters,
+  initialFoodFilters,
   isAgeReady,
   isInSeason,
   monthNames,
   weeklySuggestions,
+  type FoodCategoryFilter,
+  type FoodFilters,
+  type FoodStatusFilter,
+  type IntroductionFilter,
 } from "@/lib/food-utils"
 import {
   calculateBadges,
@@ -88,36 +95,17 @@ const DiscoveriesPage = lazy(() =>
   import("@/components/DiscoveriesPage").then((module) => ({ default: module.DiscoveriesPage })),
 )
 
-type FoodStatusFilter = "tous" | "non-testes" | "testes" | "reaction"
-type IntroductionFilter = "toutes" | "conseillee" | "possible"
 type MealTimePresetId = "breakfast" | "lunch" | "snack" | "dinner" | "custom"
-
-type FoodFilters = {
-  allergensOnly: boolean
-  category: FoodCategoryFilter
-  introduction: IntroductionFilter
-  popoteOnly: boolean
-  seasonOnly: boolean
-  status: FoodStatusFilter
-}
-
-type FoodCategoryFilter = "Toutes" | (typeof categories)[number]
-
-const initialFoodFilters: FoodFilters = {
-  allergensOnly: false,
-  category: "Toutes",
-  introduction: "toutes",
-  popoteOnly: false,
-  seasonOnly: false,
-  status: "tous",
-}
 
 const statusFilterLabels: Record<FoodStatusFilter, string> = {
   tous: "Tous",
-  "non-testes": "Non testés",
+  "non-testes": "À tester",
   testes: "Testés",
-  reaction: "Réaction",
+  reaction: "Réactions",
 }
+
+const statusFilterOrder: FoodStatusFilter[] = ["tous", "non-testes", "testes", "reaction"]
+
 
 const introductionFilterLabels: Record<IntroductionFilter, string> = {
   toutes: "Toutes",
@@ -658,7 +646,6 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
   const { activePopotePackId } = useAppOptions()
   const [query, setQuery] = useState("")
   const [filters, setFilters] = useState<FoodFilters>(initialFoodFilters)
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const normalizedQuery = query.toLowerCase().trim()
 
   useEffect(() => {
@@ -683,59 +670,53 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
     [ageReadyFoods, normalizedQuery],
   )
 
-  const categoryCounts = useMemo(() => {
-    const counts = new Map<FoodCategoryFilter, number>([["Toutes", searchableFoods.length]])
-    categories.forEach((category) => {
-      counts.set(category, searchableFoods.filter((food) => food.category === category).length)
-    })
-    return counts
-  }, [searchableFoods])
-
-  const presetCounts = useMemo(
-    () => ({
-      allergens: searchableFoods.filter((food) => food.tags.includes("allergène")).length,
-      popote: activePopotePackId !== null ? searchableFoods.filter((food) => isFoodInPack(food, activePopotePackId)).length : 0,
-      season: searchableFoods.filter((food) => isInSeason(food)).length,
-      untested: searchableFoods.filter((food) => getStatus(food.id, store.latestByFood) === "non testé").length,
-    }),
-    [searchableFoods, store.latestByFood],
+  const filterContext = useMemo(
+    () => ({ latestByFood: store.latestByFood, activePopotePackId }),
+    [store.latestByFood, activePopotePackId],
   )
 
-  const activeFilterChips = useMemo(() => {
-    const chips: Array<{ key: keyof FoodFilters; label: string; reset: Partial<FoodFilters> }> = []
-    if (filters.category !== "Toutes") chips.push({ key: "category", label: filters.category, reset: { category: "Toutes" } })
-    if (filters.status !== "tous") chips.push({ key: "status", label: statusFilterLabels[filters.status], reset: { status: "tous" } })
-    if (filters.introduction !== "toutes") chips.push({ key: "introduction", label: `Introduction ${introductionFilterLabels[filters.introduction].toLowerCase()}`, reset: { introduction: "toutes" } })
-    if (filters.seasonOnly) chips.push({ key: "seasonOnly", label: "De saison", reset: { seasonOnly: false } })
-    if (filters.allergensOnly) chips.push({ key: "allergensOnly", label: "Allergènes", reset: { allergensOnly: false } })
-    if (activePopotePackId !== null && filters.popoteOnly) chips.push({ key: "popoteOnly", label: "Popote", reset: { popoteOnly: false } })
-    return chips
-  }, [filters, activePopotePackId])
+  const filteredFoods = useMemo(
+    () => applyFoodFilters(searchableFoods, filters, filterContext),
+    [searchableFoods, filters, filterContext],
+  )
 
-  const hasActiveFilters = activeFilterChips.length > 0
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<FoodCategoryFilter, number>()
+    ;(["Toutes", ...categories] as FoodCategoryFilter[]).forEach((category) => {
+      counts.set(category, countWithFilterChange(searchableFoods, filters, "category", category, filterContext))
+    })
+    return counts
+  }, [searchableFoods, filters, filterContext])
 
-  const filteredFoods = useMemo(() => {
-    return searchableFoods
-      .filter((food) => {
-        const status = getStatus(food.id, store.latestByFood)
-        const matchesCategory = filters.category === "Toutes" || food.category === filters.category
-        const matchesStatus =
-          filters.status === "tous" ||
-          (filters.status === "non-testes" && status === "non testé") ||
-          (filters.status === "testes" && status === "testé") ||
-          (filters.status === "reaction" && status === "réaction")
-        const matchesIntroduction =
-          filters.introduction === "toutes" ||
-          (filters.introduction === "conseillee" && food.level === "conseillé") ||
-          (filters.introduction === "possible" && food.level === "possible")
-        const matchesSeason = !filters.seasonOnly || isInSeason(food)
-        const matchesAllergens = !filters.allergensOnly || food.tags.includes("allergène")
-        const matchesPopote = activePopotePackId === null || !filters.popoteOnly || isFoodInPack(food, activePopotePackId)
+  const statusCounts = useMemo(() => {
+    const counts = new Map<FoodStatusFilter, number>()
+    statusFilterOrder.forEach((status) => {
+      counts.set(status, countWithFilterChange(searchableFoods, filters, "status", status, filterContext))
+    })
+    return counts
+  }, [searchableFoods, filters, filterContext])
 
-        return matchesCategory && matchesStatus && matchesIntroduction && matchesSeason && matchesAllergens && matchesPopote
-      })
-      .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }))
-  }, [filters, activePopotePackId, searchableFoods, store.latestByFood])
+  const introductionCounts = useMemo(() => {
+    const counts = new Map<IntroductionFilter, number>()
+    ;(Object.keys(introductionFilterLabels) as IntroductionFilter[]).forEach((value) => {
+      counts.set(value, countWithFilterChange(searchableFoods, filters, "introduction", value, filterContext))
+    })
+    return counts
+  }, [searchableFoods, filters, filterContext])
+
+  const togglePillCounts = useMemo(
+    () => ({
+      season: countWithFilterChange(searchableFoods, filters, "seasonOnly", true, filterContext),
+      allergens: countWithFilterChange(searchableFoods, filters, "allergensOnly", true, filterContext),
+      popote:
+        activePopotePackId === null
+          ? 0
+          : countWithFilterChange(searchableFoods, filters, "popoteOnly", true, filterContext),
+    }),
+    [searchableFoods, filters, filterContext, activePopotePackId],
+  )
+
+  const hasActiveFilters = hasActiveFoodFilters(filters)
 
   return (
     <>
@@ -744,84 +725,64 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
         Retrouvez vite les idées adaptées à l’âge, au statut de test et à la saison.
       </p>
       <div className="flex flex-col gap-3">
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <Input
-              className="pl-10"
-              aria-label="Rechercher un aliment"
-              placeholder="Rechercher un aliment"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </div>
-          <Button
-            type="button"
-            variant={hasActiveFilters ? "default" : "outline"}
-            onClick={() => setIsFiltersOpen(true)}
-            aria-haspopup="dialog"
-          >
-            <SlidersHorizontal data-icon="inline-start" aria-hidden="true" />
-            Filtres
-            {activeFilterChips.length > 0 && <span className="rounded-full bg-background/20 px-1.5 text-xs">{activeFilterChips.length}</span>}
-          </Button>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input
+            className="pl-10"
+            aria-label="Rechercher un aliment"
+            placeholder="Rechercher un aliment"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <QuickFilterButton
-            active={filters.status === "non-testes"}
-            count={presetCounts.untested}
-            label="À tester"
-            onClick={() => updateFilters({ status: filters.status === "non-testes" ? "tous" : "non-testes" })}
+        <StatusSegment
+          counts={statusCounts}
+          onChange={(status) => updateFilters({ status })}
+          status={filters.status}
+        />
+
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          <CategoryPill
+            categoryCounts={categoryCounts}
+            onChange={(category) => updateFilters({ category })}
+            value={filters.category}
           />
-          <QuickFilterButton
+          <IntroductionPill
+            introductionCounts={introductionCounts}
+            onChange={(introduction) => updateFilters({ introduction })}
+            value={filters.introduction}
+          />
+          <FilterPill
             active={filters.seasonOnly}
-            count={presetCounts.season}
+            count={togglePillCounts.season}
             label="De saison"
             onClick={() => updateFilters({ seasonOnly: !filters.seasonOnly })}
           />
+          <FilterPill
+            active={filters.allergensOnly}
+            count={togglePillCounts.allergens}
+            label="Allergènes"
+            onClick={() => updateFilters({ allergensOnly: !filters.allergensOnly })}
+          />
           {activePopotePackId !== null && (
-            <QuickFilterButton
+            <FilterPill
               active={filters.popoteOnly}
-              count={presetCounts.popote}
+              count={togglePillCounts.popote}
               label="Popote"
               onClick={() => updateFilters({ popoteOnly: !filters.popoteOnly })}
             />
           )}
-          <QuickFilterButton
-            active={filters.allergensOnly}
-            count={presetCounts.allergens}
-            label="Allergènes"
-            onClick={() => updateFilters({ allergensOnly: !filters.allergensOnly })}
-          />
         </div>
 
         <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
           <span>{filteredFoods.length} aliment(s)</span>
           {hasActiveFilters && (
             <Button type="button" variant="ghost" size="sm" onClick={resetFilters}>
-              Réinitialiser
+              Tout effacer
             </Button>
           )}
         </div>
-
-        {activeFilterChips.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {activeFilterChips.map((chip) => (
-              <Button
-                key={chip.key}
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="h-8 gap-1 rounded-full px-3"
-                onClick={() => updateFilters(chip.reset)}
-              >
-                {chip.label}
-                <X className="size-3.5" aria-hidden="true" />
-              </Button>
-            ))}
-          </div>
-        )}
       </div>
 
       {filteredFoods.length === 0 ? (
@@ -846,113 +807,51 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
         </AnimatedList>
       )}
 
-      <Drawer open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-        <DrawerContent side="bottom" className="flex h-[88svh] max-h-[88svh] flex-col gap-0 p-0 lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:h-auto lg:max-h-[min(760px,calc(100vh-4rem))] lg:w-[min(720px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:border">
-          <DrawerHeader className="shrink-0 px-6 pb-4 pt-6">
-            <DrawerTitle>Filtres</DrawerTitle>
-            <DrawerDescription>Croisez les critères pour trouver le prochain aliment à tester.</DrawerDescription>
-          </DrawerHeader>
-          <ScrollArea className="min-h-0 flex-1 px-6">
-            <div className="flex flex-col gap-5 pb-6 pr-3">
-              <FilterSection title="Catégorie">
-                <div className="grid grid-cols-2 gap-2">
-                  {(["Toutes", ...categories] as FoodCategoryFilter[]).map((category) => (
-                    <FilterChoice
-                      key={category}
-                      active={filters.category === category}
-                      count={categoryCounts.get(category) ?? 0}
-                      label={category}
-                      onClick={() => updateFilters({ category })}
-                    />
-                  ))}
-                </div>
-              </FilterSection>
-
-              <FilterSection title="Statut de test">
-                <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(statusFilterLabels) as FoodStatusFilter[]).map((status) => (
-                    <FilterChoice
-                      key={status}
-                      active={filters.status === status}
-                      label={statusFilterLabels[status]}
-                      onClick={() => updateFilters({ status })}
-                    />
-                  ))}
-                </div>
-              </FilterSection>
-
-              <FilterSection title="Introduction">
-                <div className="grid grid-cols-3 gap-2">
-                  {(Object.keys(introductionFilterLabels) as IntroductionFilter[]).map((introduction) => (
-                    <FilterChoice
-                      key={introduction}
-                      active={filters.introduction === introduction}
-                      label={introductionFilterLabels[introduction]}
-                      onClick={() => updateFilters({ introduction })}
-                    />
-                  ))}
-                </div>
-              </FilterSection>
-
-              <FilterSection title="Options">
-                <div className="grid grid-cols-1 gap-2">
-                  <FilterToggle active={filters.seasonOnly} count={presetCounts.season} label="De saison" onClick={() => updateFilters({ seasonOnly: !filters.seasonOnly })} />
-                  <FilterToggle active={filters.allergensOnly} count={presetCounts.allergens} label="Allergènes" onClick={() => updateFilters({ allergensOnly: !filters.allergensOnly })} />
-                  {activePopotePackId !== null && <FilterToggle active={filters.popoteOnly} count={presetCounts.popote} label="Popote" onClick={() => updateFilters({ popoteOnly: !filters.popoteOnly })} />}
-                </div>
-              </FilterSection>
-            </div>
-          </ScrollArea>
-          <div className="grid shrink-0 grid-cols-2 gap-2 border-t bg-background p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:pb-4">
-            <Button type="button" variant="outline" onClick={resetFilters} disabled={!hasActiveFilters}>
-              Réinitialiser
-            </Button>
-            <Button type="button" onClick={() => setIsFiltersOpen(false)}>
-              Voir {filteredFoods.length}
-            </Button>
-          </div>
-        </DrawerContent>
-      </Drawer>
     </>
   )
 }
 
-function QuickFilterButton({
-  active,
-  count,
-  label,
-  onClick,
+function StatusSegment({
+  counts,
+  onChange,
+  status,
 }: {
-  active: boolean
-  count: number
-  label: string
-  onClick: () => void
+  counts: Map<FoodStatusFilter, number>
+  onChange: (status: FoodStatusFilter) => void
+  status: FoodStatusFilter
 }) {
   return (
-    <Button
-      type="button"
-      variant={active ? "default" : "outline"}
-      className={cn("h-auto min-h-12 justify-between rounded-xl px-3 py-2", active && "shadow-sm")}
-      onClick={onClick}
+    <div
+      role="radiogroup"
+      aria-label="Statut de test"
+      className="grid grid-cols-4 gap-1.5 rounded-lg bg-muted/70 p-1.5"
     >
-      <span>{label}</span>
-      <span className={cn("rounded-full px-2 py-0.5 text-xs", active ? "bg-background/20" : "bg-muted/80 text-muted-foreground")}>
-        {count}
-      </span>
-    </Button>
+      {statusFilterOrder.map((value) => {
+        const active = status === value
+        return (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(value)}
+            className={cn(
+              "flex min-h-10 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <span>{statusFilterLabels[value]}</span>
+            <span className={cn("text-[10px] font-medium", active ? "text-muted-foreground" : "text-muted-foreground/80")}>
+              {counts.get(value) ?? 0}
+            </span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
-function FilterSection({ children, title }: { children: ReactNode; title: string }) {
-  return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold text-muted-foreground">{title}</h2>
-      {children}
-    </section>
-  )
-}
-
-function FilterChoice({
+function FilterPill({
   active,
   count,
   label,
@@ -964,50 +863,181 @@ function FilterChoice({
   onClick: () => void
 }) {
   return (
-    <Button
+    <button
       type="button"
-      variant={active ? "default" : "outline"}
-      className="h-auto min-h-11 justify-between whitespace-normal rounded-xl px-3 py-2 text-left"
+      role="switch"
+      aria-checked={active}
       onClick={onClick}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active
+          ? "border-primary/40 bg-primary/10 text-foreground"
+          : "border-border bg-card/80 text-muted-foreground hover:border-primary/25 hover:text-foreground",
+      )}
     >
-      <span className="min-w-0 truncate">{label}</span>
+      <span>{label}</span>
       {typeof count === "number" && (
-        <span className={cn("rounded-full px-2 py-0.5 text-xs", active ? "bg-background/20" : "bg-muted text-muted-foreground")}>
-          {count}
+        <span className={cn("text-xs font-medium", active ? "text-foreground/70" : "text-muted-foreground/70")}>
+          · {count}
         </span>
       )}
-    </Button>
+    </button>
   )
 }
 
-function FilterToggle({
+function PickerPill({
+  active,
+  label,
+  value,
+  onOpenChange,
+  open,
+  children,
+}: {
+  active: boolean
+  label: string
+  value: string
+  onOpenChange: (open: boolean) => void
+  open: boolean
+  children: ReactNode
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => onOpenChange(true)}
+        aria-haspopup="dialog"
+        className={cn(
+          "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          active
+            ? "border-primary/40 bg-primary/10 text-foreground"
+            : "border-border bg-card/80 text-muted-foreground hover:border-primary/25 hover:text-foreground",
+        )}
+      >
+        <span>{label}</span>
+        <span className={cn("text-xs font-medium", active ? "text-foreground" : "text-muted-foreground/80")}>· {value}</span>
+        <ChevronRight aria-hidden="true" className="size-3.5 rotate-90" />
+      </button>
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent side="bottom" className="flex max-h-[70svh] flex-col gap-0 p-0 lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:max-h-[min(560px,calc(100vh-4rem))] lg:w-[min(420px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:border">
+          <DrawerHeader className="shrink-0 px-6 pb-4 pt-6">
+            <DrawerTitle>{label}</DrawerTitle>
+            <DrawerDescription className="sr-only">Choisir une valeur de {label.toLowerCase()}.</DrawerDescription>
+          </DrawerHeader>
+          <ScrollArea className="min-h-0 flex-1 px-6">
+            <div className="flex flex-col gap-2 pb-6">{children}</div>
+          </ScrollArea>
+        </DrawerContent>
+      </Drawer>
+    </>
+  )
+}
+
+function PickerOption({
   active,
   count,
   label,
   onClick,
 }: {
   active: boolean
-  count: number
+  count?: number
   label: string
   onClick: () => void
 }) {
   return (
     <button
       type="button"
-      role="switch"
+      role="radio"
       aria-checked={active}
-      className={cn(
-        "flex min-h-12 touch-manipulation items-center justify-between gap-3 rounded-xl border bg-card/80 px-3 py-3 text-left text-sm font-semibold transition-colors hover:bg-muted/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        active && "border-primary/35 bg-secondary text-secondary-foreground",
-      )}
       onClick={onClick}
+      className={cn(
+        "flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active
+          ? "border-primary/40 bg-primary/10"
+          : "border-transparent bg-muted/55 hover:bg-muted/80",
+      )}
     >
       <span>{label}</span>
-      <span className="flex items-center gap-2">
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{count}</span>
-        <span className={cn("size-5 rounded-full border", active && "border-primary bg-primary shadow-inner")} aria-hidden="true" />
+      <span className="flex items-center gap-3">
+        {typeof count === "number" && <span className="text-xs text-muted-foreground">{count}</span>}
+        <span
+          aria-hidden="true"
+          className={cn(
+            "flex size-5 items-center justify-center rounded-full border-2 transition-colors",
+            active ? "border-primary" : "border-muted-foreground/40",
+          )}
+        >
+          {active && <span className="size-2.5 rounded-full bg-primary" />}
+        </span>
       </span>
     </button>
+  )
+}
+
+function CategoryPill({
+  categoryCounts,
+  onChange,
+  value,
+}: {
+  categoryCounts: Map<FoodCategoryFilter, number>
+  onChange: (category: FoodCategoryFilter) => void
+  value: FoodCategoryFilter
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <PickerPill
+      active={value !== "Toutes"}
+      label="Catégorie"
+      value={value}
+      open={open}
+      onOpenChange={setOpen}
+    >
+      {(["Toutes", ...categories] as FoodCategoryFilter[]).map((category) => (
+        <PickerOption
+          key={category}
+          active={value === category}
+          count={categoryCounts.get(category)}
+          label={category}
+          onClick={() => {
+            onChange(category)
+            setOpen(false)
+          }}
+        />
+      ))}
+    </PickerPill>
+  )
+}
+
+function IntroductionPill({
+  introductionCounts,
+  onChange,
+  value,
+}: {
+  introductionCounts: Map<IntroductionFilter, number>
+  onChange: (introduction: IntroductionFilter) => void
+  value: IntroductionFilter
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <PickerPill
+      active={value !== "toutes"}
+      label="Introduction"
+      value={introductionFilterLabels[value].toLowerCase()}
+      open={open}
+      onOpenChange={setOpen}
+    >
+      {(Object.keys(introductionFilterLabels) as IntroductionFilter[]).map((option) => (
+        <PickerOption
+          key={option}
+          active={value === option}
+          count={introductionCounts.get(option)}
+          label={introductionFilterLabels[option]}
+          onClick={() => {
+            onChange(option)
+            setOpen(false)
+          }}
+        />
+      ))}
+    </PickerPill>
   )
 }
 
@@ -1602,7 +1632,13 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
         onClick={() => setOpen(true)}
         aria-label={`${existingTest ? "Modifier" : "Tester"} ${food.name}`}
       >
-        <Card className="paper-surface pointer-events-none overflow-hidden transition-colors hover:border-primary/35">
+        <Card
+          className={cn(
+            "paper-surface pointer-events-none overflow-hidden transition-colors hover:border-primary/35",
+            status === "testé" && "border-status-tested/40 bg-status-tested/10",
+            status === "réaction" && "border-status-reaction/40 bg-status-reaction/10",
+          )}
+        >
           <CardHeader className="pb-3">
             <div className="flex min-w-0 items-center gap-3">
               <FoodEmoji food={food} />

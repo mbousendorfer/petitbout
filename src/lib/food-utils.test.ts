@@ -4,10 +4,15 @@ import type { Food } from "@/data/foods"
 import type { FoodTest } from "@/lib/storage"
 import {
   ageSummary,
+  applyFoodFilters,
+  countWithFilterChange,
   getStatus,
+  hasActiveFoodFilters,
+  initialFoodFilters,
   isAgeReady,
   isInSeason,
   weeklySuggestions,
+  type FoodFilters,
 } from "@/lib/food-utils"
 
 function makeFood(overrides: Partial<Food> = {}): Food {
@@ -27,6 +32,10 @@ function makeFood(overrides: Partial<Food> = {}): Food {
     tags: [],
     ...overrides,
   }
+}
+
+function makeFilters(overrides: Partial<FoodFilters> = {}): FoodFilters {
+  return { ...initialFoodFilters, ...overrides }
 }
 
 describe("isAgeReady", () => {
@@ -153,5 +162,157 @@ describe("weeklySuggestions", () => {
     const possible = makeFood({ id: "p", name: "P", level: "possible", category: "Fruits" })
     const result = weeklySuggestions([possible, conseille], 6, new Set(), month)
     expect(result[0].id).toBe("c")
+  })
+})
+
+describe("applyFoodFilters", () => {
+  function context(latestByFood: Map<string, FoodTest> = new Map(), packId: string | null = null) {
+    return { latestByFood, activePopotePackId: packId }
+  }
+
+  function test(foodId: string, reaction: FoodTest["reaction"] = "aucune réaction"): FoodTest {
+    return {
+      id: `t-${foodId}`,
+      foodId,
+      date: "2026-05-01",
+      mealTime: "midi",
+      isPopote: false,
+      reaction,
+      note: "",
+    }
+  }
+
+  it("returns all foods when no filter is active, alphabetically", () => {
+    const banane = makeFood({ id: "banane", name: "Banane" })
+    const carotte = makeFood({ id: "carotte", name: "Carotte" })
+    const result = applyFoodFilters([carotte, banane], makeFilters(), context())
+    expect(result.map((food) => food.id)).toEqual(["banane", "carotte"])
+  })
+
+  it("filters by category", () => {
+    const carotte = makeFood({ id: "carotte", category: "Légumes" })
+    const banane = makeFood({ id: "banane", category: "Fruits" })
+    const result = applyFoodFilters([carotte, banane], makeFilters({ category: "Fruits" }), context())
+    expect(result.map((food) => food.id)).toEqual(["banane"])
+  })
+
+  it("filters by status 'non-testes'", () => {
+    const carotte = makeFood({ id: "carotte" })
+    const banane = makeFood({ id: "banane" })
+    const latestByFood = new Map([["carotte", test("carotte")]])
+    const result = applyFoodFilters(
+      [carotte, banane],
+      makeFilters({ status: "non-testes" }),
+      context(latestByFood),
+    )
+    expect(result.map((food) => food.id)).toEqual(["banane"])
+  })
+
+  it("filters by status 'reaction'", () => {
+    const carotte = makeFood({ id: "carotte" })
+    const banane = makeFood({ id: "banane" })
+    const latestByFood = new Map([
+      ["carotte", test("carotte", "rougeur")],
+      ["banane", test("banane")],
+    ])
+    const result = applyFoodFilters(
+      [carotte, banane],
+      makeFilters({ status: "reaction" }),
+      context(latestByFood),
+    )
+    expect(result.map((food) => food.id)).toEqual(["carotte"])
+  })
+
+  it("filters by seasonOnly + category combined (AND semantics)", () => {
+    const carotteSaison = makeFood({ id: "carotte", category: "Légumes", seasonMonths: [new Date().getMonth() + 1] })
+    const courgette = makeFood({ id: "courgette", category: "Légumes", seasonMonths: [] })
+    const banane = makeFood({ id: "banane", category: "Fruits", seasonMonths: [new Date().getMonth() + 1] })
+    const result = applyFoodFilters(
+      [carotteSaison, courgette, banane],
+      makeFilters({ seasonOnly: true, category: "Légumes" }),
+      context(),
+    )
+    expect(result.map((food) => food.id)).toEqual(["carotte"])
+  })
+
+  it("filters by popoteOnly only when a pack is active", () => {
+    const banane = makeFood({ id: "banane", popotePackIds: ["decouverte"] })
+    const cerise = makeFood({ id: "cerise", popotePackIds: [] })
+    const offResult = applyFoodFilters(
+      [banane, cerise],
+      makeFilters({ popoteOnly: true }),
+      context(new Map(), null),
+    )
+    expect(offResult).toHaveLength(2)
+    const onResult = applyFoodFilters(
+      [banane, cerise],
+      makeFilters({ popoteOnly: true }),
+      context(new Map(), "decouverte"),
+    )
+    expect(onResult.map((food) => food.id)).toEqual(["banane"])
+  })
+
+  it("returns an empty array when filters exclude everything", () => {
+    const carotte = makeFood({ id: "carotte", category: "Légumes" })
+    const result = applyFoodFilters(
+      [carotte],
+      makeFilters({ category: "Fruits" }),
+      context(),
+    )
+    expect(result).toEqual([])
+  })
+})
+
+describe("countWithFilterChange (intersectional counts)", () => {
+  it("counts foods that would remain if a filter were toggled on, respecting other active filters", () => {
+    const a = makeFood({ id: "a", category: "Légumes", tags: ["allergène"] })
+    const b = makeFood({ id: "b", category: "Légumes", tags: [] })
+    const c = makeFood({ id: "c", category: "Fruits", tags: ["allergène"] })
+    const base = makeFilters({ category: "Légumes" })
+    const context = { latestByFood: new Map<string, FoodTest>(), activePopotePackId: null }
+
+    const allergenCount = countWithFilterChange([a, b, c], base, "allergensOnly", true, context)
+    expect(allergenCount).toBe(1)
+  })
+
+  it("counts each status segment independently of the current status filter", () => {
+    const a = makeFood({ id: "a" })
+    const b = makeFood({ id: "b" })
+    const c = makeFood({ id: "c" })
+    const latestByFood = new Map<string, FoodTest>([
+      [
+        "a",
+        {
+          id: "t-a",
+          foodId: "a",
+          date: "2026-05-01",
+          mealTime: "midi",
+          isPopote: false,
+          reaction: "aucune réaction",
+          note: "",
+        },
+      ],
+    ])
+    const context = { latestByFood, activePopotePackId: null }
+    const base = makeFilters({ status: "non-testes" })
+
+    expect(countWithFilterChange([a, b, c], base, "status", "tous", context)).toBe(3)
+    expect(countWithFilterChange([a, b, c], base, "status", "testes", context)).toBe(1)
+    expect(countWithFilterChange([a, b, c], base, "status", "non-testes", context)).toBe(2)
+    expect(countWithFilterChange([a, b, c], base, "status", "reaction", context)).toBe(0)
+  })
+})
+
+describe("hasActiveFoodFilters", () => {
+  it("returns false for the initial filter state", () => {
+    expect(hasActiveFoodFilters(initialFoodFilters)).toBe(false)
+  })
+
+  it("returns true when category is set", () => {
+    expect(hasActiveFoodFilters(makeFilters({ category: "Fruits" }))).toBe(true)
+  })
+
+  it("returns true when seasonOnly is set", () => {
+    expect(hasActiveFoodFilters(makeFilters({ seasonOnly: true }))).toBe(true)
   })
 })

@@ -1,5 +1,90 @@
-import type { Food, FoodCategory } from "@/data/foods"
+import { categories, isFoodInPack, type Food, type FoodCategory } from "@/data/foods"
 import type { FoodTest } from "@/lib/storage"
+
+export type FoodStatusFilter = "tous" | "non-testes" | "testes" | "reaction"
+export type IntroductionFilter = "toutes" | "conseillee" | "possible"
+export type FoodCategoryFilter = "Toutes" | (typeof categories)[number]
+
+export type FoodFilters = {
+  allergensOnly: boolean
+  category: FoodCategoryFilter
+  introduction: IntroductionFilter
+  popoteOnly: boolean
+  seasonOnly: boolean
+  status: FoodStatusFilter
+}
+
+export const initialFoodFilters: FoodFilters = {
+  allergensOnly: false,
+  category: "Toutes",
+  introduction: "toutes",
+  popoteOnly: false,
+  seasonOnly: false,
+  status: "tous",
+}
+
+export type FoodFilterContext = {
+  latestByFood: Map<string, FoodTest>
+  activePopotePackId: string | null
+}
+
+export function applyFoodFilters(
+  foods: Food[],
+  filters: FoodFilters,
+  context: FoodFilterContext,
+): Food[] {
+  const { latestByFood, activePopotePackId } = context
+
+  return foods
+    .filter((food) => {
+      const status = getStatus(food.id, latestByFood)
+      const matchesCategory = filters.category === "Toutes" || food.category === filters.category
+      const matchesStatus =
+        filters.status === "tous" ||
+        (filters.status === "non-testes" && status === "non testé") ||
+        (filters.status === "testes" && status === "testé") ||
+        (filters.status === "reaction" && status === "réaction")
+      const matchesIntroduction =
+        filters.introduction === "toutes" ||
+        (filters.introduction === "conseillee" && food.level === "conseillé") ||
+        (filters.introduction === "possible" && food.level === "possible")
+      const matchesSeason = !filters.seasonOnly || isInSeason(food)
+      const matchesAllergens = !filters.allergensOnly || food.tags.includes("allergène")
+      const matchesPopote =
+        activePopotePackId === null || !filters.popoteOnly || isFoodInPack(food, activePopotePackId)
+
+      return (
+        matchesCategory &&
+        matchesStatus &&
+        matchesIntroduction &&
+        matchesSeason &&
+        matchesAllergens &&
+        matchesPopote
+      )
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }))
+}
+
+export function countWithFilterChange<K extends keyof FoodFilters>(
+  foods: Food[],
+  baseFilters: FoodFilters,
+  field: K,
+  value: FoodFilters[K],
+  context: FoodFilterContext,
+): number {
+  return applyFoodFilters(foods, { ...baseFilters, [field]: value }, context).length
+}
+
+export function hasActiveFoodFilters(filters: FoodFilters): boolean {
+  return (
+    filters.category !== "Toutes" ||
+    filters.status !== "tous" ||
+    filters.introduction !== "toutes" ||
+    filters.seasonOnly ||
+    filters.allergensOnly ||
+    filters.popoteOnly
+  )
+}
 
 export function currentMonth() {
   return new Date().getMonth() + 1
