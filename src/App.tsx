@@ -1,6 +1,6 @@
 import { createContext, lazy, memo, Suspense, type ReactNode, useContext, useEffect, useId, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { NavLink, Route, Routes } from "react-router-dom"
+import { Navigate, NavLink, Route, Routes } from "react-router-dom"
 import {
   Baby,
   CalendarDays,
@@ -25,7 +25,6 @@ import {
   Search,
   Settings,
   SlidersHorizontal,
-  Sparkles,
   Sun,
   Trash2,
   Utensils,
@@ -72,7 +71,6 @@ import {
   isAgeReady,
   isInSeason,
   monthNames,
-  suggestionReasons,
   weeklySuggestions,
 } from "@/lib/food-utils"
 import {
@@ -183,7 +181,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage store={store} suggestions={suggestions} recentTests={recentTests} />} />
             <Route path="/foods" element={<FoodsPage store={store} />} />
-            <Route path="/week" element={<WeekPage suggestions={suggestions} store={store} />} />
+            <Route path="/week" element={<Navigate to="/" replace />} />
             <Route path="/history" element={<HistoryPage store={store} />} />
             <Route
               path="/discoveries"
@@ -425,49 +423,86 @@ function HomePage({
   recentTests: ReturnType<typeof useBabyStore>["tests"]
 }) {
   const { popoteEnabled } = useAppOptions()
+  const [discardedSuggestionIds, setDiscardedSuggestionIds] = useState<string[]>([])
+  const visibleSuggestions = suggestions.filter((food) => !discardedSuggestionIds.includes(food.id))
+  const topFood = visibleSuggestions[0]
+  const weeklyPlan = visibleSuggestions.slice(1)
+
+  function postponeTopFood() {
+    if (!topFood) return
+    setDiscardedSuggestionIds((current) => [...current, topFood.id])
+    toast.info(`${topFood.name} proposé plus tard`)
+  }
 
   return (
     <>
-      <Header eyebrow="Diversification" title="Diversibebs" />
-      <Card className="overflow-hidden border-primary/10 bg-card/90">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <CardTitle className="text-2xl">
-                {store.profile.childName ? `${store.profile.childName} a` : "Bébé a"} {store.profile.ageMonths} mois
-              </CardTitle>
-              <CardDescription>
-                {store.testedFoodIds.size} aliment(s) déjà testé(s)
-                {store.profile.birthDate && ` · né(e) le ${new Date(`${store.profile.birthDate}T00:00:00`).toLocaleDateString("fr-FR")}`}
-              </CardDescription>
-            </div>
-            <div className="rounded-full bg-secondary p-3">
-              <Baby aria-hidden="true" />
-            </div>
+      <Header eyebrow="Diversification" title="Cette semaine" />
+      <div className="rounded-xl bg-gradient-to-br from-secondary/55 via-card/80 to-accent/20 p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-muted-foreground">
+              {store.profile.childName ? `${store.profile.childName}, ${store.profile.ageMonths} mois` : `Bébé, ${store.profile.ageMonths} mois`}
+            </p>
+            <h2 className="mt-1 text-xl font-semibold">Le prochain aliment à tester</h2>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground">
+              {store.testedFoodIds.size} aliment(s) déjà testé(s)
+              {store.profile.birthDate && ` · né(e) le ${new Date(`${store.profile.birthDate}T00:00:00`).toLocaleDateString("fr-FR")}`}
+            </p>
           </div>
-        </CardHeader>
-      </Card>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/75 text-primary shadow-sm">
+            <Baby className="size-5" aria-hidden="true" />
+          </span>
+        </div>
+      </div>
 
-      <Card className="border-primary/20 bg-primary text-primary-foreground">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Sparkles aria-hidden="true" />
-            <CardTitle>Cette semaine</CardTitle>
+      {topFood ? (
+        <>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Priorité</p>
+                <h2 className="text-xl font-semibold">À tester en priorité</h2>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={postponeTopFood}>
+                <RefreshCw data-icon="inline-start" aria-hidden="true" />
+                Plus tard
+              </Button>
+            </div>
+            <FoodCard food={topFood} store={store} />
           </div>
-          <CardDescription className="text-primary-foreground/75">
-            3 à 5 idées adaptées à l’âge, non testées, avec priorité à la saison.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AnimatedList className="flex flex-col gap-3">
-            {suggestions.slice(0, 3).map((food) => (
-              <AnimatedListItem key={food.id}>
-                <FoodRow food={food} store={store} inverted />
-              </AnimatedListItem>
-            ))}
-          </AnimatedList>
-        </CardContent>
-      </Card>
+
+          {weeklyPlan.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Plan léger</p>
+                  <h2 className="text-xl font-semibold">Le reste de la semaine</h2>
+                </div>
+                <Badge variant="secondary" className="h-8 px-3">{weeklyPlan.length} idées</Badge>
+              </div>
+              <AnimatedList className="flex flex-col gap-3">
+                {weeklyPlan.map((food) => (
+                  <AnimatedListItem key={food.id}>
+                    <FoodCard food={food} store={store} />
+                  </AnimatedListItem>
+                ))}
+              </AnimatedList>
+            </div>
+          )}
+        </>
+      ) : (
+        <Card className="bg-card/90">
+          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+            <div className="rounded-full bg-secondary p-3">
+              <Check aria-hidden="true" />
+            </div>
+            <div>
+              <p className="font-medium">Tout est à jour</p>
+              <p className="mt-1 text-sm text-muted-foreground">Aucune suggestion nouvelle pour cette semaine.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-card/90">
         <CardHeader>
@@ -856,79 +891,6 @@ function FilterToggle({
         <span className={cn("size-5 rounded-full border", active && "border-primary bg-primary shadow-inner")} aria-hidden="true" />
       </span>
     </button>
-  )
-}
-
-function WeekPage({
-  suggestions,
-  store,
-}: {
-  suggestions: Food[]
-  store: ReturnType<typeof useBabyStore>
-}) {
-  const [discardedSuggestionIds, setDiscardedSuggestionIds] = useState<string[]>([])
-  const visibleSuggestions = suggestions.filter((food) => !discardedSuggestionIds.includes(food.id))
-  const topFood = visibleSuggestions[0]
-  const weeklyPlan = visibleSuggestions.slice(1)
-
-  function postponeTopFood() {
-    if (!topFood) return
-    setDiscardedSuggestionIds((current) => [...current, topFood.id])
-    toast.info(`${topFood.name} proposé plus tard`)
-  }
-
-  return (
-    <>
-      <Header eyebrow="Conseil" title="Cette semaine" />
-      {topFood ? (
-        <>
-          <div className="flex flex-col gap-3">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Priorité</p>
-                <h2 className="text-xl font-semibold">À tester en priorité</h2>
-              </div>
-              <Button type="button" variant="outline" size="sm" onClick={postponeTopFood}>
-                <RefreshCw data-icon="inline-start" aria-hidden="true" />
-                Plus tard
-              </Button>
-            </div>
-            <FoodCard food={topFood} store={store} />
-          </div>
-
-          {weeklyPlan.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Plan léger</p>
-                  <h2 className="text-xl font-semibold">Le reste de la semaine</h2>
-                </div>
-                <Badge variant="secondary" className="h-8 px-3">{weeklyPlan.length} idées</Badge>
-              </div>
-              <AnimatedList className="flex flex-col gap-3">
-                {weeklyPlan.map((food) => (
-                  <AnimatedListItem key={food.id}>
-                    <FoodCard food={food} store={store} />
-                  </AnimatedListItem>
-                ))}
-              </AnimatedList>
-            </div>
-          )}
-        </>
-      ) : (
-        <Card className="bg-card/90">
-          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <div className="rounded-full bg-secondary p-3">
-              <Check aria-hidden="true" />
-            </div>
-            <div>
-              <p className="font-medium">Tout est à jour</p>
-              <p className="mt-1 text-sm text-muted-foreground">Aucune suggestion nouvelle pour cette semaine.</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </>
   )
 }
 
@@ -1327,43 +1289,6 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
   )
 })
 
-function FoodRow({
-  food,
-  store,
-  inverted = false,
-}: {
-  food: Food
-  store: ReturnType<typeof useBabyStore>
-  inverted?: boolean
-}) {
-  const [open, setOpen] = useState(false)
-  const existingTest = store.latestByFood.get(food.id)
-
-  return (
-    <>
-      <button
-        type="button"
-        className={cn(
-          "block w-full touch-manipulation rounded-md bg-background/12 p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          inverted ? "hover:bg-primary-foreground/15" : "hover:bg-muted",
-        )}
-        onClick={() => setOpen(true)}
-        aria-label={`${existingTest ? "Modifier" : "Tester"} ${food.name}`}
-      >
-        <div className="min-w-0">
-          <p className={cn("font-medium", inverted && "text-primary-foreground")}>
-            <span aria-hidden="true">{food.emoji}</span> {food.name}
-          </p>
-          <p className={cn("truncate text-sm text-muted-foreground", inverted && "text-primary-foreground/70")}>
-            {suggestionReasons(food).slice(0, 2).join(" · ")}
-          </p>
-        </div>
-      </button>
-      {open && <FoodTestDrawer food={food} store={store} test={existingTest} open={open} onOpenChange={setOpen} />}
-    </>
-  )
-}
-
 function FoodDetail({
   food,
   store,
@@ -1734,7 +1659,6 @@ function BottomNav() {
   const items = [
     { to: "/", label: "Accueil", icon: Home },
     { to: "/foods", label: "Aliments", icon: Leaf },
-    { to: "/week", label: "Semaine", icon: CalendarDays },
     { to: "/history", label: "Journal", icon: NotebookText },
     { to: "/discoveries", label: "Découv.", icon: Award },
     { to: "/settings", label: "Réglages", icon: Settings },
@@ -1742,7 +1666,7 @@ function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-xl border-t bg-background/92 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 backdrop-blur">
-      <div className="grid grid-cols-6 gap-1">
+      <div className="grid grid-cols-5 gap-1">
         {items.map((item) => (
           <NavLink
             key={item.to}
