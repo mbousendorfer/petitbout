@@ -1106,7 +1106,7 @@ function SettingsPage({
       <Header eyebrow="Préférences" title="Réglages" />
 
       {shouldShowSyncStatus && (
-        <p className="rounded-md border bg-card/80 p-3 text-sm text-muted-foreground">
+        <p className="rounded-lg border bg-card/85 p-3 text-sm text-muted-foreground shadow-sm">
           {store.syncStatus === "loading" && "Chargement des données partagées..."}
           {store.syncStatus === "syncing" && "Synchronisation en cours..."}
           {store.syncStatus === "offline" && "Hors ligne, cache local affiché."}
@@ -1114,24 +1114,32 @@ function SettingsPage({
         </p>
       )}
 
-      <Card className="bg-card/90">
-        <CardHeader>
-          <CardTitle>Enfant</CardTitle>
-          <CardDescription>Ces informations sont partagées dans l’espace famille.</CardDescription>
+      <Card className="overflow-hidden border-primary/15 bg-card/92 shadow-sm">
+        <CardHeader className="bg-gradient-to-br from-secondary/55 via-card to-accent/25 pb-4">
+          <div className="flex items-start gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/75 text-primary shadow-sm">
+              <Baby className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <CardTitle>Enfant</CardTitle>
+              <CardDescription className="mt-1">Ces informations sont partagées dans l’espace famille.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="flex min-w-0 flex-col gap-4">
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Nom de l’enfant
+        <CardContent className="flex min-w-0 flex-col gap-3 pt-4">
+          <label className="grid gap-1.5 text-sm font-medium">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Nom de l’enfant</span>
             <Input
+              className="h-11 bg-background/70"
               placeholder="Ex. Alba"
               value={childName}
               onChange={(event) => setChildName(event.target.value)}
             />
           </label>
-          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-            Date de naissance
+          <label className="grid min-w-0 gap-1.5 text-sm font-medium">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Date de naissance</span>
             <Input
-              className="min-w-0 max-w-full"
+              className="h-11 min-w-0 max-w-full bg-background/70"
               type="date"
               value={birthDate}
               onChange={(event) => setBirthDate(event.target.value)}
@@ -1148,24 +1156,31 @@ function SettingsPage({
         </CardContent>
       </Card>
 
-      <Card className="bg-card/90">
+      <Card className="overflow-hidden bg-card/92 shadow-sm">
         <CardHeader>
-          <CardTitle>Espace famille</CardTitle>
-          <CardDescription>
-            {familyCodeLabel || "Le code original n’est pas disponible sur cet appareil."}
-          </CardDescription>
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+              <LockKeyhole className="size-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <CardTitle>Espace famille</CardTitle>
+              <CardDescription className="mt-1 truncate">
+                {familyCodeLabel || "Le code original n’est pas disponible sur cet appareil."}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Button type="button" variant="outline" onClick={copyFamilyCode} disabled={!familyCodeLabel}>
+          <Button type="button" variant="outline" className="h-11 justify-start" onClick={copyFamilyCode} disabled={!familyCodeLabel}>
             <Copy data-icon="inline-start" aria-hidden="true" />
             Copier l’identifiant
           </Button>
           <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="ghost" onClick={() => void store.refresh()}>
+            <Button type="button" variant="secondary" className="h-11" onClick={() => void store.refresh()}>
               <RefreshCw data-icon="inline-start" aria-hidden="true" />
               Rafraîchir
             </Button>
-            <Button type="button" variant="ghost" onClick={() => store.disconnectFamily()}>
+            <Button type="button" variant="ghost" className="h-11" onClick={() => store.disconnectFamily()}>
               <LogOut data-icon="inline-start" aria-hidden="true" />
               Changer
             </Button>
@@ -1173,13 +1188,20 @@ function SettingsPage({
         </CardContent>
       </Card>
 
-      <Card className="bg-card/90">
+      <Card className="bg-card/92 shadow-sm">
         <CardHeader>
-          <CardTitle>Apparence</CardTitle>
-          <CardDescription>Le thème reste propre à cet appareil.</CardDescription>
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+              <Monitor className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <CardTitle>Apparence</CardTitle>
+              <CardDescription className="mt-1">Le thème reste propre à cet appareil.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-2 rounded-md bg-muted p-1">
+          <div className="grid grid-cols-3 gap-1.5 rounded-lg border bg-muted/70 p-1.5">
             <ThemeButton active={theme === "light"} icon={Sun} label="Clair" onClick={() => setTheme("light")} />
             <ThemeButton active={theme === "system"} icon={Monitor} label="Système" onClick={() => setTheme("system")} />
             <ThemeButton active={theme === "dark"} icon={Moon} label="Sombre" onClick={() => setTheme("dark")} />
@@ -1189,38 +1211,65 @@ function SettingsPage({
 
       <InstallPrompt />
 
-      <Card className="bg-card/90">
+      <Card className="bg-card/92 shadow-sm">
         <CardHeader>
-          <CardTitle>Options</CardTitle>
-          <CardDescription>Affichez uniquement les informations utiles à votre suivi.</CardDescription>
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+              <PackageCheck className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <CardTitle>Options</CardTitle>
+              <CardDescription className="mt-1">Affichez uniquement les informations utiles à votre suivi.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <label className="flex items-center justify-between gap-3 rounded-md border bg-card p-3 text-sm font-medium">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-3 rounded-lg border bg-background/55 p-3 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => setPopoteEnabled(!popoteEnabled)}
+            aria-pressed={popoteEnabled}
+          >
             <span className="flex min-w-0 flex-col gap-1">
-              <span>Option Popote</span>
+              <span className="text-sm font-semibold">Option Popote</span>
               <span className="text-xs font-normal leading-5 text-muted-foreground">
                 Afficher les filtres, badges et choix liés aux gourdes Popote.
               </span>
             </span>
-            <input
-              className="size-5 accent-primary"
-              type="checkbox"
-              checked={popoteEnabled}
-              onChange={(event) => setPopoteEnabled(event.target.checked)}
-            />
-          </label>
+            <span
+              className={cn(
+                "flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors",
+                popoteEnabled ? "bg-primary" : "bg-muted",
+              )}
+              aria-hidden="true"
+            >
+              <span
+                className={cn(
+                  "size-5 rounded-full bg-background shadow-sm transition-transform",
+                  popoteEnabled && "translate-x-5",
+                )}
+              />
+            </span>
+          </button>
         </CardContent>
       </Card>
 
-      <Card className="bg-card/90">
+      <Card className="bg-card/92 shadow-sm">
         <CardHeader>
-          <CardTitle>Sauvegarde locale</CardTitle>
-          <CardDescription>
-            Exportez un fichier JSON pour garder une copie ou migrer vers un autre appareil.
-          </CardDescription>
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+              <Download className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <CardTitle>Sauvegarde locale</CardTitle>
+              <CardDescription className="mt-1">
+                Gardez une copie ou migrez vers un autre appareil.
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Button type="button" variant="outline" onClick={exportBackup}>
+          <Button type="button" variant="outline" className="h-11 justify-start" onClick={exportBackup}>
             <Download data-icon="inline-start" aria-hidden="true" />
             Exporter les données
           </Button>
@@ -1231,7 +1280,7 @@ function SettingsPage({
             accept="application/json"
             onChange={(event) => void importBackup(event)}
           />
-          <Button type="button" variant="ghost" onClick={() => importInputRef.current?.click()}>
+          <Button type="button" variant="secondary" className="h-11 justify-start" onClick={() => importInputRef.current?.click()}>
             <Upload data-icon="inline-start" aria-hidden="true" />
             Importer une sauvegarde
           </Button>
@@ -1256,7 +1305,15 @@ function ThemeButton({
   onClick: () => void
 }) {
   return (
-    <Button type="button" variant={active ? "secondary" : "ghost"} className="h-12 flex-col gap-1 px-2 text-xs" onClick={onClick}>
+    <Button
+      type="button"
+      variant={active ? "secondary" : "ghost"}
+      className={cn(
+        "h-14 flex-col gap-1 px-2 text-xs shadow-none",
+        active && "bg-background text-foreground shadow-sm",
+      )}
+      onClick={onClick}
+    >
       <Icon aria-hidden="true" />
       {label}
     </Button>
