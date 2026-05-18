@@ -82,6 +82,7 @@ import {
 } from "@/lib/food-utils"
 import {
   calculateBadges,
+  calculateProgress,
   readBadgeUnlockDates,
   writeBadgeUnlockDates,
   type BadgeUnlockDates,
@@ -530,6 +531,26 @@ function EmptyState({
   )
 }
 
+function nextMonthlyMilestone(birthDate: string): { months: number; daysAway: number } | null {
+  if (!birthDate) return null
+  const birth = new Date(`${birthDate}T00:00:00`)
+  if (Number.isNaN(birth.getTime())) return null
+
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const monthsLived =
+    (today.getFullYear() - birth.getFullYear()) * 12 +
+    (today.getMonth() - birth.getMonth()) -
+    (today.getDate() < birth.getDate() ? 1 : 0)
+  const nextMonths = monthsLived + 1
+  const nextDate = new Date(birth)
+  nextDate.setMonth(birth.getMonth() + nextMonths)
+  const daysAway = Math.ceil((nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (daysAway < 0 || daysAway > 14) return null
+  return { months: nextMonths, daysAway }
+}
+
 function HomePage({
   store,
   suggestions,
@@ -545,6 +566,26 @@ function HomePage({
   const topFood = visibleSuggestions[0]
   const weeklyPlan = visibleSuggestions.slice(1)
 
+  const progress = useMemo(() => calculateProgress(foods, store.tests), [store.tests])
+  const uniqueCategoriesCount = useMemo(
+    () =>
+      new Set(
+        store.tests.flatMap((test) => {
+          const food = foods.find((item) => item.id === test.foodId)
+          return food ? [food.category] : []
+        }),
+      ).size,
+    [store.tests],
+  )
+  const notesCount = useMemo(
+    () => store.tests.filter((test) => test.note.trim().length > 0).length,
+    [store.tests],
+  )
+  const milestone = useMemo(
+    () => nextMonthlyMilestone(store.profile.birthDate),
+    [store.profile.birthDate],
+  )
+
   function postponeTopFood() {
     if (!topFood) return
     setDiscardedSuggestionIds((current) => [...current, topFood.id])
@@ -553,18 +594,12 @@ function HomePage({
 
   return (
     <>
-      <Header eyebrow="Diversification" title="Cette semaine" />
-      <Disclaimer compact />
-      <HeroPanel icon={Baby}>
-        <p className="text-sm font-semibold text-muted-foreground">
-          {store.profile.childName ? `${store.profile.childName}, ${store.profile.ageMonths} mois` : `Bébé, ${store.profile.ageMonths} mois`}
-        </p>
-        <h2 className="mt-1 text-2xl font-semibold tracking-normal">Le prochain aliment à tester</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          {store.testedFoodIds.size} aliment(s) déjà noté(s). Chaque bébé avance à son rythme.
-          {store.profile.birthDate && ` Né(e) le ${new Date(`${store.profile.birthDate}T00:00:00`).toLocaleDateString("fr-FR")}.`}
-        </p>
-      </HeroPanel>
+      <BabyHero
+        ageMonths={store.profile.ageMonths}
+        birthDate={store.profile.birthDate}
+        childName={store.profile.childName}
+        milestone={milestone}
+      />
 
       {topFood ? (
         <>
@@ -603,25 +638,51 @@ function HomePage({
         </EmptyState>
       )}
 
-      <Card className="paper-surface">
-        <CardHeader>
-          <CardTitle>Derniers tests</CardTitle>
-          <CardDescription>Notez simplement ce que vous observez, sans chercher la perfection.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {recentTests.length === 0 ? (
-            <p className="rounded-lg bg-muted/55 p-3 text-sm leading-5 text-muted-foreground">
-              Aucun aliment marqué comme testé pour le moment.
-            </p>
-          ) : (
-            <AnimatedList className="grid gap-3 lg:grid-cols-2">
-              {recentTests.map((test) => {
+      <div className="flex flex-col gap-3">
+        <SectionHeader
+          eyebrow="Carnet"
+          title="Où en suis-je"
+          action={
+            <NavLink
+              to="/discoveries"
+              className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Voir tout
+            </NavLink>
+          }
+        />
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <HomeStatTile icon={Sparkles} label="aliments goûtés" value={progress.testedFoods} />
+          <HomeStatTile icon={Leaf} label="catégories" value={uniqueCategoriesCount} />
+          <HomeStatTile icon={PencilLine} label="notes" value={notesCount} />
+        </div>
+      </div>
+
+      {recentTests.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <SectionHeader
+            eyebrow="Journal"
+            title="Derniers tests"
+            action={
+              <NavLink
+                to="/history"
+                className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Voir tout
+              </NavLink>
+            }
+          />
+          <AnimatedList className="grid gap-3 lg:grid-cols-2">
+            {recentTests.slice(0, 3).map((test) => {
               const food = foods.find((item) => item.id === test.foodId)
               if (!food) return null
               return (
-                <AnimatedListItem key={test.id} className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">{food.name}</p>
+                <AnimatedListItem
+                  key={test.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border bg-card/80 px-3 py-3 shadow-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{food.name}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <p className="text-sm text-muted-foreground">{testDateTimeLabel(test)}</p>
                       {activePopotePackId !== null && test.isPopote && <PopoteBadge />}
@@ -634,12 +695,84 @@ function HomePage({
                 </AnimatedListItem>
               )
             })}
-            </AnimatedList>
-          )}
-        </CardContent>
-      </Card>
+          </AnimatedList>
+        </div>
+      )}
 
+      <SourcesSection />
+
+      <Disclaimer compact />
     </>
+  )
+}
+
+function BabyHero({
+  ageMonths,
+  birthDate,
+  childName,
+  milestone,
+}: {
+  ageMonths: number
+  birthDate: string
+  childName: string
+  milestone: { months: number; daysAway: number } | null
+}) {
+  const displayName = childName.trim() ? childName.trim() : "Bébé"
+  const formattedBirth = birthDate
+    ? new Date(`${birthDate}T00:00:00`).toLocaleDateString("fr-FR")
+    : null
+
+  return (
+    <section className="paper-surface soft-ring relative overflow-hidden rounded-2xl p-4 sm:p-5">
+      <div className="flex items-center gap-3">
+        <span
+          aria-hidden="true"
+          className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm"
+        >
+          <Baby className="size-6" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-muted-foreground">Bonjour</p>
+          <h1 className="text-xl font-semibold tracking-normal sm:text-2xl">
+            {displayName}, {ageMonths} mois
+          </h1>
+          {formattedBirth && (
+            <p className="mt-0.5 text-xs text-muted-foreground">Né(e) le {formattedBirth}</p>
+          )}
+        </div>
+        {milestone && (
+          <span className="hidden shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:inline-flex">
+            {milestone.months} mois dans {milestone.daysAway} j
+          </span>
+        )}
+      </div>
+      {milestone && (
+        <p className="mt-3 rounded-lg bg-muted/50 px-3 py-2 text-xs leading-5 text-muted-foreground sm:hidden">
+          Bientôt {milestone.months} mois — dans {milestone.daysAway} jour{milestone.daysAway > 1 ? "s" : ""}.
+        </p>
+      )}
+    </section>
+  )
+}
+
+function HomeStatTile({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon
+  label: string
+  value: number
+}) {
+  return (
+    <NavLink
+      to="/discoveries"
+      className="flex flex-col items-center gap-1 rounded-xl border bg-card/85 px-2 py-3 text-center shadow-sm transition-colors hover:border-primary/30 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
+      <span className="text-xl font-semibold tracking-tight">{value}</span>
+      <span className="text-xs leading-tight text-muted-foreground">{label}</span>
+    </NavLink>
   )
 }
 
@@ -1351,8 +1484,6 @@ function SettingsPage({
           )}
         </SettingsSection>
 
-        <SourcesSettingsSection />
-
         <InstallHelpSection />
 
         <SettingsSection description="Gardez une copie, restaurez le suivi ou préparez un rendez-vous." title="Sauvegarde">
@@ -1422,15 +1553,19 @@ const defaultThemeAccent: ThemeAccent = {
   text: "text-muted-foreground",
 }
 
-function SourcesSettingsSection() {
+function SourcesSection() {
   const groups = sourcesByTheme()
   const themes = Object.entries(groups).filter(([, items]) => items.length > 0)
 
   return (
-    <SettingsSection
-      description={`Les repères s’appuient sur des sources officielles. Repères vérifiés en ${reviewedAt}.`}
-      title="Sources & repères"
-    >
+    <section className="flex flex-col gap-3">
+      <SectionHeader
+        eyebrow="Confiance"
+        title="Sources & repères"
+        action={
+          <span className="text-xs text-muted-foreground">Vérifié en {reviewedAt}</span>
+        }
+      />
       <div className="grid gap-3 sm:grid-cols-2">
         {themes.map(([theme, items]) => {
           const accent = sourceThemeAccents[theme] ?? defaultThemeAccent
@@ -1481,7 +1616,7 @@ function SourcesSettingsSection() {
         <ShieldCheck aria-hidden="true" className="size-4" />
         {foodSourceReferences.length} références suivies, à revérifier régulièrement.
       </p>
-    </SettingsSection>
+    </section>
   )
 }
 
