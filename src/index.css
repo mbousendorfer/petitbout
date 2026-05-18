@@ -206,7 +206,7 @@
   .safe-shell {
     min-height: 100dvh;
     padding-top: env(safe-area-inset-top);
-    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
   }
 
   .soft-surface {

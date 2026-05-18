@@ -1520,7 +1520,7 @@ function BottomNav() {
   ]
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-xl border-t bg-background/92 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-xl border-t bg-background/92 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 backdrop-blur">
       <div className="grid grid-cols-6 gap-1">
         {items.map((item) => (
           <NavLink
