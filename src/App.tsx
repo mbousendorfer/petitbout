@@ -7,6 +7,8 @@ import {
   Check,
   ChevronRight,
   Clock,
+  Coffee,
+  Cookie,
   Copy,
   Download,
   Home,
@@ -26,6 +28,7 @@ import {
   Sparkles,
   Sun,
   Trash2,
+  Utensils,
   Upload,
   X,
 } from "lucide-react"
@@ -130,11 +133,16 @@ type ThemeMode = "light" | "system" | "dark"
 const themeStorageKey = "diversibebs-theme-v1"
 const appOptionsStorageKey = "diversibebs-options-v1"
 
-const mealTimePresets: Array<{ id: Exclude<MealTimePresetId, "custom">; label: string; time: string }> = [
-  { id: "breakfast", label: "Petit déjeuner", time: "08:00" },
-  { id: "lunch", label: "Déjeuner", time: "12:00" },
-  { id: "snack", label: "Goûter", time: "16:00" },
-  { id: "dinner", label: "Dîner", time: "19:00" },
+const mealTimePresets: Array<{
+  icon: typeof Clock
+  id: Exclude<MealTimePresetId, "custom">
+  label: string
+  time: string
+}> = [
+  { icon: Coffee, id: "breakfast", label: "Petit déjeuner", time: "08:00" },
+  { icon: Utensils, id: "lunch", label: "Déjeuner", time: "12:00" },
+  { icon: Cookie, id: "snack", label: "Goûter", time: "16:00" },
+  { icon: Moon, id: "dinner", label: "Dîner", time: "19:00" },
 ]
 
 const defaultMealTimePreset = mealTimePresets[1]
@@ -1514,47 +1522,78 @@ function FoodTestDrawer({
             <p className="rounded-md bg-muted p-4 text-sm leading-6">{food.preparation}</p>
             <Separator />
             <div className="flex min-w-0 flex-col gap-4">
-              <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                Date
-                <Input
-                  className="min-w-0 max-w-full"
-                  type="date"
-                  value={date}
-                  onChange={(event) => setDate(event.target.value)}
-                />
-              </label>
-              <div className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                Moment
-                <div className="grid grid-cols-2 gap-2">
-                  {mealTimePresets.map((preset) => (
-                    <Button
-                      key={preset.id}
-                      type="button"
-                      variant={mealTimePreset === preset.id ? "secondary" : "outline"}
-                      className="h-auto min-h-11 justify-start px-3 py-2"
-                      onClick={() => selectMealTimePreset(preset.id)}
-                    >
-                      {preset.label}
-                    </Button>
-                  ))}
-                  <Button
+              <div className="grid gap-3 rounded-lg border bg-card/70 p-3">
+                <label className="flex min-w-0 items-center gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
+                    <CalendarDays className="size-5" aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">Date</span>
+                    <Input
+                      className="h-11 min-w-0 max-w-full border-0 bg-background/70 px-3 shadow-none"
+                      type="date"
+                      value={date}
+                      onChange={(event) => setDate(event.target.value)}
+                    />
+                  </span>
+                </label>
+
+                <div className="flex min-w-0 flex-col gap-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Moment</p>
+                    <p className="text-xs text-muted-foreground">{mealTime}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {mealTimePresets.map((preset) => {
+                      const isSelected = mealTimePreset === preset.id
+                      const Icon = preset.icon
+
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          className={cn(
+                            "flex min-h-14 items-center gap-2 rounded-md border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            isSelected
+                              ? "border-primary/25 bg-secondary text-secondary-foreground shadow-sm"
+                              : "border-border bg-background/50 text-foreground hover:bg-muted",
+                          )}
+                          onClick={() => selectMealTimePreset(preset.id)}
+                        >
+                          <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium">{preset.label}</span>
+                            <span className="block text-xs text-muted-foreground">{preset.time}</span>
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <button
                     type="button"
-                    variant={mealTimePreset === "custom" ? "secondary" : "outline"}
-                    className="h-auto min-h-11 justify-start px-3 py-2"
+                    className={cn(
+                      "flex min-h-11 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      mealTimePreset === "custom"
+                        ? "border-primary/25 bg-secondary text-secondary-foreground shadow-sm"
+                        : "border-border bg-background/50 hover:bg-muted",
+                    )}
                     onClick={() => selectMealTimePreset("custom")}
                   >
-                    <Clock data-icon="inline-start" aria-hidden="true" />
-                    Entrer l’heure
-                  </Button>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Clock className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <span className="truncate text-sm font-medium">Entrer l’heure</span>
+                    </span>
+                    <span className="text-xs text-muted-foreground">{mealTimePreset === "custom" ? mealTime : "Libre"}</span>
+                  </button>
+                  {mealTimePreset === "custom" && (
+                    <Input
+                      className="h-11 min-w-0 max-w-full bg-background/70"
+                      type="time"
+                      value={mealTime}
+                      onChange={(event) => setMealTime(event.target.value)}
+                    />
+                  )}
                 </div>
-                {mealTimePreset === "custom" && (
-                  <Input
-                    className="min-w-0 max-w-full"
-                    type="time"
-                    value={mealTime}
-                    onChange={(event) => setMealTime(event.target.value)}
-                  />
-                )}
               </div>
               {popoteEnabled && food.isPopoteEligible && (
                 <label className="flex items-center justify-between gap-3 rounded-md border bg-card p-3 text-sm font-medium">
