@@ -1841,7 +1841,7 @@ function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
             className={cn(
               "flex h-7 min-w-0 items-center justify-center rounded-sm border px-0.5 text-[0.625rem] font-semibold leading-none",
               isActive
-                ? "border-primary/20 bg-secondary text-primary shadow-sm"
+                ? "border-status-season-month bg-status-season-month text-status-season-month-foreground shadow-sm"
                 : "border-border bg-muted/45 text-muted-foreground",
             )}
             aria-hidden="true"
