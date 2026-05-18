@@ -3,6 +3,7 @@ import { createPortal } from "react-dom"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom"
 import {
   Baby,
+  BadgeCheck,
   Check,
   ChevronRight,
   Clock,
@@ -25,11 +26,13 @@ import {
   Search,
   Settings,
   SlidersHorizontal,
+  Sparkles,
   Sun,
   Trash2,
   Utensils,
   Upload,
   X,
+  type LucideIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -79,7 +82,7 @@ import {
   writeBadgeUnlockDates,
   type BadgeUnlockDates,
 } from "@/lib/gamification"
-import { useBabyStore, type FoodTest } from "@/lib/storage"
+import { reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 
 const disclaimer =
@@ -145,6 +148,14 @@ const mealTimePresets: Array<{
 
 const defaultMealTimePreset = mealTimePresets[1]
 
+const reactionLabels: Record<Reaction, string> = {
+  "aucune réaction": "RAS",
+  "digestion difficile": "Digestion",
+  rougeur: "Rougeur",
+  vomissement: "Vomissement",
+  autre: "Autre",
+}
+
 type AppOptions = {
   popoteEnabled: boolean
   setPopoteEnabled: (enabled: boolean) => void
@@ -165,7 +176,7 @@ function App() {
     return (
       <AppOptionsContext.Provider value={appOptions}>
         <div className="safe-shell soft-surface">
-          <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-5 px-4 py-5">
+          <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-5 px-4 py-5 sm:px-6">
             <FamilySetup store={store} />
           </main>
           <Toaster />
@@ -177,7 +188,7 @@ function App() {
   return (
     <AppOptionsContext.Provider value={appOptions}>
       <div className="safe-shell soft-surface">
-        <main className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-5">
+        <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-5 sm:px-6">
           <PwaStatus />
           <Routes>
             <Route path="/" element={<HomePage store={store} suggestions={suggestions} recentTests={recentTests} />} />
@@ -214,7 +225,7 @@ function PageLoading({ label }: { label: string }) {
   return (
     <>
       <Header eyebrow="Chargement" title={label} />
-      <Card className="bg-card/90">
+      <Card className="paper-surface">
         <CardContent className="py-8 text-sm text-muted-foreground" aria-live="polite">
           Préparation de la page...
         </CardContent>
@@ -365,11 +376,15 @@ function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
   return (
     <>
       <Header eyebrow="Espace partagé" title="Diversibebs" />
-      <Card className="bg-card/95">
+      <HeroPanel icon={LockKeyhole}>
+        <p className="text-sm font-semibold text-muted-foreground">Carnet de découvertes</p>
+        <h2 className="mt-1 text-2xl font-semibold">Un suivi doux, partagé et toujours sous la main.</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Connectez l’espace famille ou continuez en local pour noter les essais simplement.
+        </p>
+      </HeroPanel>
+      <Card className="paper-surface">
         <CardHeader>
-          <div className="mb-2 flex size-12 items-center justify-center rounded-full bg-secondary">
-            <LockKeyhole aria-hidden="true" />
-          </div>
           <CardTitle>Code famille</CardTitle>
           <CardDescription>
             Utilisez le même code sur vos deux téléphones pour partager le suivi.
@@ -422,6 +437,74 @@ function AnimatedListItem({ children, className }: { children: ReactNode; classN
   )
 }
 
+function HeroPanel({
+  children,
+  className,
+  icon: Icon,
+}: {
+  children: ReactNode
+  className?: string
+  icon: LucideIcon
+}) {
+  return (
+    <section className={cn("paper-surface soft-ring overflow-hidden rounded-2xl p-4", className)}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">{children}</div>
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm" aria-hidden="true">
+          <Icon className="size-5" />
+        </span>
+      </div>
+    </section>
+  )
+}
+
+function SectionHeader({
+  action,
+  eyebrow,
+  title,
+}: {
+  action?: ReactNode
+  eyebrow?: string
+  title: string
+}) {
+  return (
+    <div className="flex items-end justify-between gap-3">
+      <div className="min-w-0">
+        {eyebrow && <p className="text-sm font-semibold text-muted-foreground">{eyebrow}</p>}
+        <h2 className="text-xl font-semibold tracking-normal">{title}</h2>
+      </div>
+      {action}
+    </div>
+  )
+}
+
+function EmptyState({
+  action,
+  children,
+  icon: Icon,
+  title,
+}: {
+  action?: ReactNode
+  children: ReactNode
+  icon: LucideIcon
+  title: string
+}) {
+  return (
+    <Card className="paper-surface">
+      <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm">
+          <Icon className="size-5" aria-hidden="true" />
+        </div>
+        <div>
+          <p className="font-semibold">{title}</p>
+          <p className="mt-1 text-sm leading-5 text-muted-foreground">{children}</p>
+        </div>
+        {action}
+      </CardContent>
+    </Card>
+  )
+}
+
 function HomePage({
   store,
   suggestions,
@@ -447,49 +530,38 @@ function HomePage({
     <>
       <Header eyebrow="Diversification" title="Cette semaine" />
       <Disclaimer compact />
-      <div className="rounded-xl bg-gradient-to-br from-secondary/55 via-card/80 to-accent/20 p-4 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-muted-foreground">
-              {store.profile.childName ? `${store.profile.childName}, ${store.profile.ageMonths} mois` : `Bébé, ${store.profile.ageMonths} mois`}
-            </p>
-            <h2 className="mt-1 text-xl font-semibold">Le prochain aliment à tester</h2>
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              {store.testedFoodIds.size} aliment(s) déjà testé(s)
-              {store.profile.birthDate && ` · né(e) le ${new Date(`${store.profile.birthDate}T00:00:00`).toLocaleDateString("fr-FR")}`}
-            </p>
-          </div>
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/75 text-primary shadow-sm">
-            <Baby className="size-5" aria-hidden="true" />
-          </span>
-        </div>
-      </div>
+      <HeroPanel icon={Baby}>
+        <p className="text-sm font-semibold text-muted-foreground">
+          {store.profile.childName ? `${store.profile.childName}, ${store.profile.ageMonths} mois` : `Bébé, ${store.profile.ageMonths} mois`}
+        </p>
+        <h2 className="mt-1 text-2xl font-semibold tracking-normal">Le prochain aliment à tester</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          {store.testedFoodIds.size} aliment(s) déjà noté(s). Chaque bébé avance à son rythme.
+          {store.profile.birthDate && ` Né(e) le ${new Date(`${store.profile.birthDate}T00:00:00`).toLocaleDateString("fr-FR")}.`}
+        </p>
+      </HeroPanel>
 
       {topFood ? (
         <>
           <div className="flex flex-col gap-3">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Priorité</p>
-                <h2 className="text-xl font-semibold">À tester en priorité</h2>
-              </div>
-              <Button type="button" variant="outline" size="sm" onClick={postponeTopFood}>
+            <SectionHeader
+              eyebrow="Priorité douce"
+              title="À tester en priorité"
+              action={<Button type="button" variant="outline" size="sm" onClick={postponeTopFood}>
                 <RefreshCw data-icon="inline-start" aria-hidden="true" />
                 Plus tard
-              </Button>
-            </div>
+              </Button>}
+            />
             <FoodCard food={topFood} store={store} />
           </div>
 
           {weeklyPlan.length > 0 && (
             <div className="flex flex-col gap-3">
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Plan léger</p>
-                  <h2 className="text-xl font-semibold">Le reste de la semaine</h2>
-                </div>
-                <Badge variant="secondary" className="h-8 px-3">{weeklyPlan.length} idées</Badge>
-              </div>
+              <SectionHeader
+                eyebrow="Plan léger"
+                title="Le reste de la semaine"
+                action={<Badge variant="secondary" className="h-8 px-3">{weeklyPlan.length} idées</Badge>}
+              />
               <AnimatedList className="flex flex-col gap-3">
                 {weeklyPlan.map((food) => (
                   <AnimatedListItem key={food.id}>
@@ -501,26 +573,21 @@ function HomePage({
           )}
         </>
       ) : (
-        <Card className="bg-card/90">
-          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <div className="rounded-full bg-secondary p-3">
-              <Check aria-hidden="true" />
-            </div>
-            <div>
-              <p className="font-medium">Tout est à jour</p>
-              <p className="mt-1 text-sm text-muted-foreground">Aucune suggestion nouvelle pour cette semaine.</p>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState icon={Check} title="Tout est à jour">
+          Aucune suggestion nouvelle pour cette semaine. Continuez tranquillement avec les aliments déjà repérés.
+        </EmptyState>
       )}
 
-      <Card className="bg-card/90">
+      <Card className="paper-surface">
         <CardHeader>
           <CardTitle>Derniers tests</CardTitle>
+          <CardDescription>Notez simplement ce que vous observez, sans chercher la perfection.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {recentTests.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucun aliment marqué comme testé pour le moment.</p>
+            <p className="rounded-lg bg-muted/55 p-3 text-sm leading-5 text-muted-foreground">
+              Aucun aliment marqué comme testé pour le moment.
+            </p>
           ) : (
             <AnimatedList className="flex flex-col gap-3">
               {recentTests.map((test) => {
@@ -637,6 +704,9 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
   return (
     <>
       <Header eyebrow="Catalogue" title="Aliments adaptés" />
+      <p className="text-sm leading-6 text-muted-foreground">
+        Retrouvez vite les idées adaptées à l’âge, au statut de test et à la saison.
+      </p>
       <div className="flex flex-col gap-3">
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <div className="relative">
@@ -719,24 +789,17 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
       </div>
 
       {filteredFoods.length === 0 ? (
-        <Card className="bg-card/90">
-          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <div className="rounded-full bg-secondary p-3">
-              <Search aria-hidden="true" />
-            </div>
-            <div>
-              <p className="font-medium">Aucun aliment trouvé</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Essayez d’enlever un filtre ou de modifier la recherche.
-              </p>
-            </div>
-            {hasActiveFilters && (
-              <Button type="button" variant="outline" onClick={resetFilters}>
-                Enlever les filtres
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Search}
+          title="Aucun aliment trouvé"
+          action={hasActiveFilters && (
+            <Button type="button" variant="outline" onClick={resetFilters}>
+              Enlever les filtres
+            </Button>
+          )}
+        >
+          Essayez d’enlever un filtre ou de modifier la recherche.
+        </EmptyState>
       ) : (
         <AnimatedList className="flex flex-col gap-3">
           {filteredFoods.map((food) => (
@@ -833,11 +896,11 @@ function QuickFilterButton({
     <Button
       type="button"
       variant={active ? "default" : "outline"}
-      className={cn("h-auto justify-between px-3 py-2", active && "shadow-sm")}
+      className={cn("h-auto min-h-12 justify-between rounded-xl px-3 py-2", active && "shadow-sm")}
       onClick={onClick}
     >
       <span>{label}</span>
-      <span className={cn("rounded-full px-2 py-0.5 text-xs", active ? "bg-background/20" : "bg-muted text-muted-foreground")}>
+      <span className={cn("rounded-full px-2 py-0.5 text-xs", active ? "bg-background/20" : "bg-muted/80 text-muted-foreground")}>
         {count}
       </span>
     </Button>
@@ -868,7 +931,7 @@ function FilterChoice({
     <Button
       type="button"
       variant={active ? "default" : "outline"}
-      className="h-auto justify-between whitespace-normal px-3 py-2 text-left"
+      className="h-auto min-h-11 justify-between whitespace-normal rounded-xl px-3 py-2 text-left"
       onClick={onClick}
     >
       <span className="min-w-0 truncate">{label}</span>
@@ -898,8 +961,8 @@ function FilterToggle({
       role="switch"
       aria-checked={active}
       className={cn(
-        "flex min-h-12 touch-manipulation items-center justify-between gap-3 rounded-md border bg-card px-3 py-3 text-left text-sm font-medium transition-colors hover:bg-muted/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        active && "border-primary bg-primary/10 text-primary",
+        "flex min-h-12 touch-manipulation items-center justify-between gap-3 rounded-xl border bg-card/80 px-3 py-3 text-left text-sm font-semibold transition-colors hover:bg-muted/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        active && "border-primary/35 bg-secondary text-secondary-foreground",
       )}
       onClick={onClick}
     >
@@ -919,11 +982,9 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
     <>
       <Header eyebrow="Journal" title="Historique" />
       {store.tests.length === 0 ? (
-        <Card className="bg-card/90">
-          <CardContent className="py-5">
-            <p className="text-sm text-muted-foreground">Les tests ajoutés apparaîtront ici par ordre récent.</p>
-          </CardContent>
-        </Card>
+        <EmptyState icon={NotebookText} title="Journal encore vide">
+          Les tests ajoutés apparaîtront ici par ordre récent, avec vos notes et réactions.
+        </EmptyState>
       ) : (
         <AnimatedList className="flex flex-col gap-3">
           {store.tests.map((test) => {
@@ -931,7 +992,7 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
               if (!food) return null
               return (
                 <AnimatedListItem key={test.id}>
-                  <Card className="bg-card/90">
+                  <Card className="paper-surface">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -944,7 +1005,7 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
                         <p className="text-sm text-muted-foreground">{test.reaction}</p>
                         {popoteEnabled && test.isPopote && <PopoteBadge />}
                       </div>
-                      {test.note && <p className="mt-3 rounded-md bg-muted p-3 text-sm">{test.note}</p>}
+                      {test.note && <p className="mt-3 rounded-xl bg-muted/65 p-3 text-sm leading-5">{test.note}</p>}
                       <HistoryTestActions food={food} store={store} test={test} />
                     </CardContent>
                   </Card>
@@ -1115,18 +1176,15 @@ function SettingsPage({
       )}
 
       <div className="grid gap-1">
-        <section className="relative rounded-xl bg-gradient-to-br from-secondary/55 via-card/75 to-accent/20 p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/75 text-primary shadow-sm">
-              <Baby className="size-5" aria-hidden="true" />
+        <section className="paper-surface soft-ring relative rounded-2xl p-4">
+          <SectionHeader title="Enfant" eyebrow="Profil partagé" action={
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm" aria-hidden="true">
+              <Baby className="size-5" />
             </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-semibold">Enfant</h2>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                Ces informations sont partagées dans l’espace famille.
-              </p>
-            </div>
-          </div>
+          } />
+          <p className="mt-2 text-sm leading-5 text-muted-foreground">
+            Ces informations sont partagées dans l’espace famille.
+          </p>
           <div className="mt-4 grid gap-3">
             <label className="grid gap-1.5 text-sm font-medium">
               <span className="text-xs font-semibold uppercase text-muted-foreground">Nom de l’enfant</span>
@@ -1252,7 +1310,7 @@ function SettingsSection({
   title: string
 }) {
   return (
-    <section className="py-4">
+    <section className="border-t border-border/60 py-4 first:border-t-0">
       <h2 className="font-semibold">{title}</h2>
       <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
       <div className="mt-3 grid gap-3">{children}</div>
@@ -1291,7 +1349,7 @@ function FoodEmoji({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-sm",
+        "flex shrink-0 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground shadow-sm",
         size === "sm" && "size-10",
         size === "md" && "size-12",
         size === "lg" && "size-14",
@@ -1314,11 +1372,11 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
     <>
       <button
         type="button"
-        className="block w-full touch-manipulation rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="block w-full touch-manipulation rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={() => setOpen(true)}
         aria-label={`${existingTest ? "Modifier" : "Tester"} ${food.name}`}
       >
-        <Card className="pointer-events-none bg-card/90 transition-colors hover:border-primary/35 hover:bg-card">
+        <Card className="paper-surface pointer-events-none overflow-hidden transition-colors hover:border-primary/35">
           <CardHeader className="pb-3">
             <div className="flex min-w-0 items-center gap-3">
               <FoodEmoji food={food} />
@@ -1328,7 +1386,7 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
+          <CardContent className="flex flex-wrap gap-2 pt-0">
             <StatusBadge status={status} />
             {isInSeason(food) && <SeasonBadge />}
             <IntroductionBadge level={food.level} />
@@ -1407,6 +1465,7 @@ function FoodTestDrawer({
     existingTest?.mealTime ? mealTimePresetFor(existingTest.mealTime) : defaultMealTimePreset.id,
   )
   const [isPopote, setIsPopote] = useState(() => existingTest?.isPopote ?? false)
+  const [reaction, setReaction] = useState<Reaction>(() => existingTest?.reaction ?? "aucune réaction")
   const [note, setNote] = useState(() => existingTest?.note ?? "")
   const [showNote, setShowNote] = useState(() => Boolean(existingTest?.note))
   const [confirmingRemoval, setConfirmingRemoval] = useState(false)
@@ -1439,7 +1498,7 @@ function FoodTestDrawer({
       date,
       mealTime,
       isPopote: popoteEnabled && food.isPopoteEligible ? isPopote : existingTest?.isPopote ?? false,
-      reaction: existingTest?.reaction ?? "aucune réaction" as const,
+      reaction,
       note,
     }
 
@@ -1458,6 +1517,7 @@ function FoodTestDrawer({
 
     onOpenChange(false)
     setIsPopote(false)
+    setReaction("aucune réaction")
     setMealTime(defaultMealTimePreset.time)
     setMealTimePreset(defaultMealTimePreset.id)
     setNote("")
@@ -1498,7 +1558,7 @@ function FoodTestDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[82svh] min-h-[58svh] w-full max-w-xl flex-col gap-0 overflow-hidden rounded-t-lg border-t bg-background shadow-lg"
+        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[84svh] min-h-[58svh] w-full max-w-2xl flex-col gap-0 overflow-hidden rounded-t-2xl border-t bg-background shadow-lg"
         data-side="bottom"
         data-state="open"
       >
@@ -1514,7 +1574,7 @@ function FoodTestDrawer({
           </div>
           <button
             type="button"
-            className="absolute right-4 top-4 inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute right-4 top-4 inline-flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => onOpenChange(false)}
             aria-label="Fermer"
           >
@@ -1530,7 +1590,7 @@ function FoodTestDrawer({
               {popoteEnabled && food.isPopoteEligible && <PopoteBadge label="Popote possible" />}
               <SeasonMonthsGrid activeMonths={food.seasonMonths} />
             </div>
-            <p className="rounded-md bg-muted p-4 text-sm leading-6">{food.preparation}</p>
+            <p className="rounded-xl bg-muted/65 p-4 text-sm leading-6">{food.preparation}</p>
             <Separator />
             <div className="flex min-w-0 flex-col gap-4">
               <div className="grid gap-4">
@@ -1559,7 +1619,7 @@ function FoodTestDrawer({
                           key={preset.id}
                           type="button"
                           className={cn(
-                            "flex min-h-14 items-center gap-2 rounded-md border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            "flex min-h-14 items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             isSelected
                               ? "border-primary/25 bg-secondary text-secondary-foreground shadow-sm"
                               : "border-border bg-background/50 text-foreground hover:bg-muted",
@@ -1578,7 +1638,7 @@ function FoodTestDrawer({
                   <button
                     type="button"
                     className={cn(
-                      "flex min-h-11 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       mealTimePreset === "custom"
                         ? "border-primary/25 bg-secondary text-secondary-foreground shadow-sm"
                         : "border-border bg-background/50 hover:bg-muted",
@@ -1602,7 +1662,7 @@ function FoodTestDrawer({
                 </div>
               </div>
               {popoteEnabled && food.isPopoteEligible && (
-                <label className="flex items-center justify-between gap-3 rounded-md border bg-card p-3 text-sm font-medium">
+                <label className="flex items-center justify-between gap-3 rounded-xl border bg-card/80 p-3 text-sm font-medium">
                   <span className="flex min-w-0 items-center gap-2">
                     <PackageCheck aria-hidden="true" />
                     Testé via une gourde Popote
@@ -1615,6 +1675,36 @@ function FoodTestDrawer({
                   />
                 </label>
               )}
+              <div className="grid gap-2">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Réaction observée</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {reactions.map((reactionOption) => {
+                    const isSelected = reaction === reactionOption
+
+                    return (
+                      <button
+                        key={reactionOption}
+                        type="button"
+                        className={cn(
+                          "min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          isSelected
+                            ? reactionOption === "aucune réaction"
+                              ? "border-status-tested/35 bg-status-tested/10 text-status-tested"
+                              : "border-status-reaction/35 bg-status-reaction/10 text-status-reaction"
+                            : "border-border bg-card/70 text-foreground hover:bg-muted/65",
+                        )}
+                        onClick={() => setReaction(reactionOption)}
+                        aria-pressed={isSelected}
+                      >
+                        {reactionLabels[reactionOption]}
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  En cas de doute ou de symptôme important, demandez un avis médical.
+                </p>
+              </div>
               {showNote ? (
                 <label className="flex flex-col gap-2 text-sm font-medium">
                   Note
@@ -1655,14 +1745,35 @@ function FoodTestDrawer({
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "réaction") return <Badge variant="destructive" className="h-8 px-3">réaction</Badge>
-  if (status === "testé") return <Badge className="h-8 px-3">testé</Badge>
-  return <Badge variant="outline" className="h-8 px-3">non testé</Badge>
+  if (status === "réaction") {
+    return (
+      <Badge className="h-8 gap-1.5 border-transparent bg-status-reaction px-3 text-status-reaction-foreground">
+        <Sparkles className="size-3.5" aria-hidden="true" />
+        réaction
+      </Badge>
+    )
+  }
+
+  if (status === "testé") {
+    return (
+      <Badge className="h-8 gap-1.5 border-transparent bg-status-tested px-3 text-status-tested-foreground">
+        <BadgeCheck className="size-3.5" aria-hidden="true" />
+        testé
+      </Badge>
+    )
+  }
+
+  return (
+    <Badge variant="outline" className="h-8 gap-1.5 border-border bg-status-untested px-3 text-status-untested-foreground">
+      <Clock className="size-3.5" aria-hidden="true" />
+      à tester
+    </Badge>
+  )
 }
 
 function SeasonBadge() {
   return (
-    <Badge className="h-8 gap-1.5 border-emerald-500/25 bg-emerald-500 px-3 text-white shadow-sm shadow-emerald-900/10 dark:bg-emerald-400 dark:text-emerald-950">
+    <Badge className="h-8 gap-1.5 border-transparent bg-status-season px-3 text-status-season-foreground shadow-sm shadow-primary/10">
       <Leaf className="size-4" aria-hidden="true" />
       de saison
     </Badge>
@@ -1679,7 +1790,7 @@ function IntroductionBadge({ level }: { level: Food["level"] }) {
         "h-8 px-3",
         level === "conseillé"
           ? "border-primary/25 bg-primary/10 text-primary"
-          : "border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-200",
+          : "border-status-attention/25 bg-status-attention/15 text-amber-900 dark:text-amber-200",
       )}
     >
       {label}
@@ -1689,7 +1800,7 @@ function IntroductionBadge({ level }: { level: Food["level"] }) {
 
 function PopoteBadge({ label = "Popote" }: { label?: string }) {
   return (
-    <Badge variant="outline" className="h-8 gap-1.5 border-sky-500/25 bg-sky-500/10 px-3 text-sky-800 dark:text-sky-200">
+    <Badge variant="outline" className="h-8 gap-1.5 border-accent/80 bg-accent/55 px-3 text-accent-foreground">
       <PackageCheck className="size-4" aria-hidden="true" />
       {label}
     </Badge>
@@ -1716,7 +1827,7 @@ function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
             className={cn(
               "flex h-7 min-w-0 items-center justify-center rounded-sm border px-0.5 text-[0.625rem] font-semibold leading-none",
               isActive
-                ? "border-primary/35 bg-primary text-primary-foreground shadow-sm shadow-primary/10"
+                ? "border-status-season/35 bg-status-season text-status-season-foreground shadow-sm shadow-primary/10"
                 : "border-border bg-muted/45 text-muted-foreground",
             )}
             aria-hidden="true"
@@ -1732,15 +1843,15 @@ function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
 function Header({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <header className="flex flex-col gap-1 pt-2">
-      <p className="text-sm font-medium text-muted-foreground">{eyebrow}</p>
-      <h1 className="text-3xl font-semibold tracking-normal">{title}</h1>
+      <p className="text-sm font-semibold text-muted-foreground">{eyebrow}</p>
+      <h1 className="text-3xl font-semibold tracking-normal text-foreground">{title}</h1>
     </header>
   )
 }
 
 function Disclaimer({ compact = false }: { compact?: boolean }) {
   return (
-    <p className={cn("rounded-md border bg-card/80 p-4 text-sm leading-6 text-muted-foreground", compact && "p-3 text-xs")}>
+    <p className={cn("rounded-xl border bg-card/80 p-4 text-sm leading-6 text-muted-foreground shadow-sm", compact && "p-3 text-xs")}>
       {disclaimer}
     </p>
   )
@@ -1751,23 +1862,24 @@ function BottomNav() {
     { to: "/", label: "Accueil", icon: Home },
     { to: "/foods", label: "Aliments", icon: Leaf },
     { to: "/history", label: "Journal", icon: NotebookText },
-    { to: "/discoveries", label: "Découv.", icon: Award },
+    { to: "/discoveries", label: "Badges", icon: Award },
     { to: "/settings", label: "Réglages", icon: Settings },
   ]
 
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-xl border-t bg-background/92 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 shadow-[0_-16px_40px_-32px_hsl(var(--foreground)/0.45)] backdrop-blur"
+      className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-2xl border-t bg-background/95 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 shadow-nav backdrop-blur"
     >
       <div className="grid grid-cols-5 gap-1">
         {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.to === "/"}
             className={({ isActive }) =>
               cn(
-                "flex min-h-14 touch-manipulation flex-col items-center justify-center gap-1 rounded-md text-xs font-semibold text-muted-foreground transition-all duration-200 hover:bg-muted/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "flex min-h-14 touch-manipulation flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold text-muted-foreground transition-all duration-200 hover:bg-muted/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 isActive && "bg-secondary text-secondary-foreground shadow-sm",
               )
             }

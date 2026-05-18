@@ -61,7 +61,7 @@ export function InstallPrompt() {
   }
 
   return (
-    <Card className="bg-card/92">
+    <Card className="paper-surface">
       <CardContent className="flex items-start gap-3 p-4">
         <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary">
           {installed ? (

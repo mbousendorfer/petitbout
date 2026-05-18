@@ -99,7 +99,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Sparkles,
       current: progress.testedFoods,
       target: Math.min(50, foods.length),
-      accent: "from-emerald-500/18 to-teal-400/10",
+      accent: "from-primary/10 to-secondary/35",
     },
     {
       title: "Légumes",
@@ -107,7 +107,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Check,
       current: progress.vegetables,
       target: foods.filter((food) => food.category === "Légumes").length,
-      accent: "from-lime-500/18 to-emerald-400/10",
+      accent: "from-status-season/15 to-secondary/25",
     },
     {
       title: "Fruits",
@@ -115,7 +115,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Sparkles,
       current: progress.fruits,
       target: foods.filter((food) => food.category === "Fruits").length,
-      accent: "from-rose-500/16 to-amber-300/12",
+      accent: "from-secondary/60 to-status-attention/10",
     },
     {
       title: "Textures explorées",
@@ -123,7 +123,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: CalendarDays,
       current: progress.textures,
       target: 4,
-      accent: "from-sky-500/16 to-cyan-300/10",
+      accent: "from-accent/70 to-card/75",
     },
     {
       title: "Réactions gardées",
@@ -131,7 +131,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: LockKeyhole,
       current: progress.reactions,
       target: 10,
-      accent: "from-violet-500/16 to-fuchsia-300/10",
+      accent: "from-accent/70 to-secondary/25",
     },
     {
       title: "Notes ajoutées",
@@ -139,7 +139,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Check,
       current: progress.notes,
       target: 10,
-      accent: "from-amber-500/18 to-orange-300/10",
+      accent: "from-status-attention/15 to-secondary/35",
     },
     {
       title: "Aliments de saison",
@@ -147,30 +147,30 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
       icon: Sparkles,
       current: progress.seasonalFoods,
       target: 10,
-      accent: "from-green-500/16 to-yellow-300/10",
+      accent: "from-status-season/10 to-status-attention/10",
     },
   ]
 
   return (
     <>
       <header className="flex flex-col gap-1 pt-2">
-        <p className="text-sm font-medium text-muted-foreground">Carnet d’exploration</p>
+        <p className="text-sm font-semibold text-muted-foreground">Carnet d’exploration</p>
         <h1 className="text-3xl font-semibold tracking-normal">Découvertes</h1>
       </header>
 
-      <Card className="overflow-hidden border-primary/15 bg-card/92">
-        <CardHeader className="bg-gradient-to-br from-primary/12 via-secondary/35 to-accent/25">
+      <Card className="paper-surface soft-ring overflow-hidden border-primary/15">
+        <CardHeader className="bg-gradient-to-br from-primary/10 via-secondary/45 to-accent/35">
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle className="text-2xl">Album des petites victoires</CardTitle>
-              <CardDescription className="mt-2 leading-5">
+              <CardDescription className="mt-2 leading-6">
                 Badges, objectifs doux et progrès visibles, sans pression ni compétition.
               </CardDescription>
             </div>
             <motion.div
               aria-hidden="true"
               animate={shouldReduceMotion ? undefined : { rotate: [0, -4, 4, 0], scale: [1, 1.04, 1] }}
-              className="flex size-14 shrink-0 items-center justify-center rounded-full bg-background/70 text-primary shadow-soft"
+              className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-background/70 text-primary shadow-soft"
               transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 2 }}
             >
               <Sparkles className="size-6" />
@@ -235,7 +235,7 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
 
 function MiniStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md bg-muted/70 p-3 text-center">
+    <div className="rounded-xl bg-muted/70 p-3 text-center">
       <p className="text-xl font-semibold">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
@@ -255,10 +255,10 @@ function ProgressionCard({ card }: { card: ProgressCard }) {
 
   return (
     <motion.div variants={cardMotion}>
-      <Card className={cn("overflow-hidden bg-card/90", `bg-gradient-to-br ${card.accent}`)}>
+      <Card className={cn("paper-surface overflow-hidden", `bg-gradient-to-br ${card.accent}`)}>
         <CardContent className="flex flex-col gap-3 p-4">
           <div className="flex items-start gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background/70 text-2xl shadow-soft" aria-hidden="true">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-background/70 text-2xl shadow-soft" aria-hidden="true">
               <Icon className="size-5 text-primary" />
             </span>
             <div className="min-w-0 flex-1">
@@ -292,7 +292,7 @@ function BadgeCard({ badge }: { badge: DiscoveryBadge }) {
           variants={cardMotion}
           whileTap={{ scale: 0.99 }}
           className={cn(
-            "w-full rounded-lg border bg-card/90 p-4 text-left shadow-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "paper-surface w-full rounded-2xl border p-4 text-left shadow-card transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             badge.unlocked ? "border-primary/20" : "opacity-60 grayscale-[0.35]",
           )}
         >
@@ -301,7 +301,7 @@ function BadgeCard({ badge }: { badge: DiscoveryBadge }) {
               aria-hidden="true"
               animate={!shouldReduceMotion && badge.unlocked ? { scale: [0.96, 1.08, 1] } : { scale: 1 }}
               className={cn(
-                "flex size-12 shrink-0 items-center justify-center rounded-full shadow-soft",
+                "flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-soft",
                 badge.unlocked ? "bg-secondary" : "bg-muted",
               )}
               transition={{ duration: 0.45 }}
@@ -346,14 +346,14 @@ function BadgeCard({ badge }: { badge: DiscoveryBadge }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <div className="mb-2 flex size-14 items-center justify-center rounded-full bg-secondary text-primary">
+          <div className="mb-2 flex size-14 items-center justify-center rounded-2xl bg-secondary text-primary">
             {badge.unlocked ? <Sparkles className="size-6" /> : <LockKeyhole className="size-6" />}
           </div>
           <DialogTitle>{badge.name}</DialogTitle>
           <DialogDescription>{badge.description}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
-          <div className="rounded-md bg-muted p-3 text-sm">
+          <div className="rounded-xl bg-muted/70 p-3 text-sm">
             <p className="font-medium">Comment le débloquer</p>
             <p className="mt-1 text-muted-foreground">{badge.unlockCondition}</p>
           </div>
@@ -379,7 +379,7 @@ function BadgeCard({ badge }: { badge: DiscoveryBadge }) {
 function GoalCard({ goal }: { goal: Goal }) {
   return (
     <motion.div variants={cardMotion}>
-      <Card className={cn("bg-card/90", goal.completed && "border-primary/25 bg-primary/5")}>
+      <Card className={cn("paper-surface", goal.completed && "border-primary/25 bg-primary/5")}>
         <CardContent className="flex flex-col gap-3 p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
