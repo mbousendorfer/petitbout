@@ -1114,8 +1114,9 @@ function SettingsPage({
         </p>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-primary/15 bg-card/92 shadow-sm">
-        <section className="bg-gradient-to-br from-secondary/55 via-card to-accent/25 p-4">
+      <div className="relative grid gap-1 pl-2">
+        <span className="absolute bottom-8 left-7 top-8 w-px bg-border/70" aria-hidden="true" />
+        <section className="relative rounded-xl bg-gradient-to-br from-secondary/55 via-card/75 to-accent/20 p-4 shadow-sm">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/75 text-primary shadow-sm">
               <Baby className="size-5" aria-hidden="true" />
@@ -1179,7 +1180,7 @@ function SettingsPage({
         </SettingsSection>
 
         <SettingsSection description="Le thème reste propre à cet appareil." icon={Monitor} title="Apparence">
-          <div className="grid grid-cols-3 gap-1.5 rounded-lg border bg-muted/70 p-1.5">
+          <div className="grid grid-cols-3 gap-1.5 rounded-lg bg-muted/70 p-1.5">
             <ThemeButton active={theme === "light"} icon={Sun} label="Clair" onClick={() => setTheme("light")} />
             <ThemeButton active={theme === "system"} icon={Monitor} label="Système" onClick={() => setTheme("system")} />
             <ThemeButton active={theme === "dark"} icon={Moon} label="Sombre" onClick={() => setTheme("dark")} />
@@ -1189,7 +1190,7 @@ function SettingsPage({
         <SettingsSection description="Affichez uniquement les informations utiles à votre suivi." icon={PackageCheck} title="Options">
           <button
             type="button"
-            className="flex w-full items-center justify-between gap-3 rounded-lg border bg-background/55 p-3 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full items-center justify-between gap-3 rounded-lg bg-muted/55 p-3 text-left transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => setPopoteEnabled(!popoteEnabled)}
             aria-pressed={popoteEnabled}
           >
@@ -1255,16 +1256,14 @@ function SettingsSection({
   title: string
 }) {
   return (
-    <section className="border-t p-4">
-      <div className="flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-          <Icon className="size-5" aria-hidden="true" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="font-semibold">{title}</h2>
-          <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
-          <div className="mt-4 grid gap-3">{children}</div>
-        </div>
+    <section className="relative grid grid-cols-[2.5rem_1fr] gap-3 py-4">
+      <span className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground shadow-sm">
+        <Icon className="size-5" aria-hidden="true" />
+      </span>
+      <div className="min-w-0">
+        <h2 className="font-semibold">{title}</h2>
+        <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+        <div className="mt-3 grid gap-3">{children}</div>
       </div>
     </section>
   )
