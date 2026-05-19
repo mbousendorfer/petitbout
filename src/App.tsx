@@ -348,6 +348,25 @@ function historyDateLabel(date: string) {
   })
 }
 
+function historyDateDetailLabel(date: string) {
+  const eventDate = new Date(`${date}T00:00:00`)
+  const today = new Date()
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const yesterday = new Date(todayDate)
+  yesterday.setDate(todayDate.getDate() - 1)
+
+  if (eventDate.getTime() !== todayDate.getTime() && eventDate.getTime() !== yesterday.getTime()) {
+    return eventDate.toLocaleDateString("fr-FR", { weekday: "long" })
+  }
+
+  return eventDate.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
 function historyEventTimeLabel(test: FoodTest) {
   if (!test.mealTime) return "Moment non renseigné"
 
@@ -1232,35 +1251,49 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
       ) : (
         <AnimatedList className="grid gap-5">
           {historyGroups.map((group) => (
-            <AnimatedListItem key={group.date} className="grid gap-2">
+            <AnimatedListItem key={group.date} className="grid gap-3">
               <div className="flex items-end justify-between gap-3 px-1">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">Événements</p>
                   <h2 className="truncate text-xl font-semibold text-foreground">{historyDateLabel(group.date)}</h2>
+                  <p className="mt-0.5 truncate text-sm text-muted-foreground">{historyDateDetailLabel(group.date)}</p>
                 </div>
-                <Badge variant="outline" className="h-8 px-3">
+                <Badge variant="outline" className="h-8 shrink-0 px-3">
                   {group.tests.length} prise{group.tests.length > 1 ? "s" : ""}
                 </Badge>
               </div>
-              <div className="grid gap-2">
+              <div className="relative grid gap-3 pl-5">
+                <span className="absolute bottom-4 left-1.5 top-4 w-px bg-border" aria-hidden="true" />
                 {group.tests.map((test) => {
                   const food = foods.find((item) => item.id === test.foodId)
                   if (!food) return null
                   const status = test.reaction === "aucune réaction" ? "testé" : "réaction"
 
                   return (
-                    <Card key={test.id} className="paper-surface overflow-hidden">
-                      <CardContent className="p-4">
+                    <div key={test.id} className="relative">
+                      <span
+                        className={cn(
+                          "absolute -left-[1.125rem] top-5 size-3 rounded-full border-2 border-background shadow-sm",
+                          status === "réaction" ? "bg-status-reaction" : "bg-status-tested",
+                        )}
+                        aria-hidden="true"
+                      />
+                      <Card
+                        className={cn(
+                          "paper-surface overflow-hidden border-border/60",
+                          status === "réaction" && "border-status-reaction/35 bg-status-reaction/10",
+                        )}
+                      >
+                      <CardContent className="p-3 sm:p-4">
                         <div className="flex min-w-0 items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <p className="flex items-center gap-2 text-base font-semibold text-foreground sm:text-lg">
                               <Clock className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                               <span className="truncate">{historyEventTimeLabel(test)}</span>
                             </p>
-                            <div className="mt-3 flex min-w-0 items-center gap-3">
+                            <div className="mt-2.5 flex min-w-0 items-center gap-3">
                               <FoodEmoji food={food} size="sm" />
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-foreground">{food.name}</p>
+                                <p className="truncate text-base font-semibold text-foreground">{food.name}</p>
                                 <p className="truncate text-xs text-muted-foreground">{food.category}</p>
                               </div>
                             </div>
@@ -1268,16 +1301,17 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
                           <HistoryTestActions food={food} store={store} test={test} />
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
-                          <StatusBadge status={status} />
+                          <HistoryReactionBadge reaction={test.reaction} />
                           {activePopotePackId !== null && test.isPopote && <PopoteBadge />}
-                          <Badge variant="outline" className="h-8 gap-1.5 px-3">
-                            <span aria-hidden="true">{reactionDisplay[test.reaction].emoji}</span>
-                            {reactionLabels[test.reaction]}
-                          </Badge>
                         </div>
-                        {test.note && <p className="mt-3 rounded-xl bg-muted/65 p-3 text-sm leading-5">{test.note}</p>}
+                        {test.note && (
+                          <p className="mt-3 rounded-lg border border-border/60 bg-muted/55 p-3 text-sm leading-5">
+                            {test.note}
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
+                    </div>
                   )
                 })}
               </div>
@@ -1286,6 +1320,24 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
         </AnimatedList>
       )}
     </>
+  )
+}
+
+function HistoryReactionBadge({ reaction }: { reaction: Reaction }) {
+  if (reaction === "aucune réaction") {
+    return (
+      <Badge className="h-8 gap-1.5 border-transparent bg-status-tested px-3 text-status-tested-foreground">
+        <BadgeCheck className="size-3.5" aria-hidden="true" />
+        RAS
+      </Badge>
+    )
+  }
+
+  return (
+    <Badge className="h-8 gap-1.5 border-transparent bg-status-reaction px-3 text-status-reaction-foreground">
+      <Sparkles className="size-3.5" aria-hidden="true" />
+      {reactionLabels[reaction]}
+    </Badge>
   )
 }
 
@@ -1320,13 +1372,13 @@ function HistoryTestActions({
 
   return (
     <>
-      <div className="flex min-h-9 items-center justify-end gap-1">
+      <div className="flex min-h-11 items-center justify-end gap-1">
         {confirmingRemoval ? (
           <>
-            <Button type="button" variant="ghost" size="sm" className="h-9" onClick={() => setConfirmingRemoval(false)}>
+            <Button type="button" variant="ghost" size="sm" className="h-11" onClick={() => setConfirmingRemoval(false)}>
               Annuler
             </Button>
-            <Button type="button" variant="outline" size="sm" className="h-9 text-destructive" onClick={removeTest}>
+            <Button type="button" variant="outline" size="sm" className="h-11 text-destructive" onClick={removeTest}>
               <Trash2 data-icon="inline-start" aria-hidden="true" />
               Confirmer
             </Button>
@@ -1337,7 +1389,7 @@ function HistoryTestActions({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-9 text-muted-foreground hover:text-foreground"
+              className="size-11 text-muted-foreground hover:text-foreground"
               onClick={() => setOpen(true)}
               aria-label={`Modifier le test de ${food.name}`}
               title="Modifier"
@@ -1348,7 +1400,7 @@ function HistoryTestActions({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-9 text-muted-foreground hover:text-destructive"
+              className="size-11 text-muted-foreground hover:text-destructive"
               onClick={removeTest}
               aria-label={`Retirer ${food.name} du journal`}
               title="Retirer"
