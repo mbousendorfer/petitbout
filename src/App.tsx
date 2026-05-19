@@ -65,7 +65,6 @@ import { categories, foods, isFoodInPack, popotePacks, type Food } from "@/data/
 import { foodSourceReferences, reviewedAt, sourcesByTheme } from "@/data/sources"
 import { backupFileName, backupToJson } from "@/lib/backup"
 import {
-  ageSummary,
   applyFoodFilters,
   countWithFilterChange,
   getStatus,
@@ -330,6 +329,49 @@ function testDateTimeLabel(test: FoodTest) {
   const time = mealTimeLabel(test.mealTime)
 
   return time ? `${date} · ${time}` : date
+}
+
+function historyDateLabel(date: string) {
+  const eventDate = new Date(`${date}T00:00:00`)
+  const today = new Date()
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const yesterday = new Date(todayDate)
+  yesterday.setDate(todayDate.getDate() - 1)
+
+  if (eventDate.getTime() === todayDate.getTime()) return "Aujourd’hui"
+  if (eventDate.getTime() === yesterday.getTime()) return "Hier"
+
+  return eventDate.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
+function historyEventTimeLabel(test: FoodTest) {
+  if (!test.mealTime) return "Moment non renseigné"
+
+  const label = mealTimeLabel(test.mealTime)
+  return label === test.mealTime ? test.mealTime : `${test.mealTime} · ${label}`
+}
+
+function groupTestsByDate(tests: FoodTest[]) {
+  const groups: Array<{ date: string; tests: FoodTest[] }> = []
+  const groupByDate = new Map<string, FoodTest[]>()
+
+  tests.forEach((test) => {
+    const dateTests = groupByDate.get(test.date)
+    if (dateTests) {
+      dateTests.push(test)
+      return
+    }
+
+    const nextTests = [test]
+    groupByDate.set(test.date, nextTests)
+    groups.push({ date: test.date, tests: nextTests })
+  })
+
+  return groups
 }
 
 function downloadTextFile(content: string, fileName: string, type: string) {
@@ -1178,6 +1220,7 @@ function IntroductionPill({
 
 function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
   const { activePopotePackId } = useAppOptions()
+  const historyGroups = useMemo(() => groupTestsByDate(store.tests), [store.tests])
 
   return (
     <>
@@ -1187,50 +1230,59 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
           Les tests ajoutés apparaîtront ici par ordre récent, avec vos notes et réactions.
         </EmptyState>
       ) : (
-        <AnimatedList className="grid gap-3 lg:grid-cols-2">
-          {store.tests.map((test) => {
-              const food = foods.find((item) => item.id === test.foodId)
-              if (!food) return null
-              const status = test.reaction === "aucune réaction" ? "testé" : "réaction"
-              return (
-                <AnimatedListItem key={test.id}>
-                  <Card className="paper-surface overflow-hidden">
-                    <CardHeader className="pb-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <FoodEmoji food={food} />
-                        <div className="min-w-0">
-                          <CardTitle className="truncate">{food.name}</CardTitle>
-                          <CardDescription>{food.category} · {ageSummary(food)}</CardDescription>
+        <AnimatedList className="grid gap-5">
+          {historyGroups.map((group) => (
+            <AnimatedListItem key={group.date} className="grid gap-2">
+              <div className="flex items-end justify-between gap-3 px-1">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Événements</p>
+                  <h2 className="truncate text-xl font-semibold text-foreground">{historyDateLabel(group.date)}</h2>
+                </div>
+                <Badge variant="outline" className="h-8 px-3">
+                  {group.tests.length} prise{group.tests.length > 1 ? "s" : ""}
+                </Badge>
+              </div>
+              <div className="grid gap-2">
+                {group.tests.map((test) => {
+                  const food = foods.find((item) => item.id === test.foodId)
+                  if (!food) return null
+                  const status = test.reaction === "aucune réaction" ? "testé" : "réaction"
+
+                  return (
+                    <Card key={test.id} className="paper-surface overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex min-w-0 items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="flex items-center gap-2 text-base font-semibold text-foreground">
+                              <Clock className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                              <span className="truncate">{historyEventTimeLabel(test)}</span>
+                            </p>
+                            <div className="mt-3 flex min-w-0 items-center gap-3">
+                              <FoodEmoji food={food} size="sm" />
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-foreground">{food.name}</p>
+                                <p className="truncate text-xs text-muted-foreground">{food.category}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <HistoryTestActions food={food} store={store} test={test} />
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex flex-wrap gap-2">
-                        <StatusBadge status={status} />
-                        {isInSeason(food) && <SeasonBadge />}
-                        <IntroductionBadge level={food.level} />
-                        {activePopotePackId !== null && test.isPopote && <PopoteBadge />}
-                      </div>
-                      <div className="mt-3 rounded-xl border bg-muted/35 p-3">
-                        <p className="text-xs font-semibold uppercase text-muted-foreground">Dernier test</p>
-                        <div className="mt-2 grid gap-2 text-sm text-muted-foreground">
-                          <p className="flex items-center gap-2">
-                            <Clock className="size-4" aria-hidden="true" />
-                            <span>{testDateTimeLabel(test)}</span>
-                          </p>
-                          <p className="flex items-center gap-2">
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <StatusBadge status={status} />
+                          {activePopotePackId !== null && test.isPopote && <PopoteBadge />}
+                          <Badge variant="outline" className="h-8 gap-1.5 px-3">
                             <span aria-hidden="true">{reactionDisplay[test.reaction].emoji}</span>
-                            <span>{reactionLabels[test.reaction]}</span>
-                          </p>
+                            {reactionLabels[test.reaction]}
+                          </Badge>
                         </div>
-                      </div>
-                      {test.note && <p className="mt-3 rounded-xl bg-muted/65 p-3 text-sm leading-5">{test.note}</p>}
-                      <HistoryTestActions food={food} store={store} test={test} />
-                    </CardContent>
-                  </Card>
-                </AnimatedListItem>
-              )
-            })}
+                        {test.note && <p className="mt-3 rounded-xl bg-muted/65 p-3 text-sm leading-5">{test.note}</p>}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </AnimatedListItem>
+          ))}
         </AnimatedList>
       )}
     </>
@@ -1268,7 +1320,7 @@ function HistoryTestActions({
 
   return (
     <>
-      <div className="mt-3 flex min-h-9 items-center justify-end gap-1">
+      <div className="flex min-h-9 items-center justify-end gap-1">
         {confirmingRemoval ? (
           <>
             <Button type="button" variant="ghost" size="sm" className="h-9" onClick={() => setConfirmingRemoval(false)}>
