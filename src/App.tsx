@@ -1252,14 +1252,11 @@ function HistoryPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
         <AnimatedList className="grid gap-5">
           {historyGroups.map((group) => (
             <AnimatedListItem key={group.date} className="grid gap-3">
-              <div className="flex items-end justify-between gap-3 px-1">
+              <div className="px-1">
                 <div className="min-w-0">
                   <h2 className="truncate text-xl font-semibold text-foreground">{historyDateLabel(group.date)}</h2>
                   <p className="mt-0.5 truncate text-sm text-muted-foreground">{historyDateDetailLabel(group.date)}</p>
                 </div>
-                <Badge variant="outline" className="h-8 shrink-0 px-3">
-                  {group.tests.length} prise{group.tests.length > 1 ? "s" : ""}
-                </Badge>
               </div>
               <div className="relative grid gap-3">
                 <span className="absolute bottom-4 left-[4.5rem] top-4 w-px bg-border" aria-hidden="true" />
