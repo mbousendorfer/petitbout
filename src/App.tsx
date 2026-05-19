@@ -1268,13 +1268,13 @@ function HistoryTestActions({
 
   return (
     <>
-      <div className="mt-3 flex items-center justify-end gap-1">
+      <div className="mt-3 flex min-h-9 items-center justify-end gap-1">
         {confirmingRemoval ? (
           <>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmingRemoval(false)}>
+            <Button type="button" variant="ghost" size="sm" className="h-9" onClick={() => setConfirmingRemoval(false)}>
               Annuler
             </Button>
-            <Button type="button" variant="outline" size="sm" className="text-destructive" onClick={removeTest}>
+            <Button type="button" variant="outline" size="sm" className="h-9 text-destructive" onClick={removeTest}>
               <Trash2 data-icon="inline-start" aria-hidden="true" />
               Confirmer
             </Button>
