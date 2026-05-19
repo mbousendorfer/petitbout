@@ -1269,31 +1269,42 @@ function HistoryTestActions({
   return (
     <>
       <div className="mt-3 flex items-center justify-end gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-9 text-muted-foreground hover:text-foreground"
-          onClick={() => setOpen(true)}
-          aria-label={`Modifier le test de ${food.name}`}
-          title="Modifier"
-        >
-          <PencilLine aria-hidden="true" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "size-9",
-            confirmingRemoval ? "text-destructive" : "text-muted-foreground hover:text-destructive",
-          )}
-          onClick={removeTest}
-          aria-label={confirmingRemoval ? `Confirmer le retrait de ${food.name}` : `Retirer ${food.name} du journal`}
-          title={confirmingRemoval ? "Confirmer le retrait" : "Retirer"}
-        >
-          <Trash2 aria-hidden="true" />
-        </Button>
+        {confirmingRemoval ? (
+          <>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmingRemoval(false)}>
+              Annuler
+            </Button>
+            <Button type="button" variant="outline" size="sm" className="text-destructive" onClick={removeTest}>
+              <Trash2 data-icon="inline-start" aria-hidden="true" />
+              Confirmer
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-9 text-muted-foreground hover:text-foreground"
+              onClick={() => setOpen(true)}
+              aria-label={`Modifier le test de ${food.name}`}
+              title="Modifier"
+            >
+              <PencilLine aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-9 text-muted-foreground hover:text-destructive"
+              onClick={removeTest}
+              aria-label={`Retirer ${food.name} du journal`}
+              title="Retirer"
+            >
+              <Trash2 aria-hidden="true" />
+            </Button>
+          </>
+        )}
       </div>
       {open && <FoodTestDrawer food={food} store={store} test={test} open={open} onOpenChange={setOpen} />}
     </>
