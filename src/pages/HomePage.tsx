@@ -1,15 +1,14 @@
 import { useState, useMemo } from "react"
 import { NavLink } from "react-router-dom"
-import { ArrowRight, Baby, BadgeCheck, Carrot, Check, ChevronRight, CircleCheck, FileSearch, Plus, Sparkles, type LucideIcon } from "lucide-react"
+import { AlertTriangle, ArrowRight, Baby, BadgeCheck, Calendar, Carrot, Check, ChevronRight, CircleCheck, FileSearch, Leaf, Plus, Sparkles, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { foods, type Food } from "@/data/foods"
 import { guidanceStageFor } from "@/data/guidance"
-import { ageSummary, isAgeReady, isInSeason } from "@/lib/food-utils"
+import { isAgeReady, isInSeason } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { SectionHeader, EmptyState, Disclaimer } from "@/components/primitives"
-import { FoodEmoji } from "@/components/food/FoodEmoji"
-import { SeasonBadge } from "@/components/food/FoodBadges"
+import { categoryMeta, isAllergenFood } from "@/components/food/categoryMeta"
 import { FoodTestDrawer, type FoodPanelTab } from "@/components/food/FoodPanel"
 
 export function HomePage({
@@ -164,33 +163,66 @@ export function TodayFoodCarousel({ foods: items, store }: { foods: Food[]; stor
 export function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const [openTab, setOpenTab] = useState<FoodPanelTab | null>(null)
   const inSeason = isInSeason(food)
+  const meta = categoryMeta[food.category]
+  const CategoryIcon = meta.icon
+  const recommendedAge = food.recommendedAgeMonths ?? food.minAgeMonths
 
   return (
     <>
-      <div className="flex w-[16rem] shrink-0 snap-start flex-col gap-4 rounded-hero border bg-card/90 p-5 shadow-card">
-        <button
-          type="button"
-          className="flex flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          onClick={() => setOpenTab("add")}
-          aria-label={`Ajouter une prise de ${food.name}`}
-        >
-          <FoodEmoji food={food} size="lg" />
-          <div className="min-w-0">
-            <p className="eyebrow">{food.category}</p>
-            <p className="mt-1 text-lg font-bold leading-tight tracking-[-0.01em]">{food.name}</p>
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">{ageSummary(food)}</p>
-          </div>
-        </button>
-        {inSeason && (
-          <div>
-            <SeasonBadge />
-          </div>
+      <button
+        type="button"
+        className={cn(
+          "relative flex min-h-[21rem] w-[16rem] shrink-0 snap-start flex-col items-center gap-2.5 overflow-hidden rounded-hero border bg-card p-5 text-center shadow-card transition-colors hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          meta.border,
         )}
-        <Button type="button" className="h-11 w-full" onClick={() => setOpenTab("add")}>
-          <Plus data-icon="inline-start" aria-hidden="true" />
-          Ajouter
-        </Button>
-      </div>
+        onClick={() => setOpenTab("add")}
+        aria-label={`Ajouter une prise de ${food.name}`}
+      >
+        <div
+          className={cn("pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b to-transparent", meta.gradientFrom)}
+          aria-hidden="true"
+        />
+
+        <div className="relative flex h-20 w-full items-center justify-center">
+          <span className="text-[3.25rem] leading-none" aria-hidden="true">{food.emoji}</span>
+          {isAllergenFood(food) && (
+            <span className="absolute right-0 top-0 inline-flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 text-[0.625rem] font-bold text-destructive shadow-sm">
+              <AlertTriangle className="size-3" aria-hidden="true" />
+              Allergène
+            </span>
+          )}
+        </div>
+
+        <span className={cn("relative inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold", meta.tile, meta.text)}>
+          <CategoryIcon className="size-3" aria-hidden="true" />
+          {food.category}
+        </span>
+
+        <p className="relative line-clamp-2 font-rounded text-xl font-extrabold leading-tight tracking-[-0.01em]">{food.name}</p>
+        <p className="relative line-clamp-2 text-sm leading-5 text-muted-foreground">{food.preparation}</p>
+
+        <div className="relative mt-auto flex w-full flex-col gap-2.5 pt-2">
+          <div className="flex items-center justify-center gap-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+              <Calendar className="size-3" aria-hidden="true" />
+              {recommendedAge}+ mois
+            </span>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
+                inSeason ? "bg-status-season/15 text-status-season" : "bg-muted text-muted-foreground",
+              )}
+            >
+              <Leaf className="size-3" aria-hidden="true" />
+              {inSeason ? "Saison" : "Hors saison"}
+            </span>
+          </div>
+          <span className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary font-bold text-primary-foreground shadow-sm">
+            <Plus className="size-4" aria-hidden="true" />
+            Ajouter
+          </span>
+        </div>
+      </button>
       {openTab && (
         <FoodTestDrawer
           food={food}
