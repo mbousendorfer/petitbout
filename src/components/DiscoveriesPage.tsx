@@ -189,9 +189,9 @@ export function DiscoveriesPage({ badgeUnlockDates, tests }: DiscoveriesPageProp
 
   return (
     <>
-      <header className="flex flex-col gap-1 pt-2">
-        <p className="text-sm font-semibold text-muted-foreground">Carnet d’exploration</p>
-        <h1 className="text-3xl font-semibold tracking-normal">Découvertes</h1>
+      <header className="flex flex-col gap-1.5 pt-2">
+        <p className="eyebrow">Carnet d’exploration</p>
+        <h1 className="font-rounded text-[2rem] font-extrabold leading-[1.1] tracking-[-0.01em]">Découvertes</h1>
       </header>
 
       <JourneyHero
@@ -297,13 +297,13 @@ function JourneyHero({
             role="img"
           >
             <div className="flex size-20 flex-col items-center justify-center rounded-full bg-card text-center">
-              <span className="text-2xl font-semibold leading-none">{journey.current}</span>
+              <span className="font-rounded text-2xl font-extrabold leading-none">{journey.current}</span>
               <span className="mt-1 text-[0.6875rem] font-medium leading-none text-muted-foreground">aliments</span>
             </div>
           </div>
           <div className="min-w-0 self-center">
-            <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Prochain jalon</p>
-            <h2 className="mt-1 text-xl font-semibold">
+            <p className="eyebrow">Prochain jalon</p>
+            <h2 className="mt-1 text-xl font-bold tracking-[-0.01em]">
               {journey.nextMilestone ? journey.nextMilestone.description : "Grand album complété"}
             </h2>
             <p className="mt-2 text-sm leading-5 text-muted-foreground">
@@ -319,7 +319,7 @@ function JourneyHero({
         </div>
         {nextBadges.length > 0 && (
           <div className="grid gap-2">
-            <p className="text-sm font-semibold text-muted-foreground">Presque débloqués</p>
+            <p className="eyebrow">Presque débloqués</p>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {nextBadges.map((badge) => (
                 <NextBadgePill key={badge.id} badge={badge} />
