@@ -686,7 +686,7 @@ function HomePage({
                 title="Le reste de la semaine"
                 action={<Badge variant="secondary" className="h-8 px-3">{weeklyPlan.length} idées</Badge>}
               />
-              <AnimatedList className="grid gap-3 lg:grid-cols-2">
+              <AnimatedList className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {weeklyPlan.map((food) => (
                   <AnimatedListItem key={food.id}>
                     <FoodCard food={food} store={store} />
@@ -736,7 +736,7 @@ function HomePage({
               </NavLink>
             }
           />
-          <AnimatedList className="grid gap-3 lg:grid-cols-2">
+          <AnimatedList className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {recentTests.slice(0, 3).map((test) => {
               const food = foods.find((item) => item.id === test.foodId)
               if (!food) return null
@@ -996,7 +996,7 @@ function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
           Essayez d’enlever un filtre ou de modifier la recherche.
         </EmptyState>
       ) : (
-        <AnimatedList className="grid gap-3 lg:grid-cols-2">
+        <AnimatedList className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {filteredFoods.map((food) => (
             <AnimatedListItem key={food.id}>
               <FoodCard food={food} store={store} />
