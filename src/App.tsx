@@ -1913,16 +1913,6 @@ const categoryEmojiTile: Record<FoodCategory, string> = {
   Divers: "bg-primary/[0.14] border-primary/[0.20]",
 }
 
-const categoryTextColor: Record<FoodCategory, string> = {
-  Légumes: "text-category-vegetable",
-  Fruits: "text-category-fruit",
-  Féculents: "text-category-starch",
-  Protéines: "text-category-protein",
-  "Produits laitiers": "text-category-dairy",
-  "Matières grasses": "text-category-fat",
-  Divers: "text-primary",
-}
-
 function FoodEmoji({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" }) {
   return (
     <span
