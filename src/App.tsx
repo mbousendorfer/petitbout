@@ -2000,13 +2000,13 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
     <>
       <button
         type="button"
-        className="block h-24 w-full touch-manipulation rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="block h-24 w-full touch-manipulation rounded-[1.375rem] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={() => setOpen(true)}
         aria-label={`Ajouter une prise de ${food.name}`}
       >
         <Card
           className={cn(
-            "paper-surface pointer-events-none h-full overflow-hidden transition-colors hover:border-primary/35",
+            "paper-surface pointer-events-none h-full overflow-hidden rounded-[1.375rem] transition-colors hover:border-primary/35",
             status === "testé" && "border-status-tested/45 bg-status-tested/10",
             status === "réaction" && "border-status-reaction/45 bg-status-reaction/10",
           )}
@@ -2668,7 +2668,7 @@ function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
                 : "border-border bg-muted/45 text-muted-foreground",
               isCurrentMonth && (
                 isActive
-                  ? "border-[hsl(21_70%_34%)] bg-[hsl(21_70%_34%)] text-status-season-month-foreground dark:border-[hsl(24_70%_44%)] dark:bg-[hsl(24_70%_44%)] dark:text-white"
+                  ? "border-[hsl(38_66%_38%)] bg-[hsl(38_66%_38%)] text-white dark:border-[hsl(43_72%_64%)] dark:bg-[hsl(43_72%_64%)] dark:text-[hsl(30_25%_12%)]"
                   : "border-foreground/30 bg-muted text-foreground"
               ),
             )}
