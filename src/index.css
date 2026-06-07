@@ -53,6 +53,13 @@
     --canvas-tint: 37 43% 90%; /* faint warm wash for page gradient */
     --shadow-color: 33 12% 15%;
     --radius: 1.125rem; /* 18px — softer Argile corners */
+    /* Typography (DiversiType): rounded display vs. text body. SF Pro is the
+       native face on Apple; elsewhere the system humanist-rounded fallback
+       renders (no webfont shipped — see design decision). */
+    --font-rounded: ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito Sans",
+      system-ui, sans-serif;
+    --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Nunito Sans",
+      system-ui, sans-serif;
   }
 
   .dark {
@@ -112,9 +119,7 @@
     @apply bg-background text-foreground antialiased;
     min-height: 100%;
     overscroll-behavior-y: none;
-    font-family:
-      ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito Sans", system-ui,
-      sans-serif;
+    font-family: var(--font-text);
   }
 
   ::selection {
@@ -276,6 +281,16 @@
     .sheet-content[data-side="bottom"][data-state="closed"] {
       animation: sheet-fade-out 140ms ease-in both;
     }
+  }
+
+  /* Editorial eyebrow — small uppercase section label (DiversiType eyebrow). */
+  .eyebrow {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: hsl(var(--muted-foreground));
   }
 
   .soft-surface {

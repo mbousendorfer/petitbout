@@ -466,8 +466,10 @@ function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
     <>
       <Header eyebrow="Espace partagé" title="Diversibebs" />
       <HeroPanel icon={LockKeyhole}>
-        <p className="text-sm font-semibold text-muted-foreground">Carnet de découvertes</p>
-        <h2 className="mt-1 text-2xl font-semibold">Un suivi doux, partagé et toujours sous la main.</h2>
+        <p className="eyebrow">Carnet de découvertes</p>
+        <h2 className="mt-1.5 font-rounded text-2xl font-extrabold tracking-[-0.01em]">
+          Un suivi doux, partagé et toujours sous la main.
+        </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Ouvrez votre espace famille avec un code partagé pour retrouver le suivi sur vos appareils.
         </p>
@@ -535,7 +537,7 @@ function HeroPanel({
   icon: LucideIcon
 }) {
   return (
-    <section className={cn("paper-surface soft-ring overflow-hidden rounded-2xl p-4", className)}>
+    <section className={cn("paper-surface soft-ring overflow-hidden rounded-[1.625rem] p-4", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">{children}</div>
         <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm" aria-hidden="true">
@@ -558,8 +560,8 @@ function SectionHeader({
   return (
     <div className="flex items-end justify-between gap-3">
       <div className="min-w-0">
-        {eyebrow && <p className="text-sm font-semibold text-muted-foreground">{eyebrow}</p>}
-        <h2 className="text-xl font-semibold tracking-normal">{title}</h2>
+        {eyebrow && <p className="eyebrow mb-0.5">{eyebrow}</p>}
+        <h2 className="text-xl font-bold tracking-[-0.01em]">{title}</h2>
       </div>
       {action}
     </div>
@@ -785,7 +787,7 @@ function BabyHero({
     : null
 
   return (
-    <section className="paper-surface soft-ring relative overflow-hidden rounded-2xl p-4 sm:p-5">
+    <section className="paper-surface soft-ring relative overflow-hidden rounded-[1.625rem] p-4 sm:p-5">
       <div className="flex items-center gap-3">
         <span
           aria-hidden="true"
@@ -794,8 +796,8 @@ function BabyHero({
           <Baby className="size-6" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-muted-foreground">Bonjour</p>
-          <h1 className="text-xl font-semibold tracking-normal sm:text-2xl">
+          <p className="eyebrow">Bonjour</p>
+          <h1 className="font-rounded text-2xl font-extrabold tracking-[-0.01em]">
             {displayName}, {ageMonths} mois
           </h1>
           {formattedBirth && (
@@ -832,7 +834,7 @@ function HomeStatTile({
       className="flex flex-col items-center gap-1 rounded-xl border bg-card/85 px-2 py-3 text-center shadow-sm transition-colors hover:border-primary/30 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
-      <span className="text-xl font-semibold tracking-tight">{value}</span>
+      <span className="font-rounded text-xl font-extrabold tracking-tight">{value}</span>
       <span className="text-xs leading-tight text-muted-foreground">{label}</span>
     </NavLink>
   )
@@ -2682,9 +2684,11 @@ function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
 
 function Header({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
-    <header className="flex flex-col gap-1 pt-2">
-      <p className="text-sm font-semibold text-muted-foreground">{eyebrow}</p>
-      <h1 className="text-3xl font-semibold tracking-normal text-foreground">{title}</h1>
+    <header className="flex flex-col gap-1.5 pt-2">
+      <p className="eyebrow">{eyebrow}</p>
+      <h1 className="font-rounded text-[2rem] font-extrabold leading-[1.1] tracking-[-0.01em] text-foreground">
+        {title}
+      </h1>
     </header>
   )
 }
