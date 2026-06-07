@@ -190,8 +190,8 @@ export function FoodTestDrawer({
         <div className="shrink-0 px-5 pb-3">
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1" role="tablist" aria-label="Vue de la fiche">
             {([
-              { id: "infos", label: "Infos" },
               { id: "add", label: isEditing ? "Modifier" : "Ajouter" },
+              { id: "infos", label: "Infos" },
             ] as const).map((tab) => (
               <button
                 key={tab.id}
