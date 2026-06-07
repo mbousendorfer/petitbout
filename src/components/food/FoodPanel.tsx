@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useId } from "react"
 import { createPortal } from "react-dom"
-import { BookOpen, CalendarClock, CircleCheck, Clock, FileSearch, Leaf, LoaderCircle, PackageCheck, PencilLine, Plus, ShieldCheck, Trash2, Utensils, X, type LucideIcon } from "lucide-react"
+import { BookOpen, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, PackageCheck, PencilLine, Plus, ShieldCheck, Trash2, Utensils, X, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -47,11 +47,15 @@ export function FoodTestDrawer({
   const [isPopote, setIsPopote] = useState(() => selectedTest?.isPopote ?? false)
   const [reaction, setReaction] = useState<Reaction>(() => selectedTest?.reaction ?? "aucune réaction")
   const [note, setNote] = useState(() => selectedTest?.note ?? "")
-  const [showNote, setShowNote] = useState(() => Boolean(selectedTest?.note))
+  const [showReaction, setShowReaction] = useState(
+    () => Boolean(selectedTest && selectedTest.reaction !== "aucune réaction"),
+  )
   const [confirmingRemovalId, setConfirmingRemovalId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const titleId = useId()
   const status = getStatus(food.id, store.latestByFood)
+  const reactionSummary = reaction === "aucune réaction" ? "Rien à signaler" : reactionLabels[reaction]
+  const reactionIsSevere = reaction === "vomissement" || reaction === "rougeur"
 
   useEffect(() => {
     if (!open) return
@@ -84,7 +88,7 @@ export function FoodTestDrawer({
     setIsPopote(false)
     setReaction("aucune réaction")
     setNote("")
-    setShowNote(false)
+    setShowReaction(false)
     setConfirmingRemovalId(null)
   }
 
@@ -97,7 +101,7 @@ export function FoodTestDrawer({
     setIsPopote(nextTest.isPopote)
     setReaction(nextTest.reaction)
     setNote(nextTest.note)
-    setShowNote(Boolean(nextTest.note))
+    setShowReaction(nextTest.reaction !== "aucune réaction")
     setConfirmingRemovalId(null)
   }
 
@@ -320,86 +324,89 @@ export function FoodTestDrawer({
             </div>
             )}
             {selectedTab === "add" && (
-            <div className="flex min-w-0 flex-col gap-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">
-                  {isEditing ? "Modifier la prise" : "Nouvelle prise"}
-                </p>
+            <div className="flex min-w-0 flex-col gap-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="font-semibold tracking-[-0.01em]">{isEditing ? "Modifier" : "Ajouter un aliment"}</h3>
+                  <p className="mt-0.5 text-sm text-muted-foreground">Date et moment du repas.</p>
+                </div>
                 {isEditing && (
-                  <Button type="button" variant="ghost" size="sm" onClick={resetFormForNewTest}>
+                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={resetFormForNewTest}>
                     <Plus data-icon="inline-start" aria-hidden="true" />
                     Nouvelle prise
                   </Button>
                 )}
               </div>
-              <div className="grid gap-4">
-                <label className="grid min-w-0 gap-2">
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">Date</span>
-                  <Input
-                    className="h-11 min-w-0 max-w-full bg-background/70 px-3 shadow-none"
-                    type="date"
-                    value={date}
-                    onChange={(event) => setDate(event.target.value)}
-                  />
-                </label>
 
-                <div className="flex min-w-0 flex-col gap-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">Moment</p>
-                    <p className="text-xs text-muted-foreground">{mealTime}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {mealTimePresets.map((preset) => {
-                      const isSelected = mealTimePreset === preset.id
-                      const Icon = preset.icon
+              <label className="grid min-w-0 gap-2">
+                <span className="text-xs font-semibold uppercase text-muted-foreground">Date</span>
+                <Input
+                  className="h-11 min-w-0 max-w-full bg-background/70 px-3 shadow-none"
+                  type="date"
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                />
+              </label>
 
-                      return (
-                        <button
-                          key={preset.id}
-                          type="button"
-                          className={cn(
-                            "flex min-h-14 items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                            isSelected
-                              ? "border-primary/25 bg-secondary text-secondary-foreground shadow-sm"
-                              : "border-border bg-background/50 text-foreground hover:bg-muted",
-                          )}
-                          onClick={() => selectMealTimePreset(preset.id)}
-                        >
-                          <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium">{preset.label}</span>
-                            <span className="block text-xs text-muted-foreground">{preset.time}</span>
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
+              <div className="flex min-w-0 flex-col gap-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Moment</p>
+                  {mealTimePreset === "custom" && <p className="text-xs text-muted-foreground">{mealTime}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {mealTimePresets.map((preset) => {
+                    const isSelected = mealTimePreset === preset.id
+                    const Icon = preset.icon
+
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        className={cn(
+                          "flex min-h-[3.75rem] flex-col items-center justify-center gap-1.5 rounded-xl border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          isSelected
+                            ? "border-primary/35 bg-primary/10 text-foreground shadow-sm"
+                            : "border-border bg-background/50 text-foreground hover:bg-muted",
+                        )}
+                        onClick={() => selectMealTimePreset(preset.id)}
+                        aria-pressed={isSelected}
+                      >
+                        <Icon className={cn("size-5 shrink-0", isSelected ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
+                        <span className="truncate text-sm font-semibold">{preset.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <div
+                  className={cn(
+                    "flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition-colors",
+                    mealTimePreset === "custom"
+                      ? "border-primary/35 bg-primary/10"
+                      : "border-border bg-background/50",
+                  )}
+                >
                   <button
                     type="button"
-                    className={cn(
-                      "flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      mealTimePreset === "custom"
-                        ? "border-primary/25 bg-secondary text-secondary-foreground shadow-sm"
-                        : "border-border bg-background/50 hover:bg-muted",
-                    )}
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
                     onClick={() => selectMealTimePreset("custom")}
+                    aria-pressed={mealTimePreset === "custom"}
                   >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <Clock className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      <span className="truncate text-sm font-medium">Entrer l’heure</span>
-                    </span>
-                    <span className="text-xs text-muted-foreground">{mealTimePreset === "custom" ? mealTime : "Libre"}</span>
+                    <Clock className={cn("size-4 shrink-0", mealTimePreset === "custom" ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
+                    <span className="truncate text-sm font-medium">Entrer l’heure</span>
                   </button>
-                  {mealTimePreset === "custom" && (
-                    <Input
-                      className="h-11 min-w-0 max-w-full bg-background/70"
-                      type="time"
-                      value={mealTime}
-                      onChange={(event) => setMealTime(event.target.value)}
-                    />
-                  )}
+                  <Input
+                    className="h-9 w-[7.5rem] shrink-0 bg-background/70"
+                    type="time"
+                    value={mealTime}
+                    aria-label="Heure de la prise"
+                    onChange={(event) => {
+                      setMealTime(event.target.value)
+                      setMealTimePreset("custom")
+                    }}
+                  />
                 </div>
               </div>
+
               {isFoodInPack(food, activePopotePackId) && (
                 <label className="flex items-center justify-between gap-3 rounded-xl border bg-card/80 p-3 text-sm font-medium">
                   <span className="flex min-w-0 items-center gap-2">
@@ -414,55 +421,86 @@ export function FoodTestDrawer({
                   />
                 </label>
               )}
-              <div className="grid gap-2">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Réaction observée</p>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {reactions.map((reactionOption) => {
-                    const isSelected = reaction === reactionOption
-                    const display = reactionDisplay[reactionOption]
 
-                    return (
-                      <button
-                        key={reactionOption}
-                        type="button"
-                        className={cn(
-                          "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-1 py-1.5 text-center text-[0.625rem] font-semibold leading-none transition-colors sm:min-h-16 sm:px-1.5 sm:py-2 sm:text-[0.68rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                          isSelected
-                            ? reactionOption === "aucune réaction"
-                              ? "border-status-tested/35 bg-status-tested/12 text-status-tested shadow-sm"
-                              : "border-status-reaction/35 bg-status-reaction/12 text-status-reaction shadow-sm"
-                            : "border-border bg-card/70 text-muted-foreground hover:bg-muted/65 hover:text-foreground",
-                        )}
-                        onClick={() => setReaction(reactionOption)}
-                        aria-pressed={isSelected}
-                        aria-label={reactionLabels[reactionOption]}
-                      >
-                        <span className="text-lg leading-none" aria-hidden="true">{display.emoji}</span>
-                        <span className="max-w-full truncate">{display.label}</span>
-                      </button>
-                    )
-                  })}
+              <div className="flex min-w-0 flex-col gap-2.5">
+                <div className="min-w-0">
+                  <h3 className="font-semibold tracking-[-0.01em]">Détails optionnels</h3>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    Une note suffit si quelque chose mérite d’être gardé.
+                  </p>
                 </div>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  En cas de doute ou de symptôme important, demandez un avis médical.
-                </p>
-              </div>
-              {showNote ? (
-                <label className="flex flex-col gap-2 text-sm font-medium">
-                  Note
+
+                <div className="flex flex-col gap-3 rounded-xl border bg-card/80 p-4 shadow-sm">
                   <Textarea
-                    autoFocus
-                    placeholder="Quantité, texture, contexte du repas..."
+                    placeholder="Notes, texture, quantité..."
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
                   />
-                </label>
-              ) : (
-                <Button type="button" variant="outline" onClick={() => setShowNote(true)}>
-                  <Plus data-icon="inline-start" aria-hidden="true" />
-                  Ajouter une note
-                </Button>
-              )}
+
+                  <button
+                    type="button"
+                    className="flex min-h-12 items-center gap-3 rounded-lg border bg-muted/40 px-3 py-2 text-left transition-colors hover:bg-muted/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => setShowReaction((value) => !value)}
+                    aria-expanded={showReaction}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "flex size-8 shrink-0 items-center justify-center rounded-full text-base",
+                        reaction === "aucune réaction" ? "bg-muted" : "bg-status-reaction/15",
+                      )}
+                    >
+                      {reactionDisplay[reaction].emoji}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">Réaction</span>
+                      <span className="block truncate text-sm font-semibold">{reactionSummary}</span>
+                    </span>
+                    <ChevronDown
+                      className={cn("size-4 shrink-0 text-muted-foreground transition-transform", showReaction && "rotate-180")}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {showReaction && (
+                    <div className="flex flex-col gap-2.5">
+                      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+                        {reactions.map((reactionOption) => {
+                          const isSelected = reaction === reactionOption
+                          const display = reactionDisplay[reactionOption]
+
+                          return (
+                            <button
+                              key={reactionOption}
+                              type="button"
+                              className={cn(
+                                "flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                isSelected
+                                  ? reactionOption === "aucune réaction"
+                                    ? "border-status-tested/30 bg-status-tested/12 text-status-tested"
+                                    : "border-status-reaction/30 bg-status-reaction/12 text-status-reaction"
+                                  : "border-border bg-muted/40 text-muted-foreground hover:text-foreground",
+                              )}
+                              onClick={() => setReaction(reactionOption)}
+                              aria-pressed={isSelected}
+                              aria-label={reactionLabels[reactionOption]}
+                            >
+                              <span className="shrink-0 leading-none" aria-hidden="true">{display.emoji}</span>
+                              <span className="truncate">{display.label}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      {reactionIsSevere && (
+                        <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                          <CrossIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                          Symptôme important : demandez un avis médical.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             )}
           </div>
