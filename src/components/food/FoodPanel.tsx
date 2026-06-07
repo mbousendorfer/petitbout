@@ -36,7 +36,7 @@ export function FoodTestDrawer({
   const { activePopotePackId } = useAppOptions()
   const foodTests = useMemo(() => store.tests.filter((item) => item.foodId === food.id), [food.id, store.tests])
   const latestFoodTest = foodTests[0]
-  const [selectedTab, setSelectedTab] = useState<FoodPanelTab>(() => initialTab ?? (test ? "add" : "infos"))
+  const [selectedTab, setSelectedTab] = useState<FoodPanelTab>(() => initialTab ?? "add")
   const [selectedTest, setSelectedTest] = useState<FoodTest | null>(() => test ?? null)
   const isEditing = Boolean(selectedTest)
   const [date, setDate] = useState(() => selectedTest?.date ?? new Date().toISOString().slice(0, 10))

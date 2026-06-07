@@ -101,7 +101,7 @@ export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; st
           </div>
         </Card>
       </button>
-      {open && <FoodTestDrawer food={food} store={store} open={open} onOpenChange={setOpen} />}
+      {open && <FoodTestDrawer food={food} store={store} initialTab="add" open={open} onOpenChange={setOpen} />}
     </>
   )
 })

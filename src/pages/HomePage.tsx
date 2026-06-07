@@ -171,8 +171,8 @@ export function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnTy
         <button
           type="button"
           className="flex flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          onClick={() => setOpenTab("infos")}
-          aria-label={`Voir les repères de ${food.name}`}
+          onClick={() => setOpenTab("add")}
+          aria-label={`Ajouter une prise de ${food.name}`}
         >
           <FoodEmoji food={food} size="lg" />
           <div className="min-w-0">
