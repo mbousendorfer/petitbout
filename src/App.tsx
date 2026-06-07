@@ -2,17 +2,22 @@ import { createContext, lazy, memo, Suspense, type ReactNode, useContext, useEff
 import { createPortal } from "react-dom"
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom"
 import {
+  ArrowRight,
   Baby,
   BadgeCheck,
   BookOpen,
+  CalendarClock,
+  Carrot,
+  ChartPie,
   Check,
   ChevronRight,
+  CircleCheck,
   Clock,
   Coffee,
   Cookie,
   Copy,
   Download,
-  ExternalLink,
+  FileSearch,
   Home,
   Leaf,
   LoaderCircle,
@@ -21,11 +26,9 @@ import {
   Monitor,
   Moon,
   NotebookText,
-  Award,
   PackageCheck,
   PencilLine,
   Plus,
-  RefreshCw,
   Search,
   Settings,
   ShieldCheck,
@@ -58,13 +61,14 @@ import {
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/sonner"
 import { categories, foods, isFoodInPack, popotePacks, type Food, type FoodCategory } from "@/data/foods"
-import { foodSourceReferences, reviewedAt, sourcesByTheme } from "@/data/sources"
+import { guidanceStageFor } from "@/data/guidance"
+import { foodSourceReferences } from "@/data/sources"
 import { backupFileName, backupToJson } from "@/lib/backup"
 import {
+  ageSummary,
   applyFoodFilters,
   countWithFilterChange,
   getStatus,
@@ -82,7 +86,6 @@ import {
 } from "@/lib/food-utils"
 import {
   calculateBadges,
-  calculateProgress,
   readBadgeUnlockDates,
   writeBadgeUnlockDates,
   type BadgeUnlockDates,
@@ -97,7 +100,13 @@ const DiscoveriesPage = lazy(() =>
   import("@/components/DiscoveriesPage").then((module) => ({ default: module.DiscoveriesPage })),
 )
 
+const GuidancePage = lazy(() =>
+  import("@/components/GuidancePage").then((module) => ({ default: module.GuidancePage })),
+)
+
 type MealTimePresetId = "breakfast" | "lunch" | "snack" | "dinner" | "custom"
+
+type FoodPanelTab = "infos" | "add"
 
 const statusFilterLabels: Record<FoodStatusFilter, string> = {
   tous: "Tous",
@@ -172,7 +181,6 @@ function App() {
   const appOptions = useStoredAppOptions()
   const badgeUnlockDates = useBadgeUnlockDates(store.tests, store.syncStatus)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
-  const recentTests = store.tests.slice(0, 4)
 
   if (!store.familySession) {
     return (
@@ -194,15 +202,27 @@ function App() {
         <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-5 sm:px-6 lg:mx-0 lg:max-w-6xl lg:px-0 lg:py-8">
           <PwaStatus />
           <Routes>
-            <Route path="/" element={<HomePage store={store} suggestions={suggestions} recentTests={recentTests} />} />
+            <Route path="/" element={<HomePage store={store} suggestions={suggestions} />} />
             <Route path="/foods" element={<FoodsPage store={store} />} />
             <Route path="/week" element={<Navigate to="/" replace />} />
             <Route path="/history" element={<HistoryPage store={store} />} />
             <Route
+              path="/guidance"
+              element={
+                <Suspense fallback={<PageLoading label="Repères" />}>
+                  <GuidancePage ageMonths={store.profile.ageMonths} childName={store.profile.childName} />
+                </Suspense>
+              }
+            />
+            <Route
               path="/discoveries"
               element={
-                <Suspense fallback={<PageLoading label="Découvertes" />}>
-                  <DiscoveriesPage tests={store.tests} badgeUnlockDates={badgeUnlockDates} />
+                <Suspense fallback={<PageLoading label="Progression" />}>
+                  <DiscoveriesPage
+                    tests={store.tests}
+                    badgeUnlockDates={badgeUnlockDates}
+                    childName={store.profile.childName}
+                  />
                 </Suspense>
               }
             />
@@ -595,247 +615,228 @@ function EmptyState({
   )
 }
 
-function nextMonthlyMilestone(birthDate: string): { months: number; daysAway: number } | null {
-  if (!birthDate) return null
-  const birth = new Date(`${birthDate}T00:00:00`)
-  if (Number.isNaN(birth.getTime())) return null
-
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const monthsLived =
-    (today.getFullYear() - birth.getFullYear()) * 12 +
-    (today.getMonth() - birth.getMonth()) -
-    (today.getDate() < birth.getDate() ? 1 : 0)
-  const nextMonths = monthsLived + 1
-  const nextDate = new Date(birth)
-  nextDate.setMonth(birth.getMonth() + nextMonths)
-  const daysAway = Math.ceil((nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-  if (daysAway < 0 || daysAway > 14) return null
-  return { months: nextMonths, daysAway }
-}
-
 function HomePage({
   store,
   suggestions,
-  recentTests,
 }: {
   store: ReturnType<typeof useBabyStore>
   suggestions: Food[]
-  recentTests: ReturnType<typeof useBabyStore>["tests"]
 }) {
-  const { activePopotePackId } = useAppOptions()
-  const [discardedSuggestionIds, setDiscardedSuggestionIds] = useState<string[]>([])
-  const visibleSuggestions = suggestions.filter((food) => !discardedSuggestionIds.includes(food.id))
-  const topFood = visibleSuggestions[0]
-  const weeklyPlan = visibleSuggestions.slice(1)
+  const { ageMonths, childName } = store.profile
+  const displayName = childName.trim() ? childName.trim() : "bébé"
+  const testedCount = store.testedFoodIds.size
+  const remainingCount = useMemo(
+    () => foods.filter((food) => isAgeReady(food, ageMonths) && !store.testedFoodIds.has(food.id)).length,
+    [ageMonths, store.testedFoodIds],
+  )
+  const stage = guidanceStageFor(ageMonths)
 
-  const progress = useMemo(() => calculateProgress(foods, store.tests), [store.tests])
-  const uniqueCategoriesCount = useMemo(
-    () =>
-      new Set(
-        store.tests.flatMap((test) => {
-          const food = foods.find((item) => item.id === test.foodId)
-          return food ? [food.category] : []
-        }),
-      ).size,
-    [store.tests],
-  )
-  const notesCount = useMemo(
-    () => store.tests.filter((test) => test.note.trim().length > 0).length,
-    [store.tests],
-  )
-  const milestone = useMemo(
-    () => nextMonthlyMilestone(store.profile.birthDate),
-    [store.profile.birthDate],
-  )
-
-  function postponeTopFood() {
-    if (!topFood) return
-    setDiscardedSuggestionIds((current) => [...current, topFood.id])
-    toast.info(`${topFood.name} proposé plus tard`)
-  }
+  const heroMessage =
+    testedCount === 0
+      ? "Tu peux commencer avec un premier aliment."
+      : `Déjà ${testedCount} aliment${testedCount > 1 ? "s" : ""} ajouté${testedCount > 1 ? "s" : ""}. Continue à ton rythme.`
 
   return (
     <>
-      <BabyHero
-        ageMonths={store.profile.ageMonths}
-        birthDate={store.profile.birthDate}
-        childName={store.profile.childName}
-        milestone={milestone}
+      <TodayHero
+        displayName={displayName}
+        ageMonths={ageMonths}
+        message={heroMessage}
+        testedCount={testedCount}
+        remainingCount={remainingCount}
       />
 
-      {topFood ? (
-        <>
-          <div className="flex flex-col gap-3">
-            <SectionHeader
-              eyebrow="Priorité douce"
-              title="À tester en priorité"
-              action={<Button type="button" variant="outline" size="sm" onClick={postponeTopFood}>
-                <RefreshCw data-icon="inline-start" aria-hidden="true" />
-                Plus tard
-              </Button>}
-            />
-            <FoodCard food={topFood} store={store} />
-          </div>
-
-          {weeklyPlan.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <SectionHeader
-                eyebrow="Plan léger"
-                title="Le reste de la semaine"
-                action={<Badge variant="secondary" className="h-8 px-3">{weeklyPlan.length} idées</Badge>}
-              />
-              <AnimatedList className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                {weeklyPlan.map((food) => (
-                  <AnimatedListItem key={food.id}>
-                    <FoodCard food={food} store={store} />
-                  </AnimatedListItem>
-                ))}
-              </AnimatedList>
-            </div>
-          )}
-        </>
-      ) : (
-        <EmptyState icon={Check} title="Tout est à jour">
-          Aucune suggestion nouvelle pour cette semaine. Continuez tranquillement avec les aliments déjà repérés.
-        </EmptyState>
-      )}
-
-      <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3">
         <SectionHeader
-          eyebrow="Carnet"
-          title="Où en suis-je"
-          action={
-            <NavLink
-              to="/discoveries"
-              className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Voir tout
-            </NavLink>
-          }
+          eyebrow="Idées du moment"
+          title={suggestions.length > 0 ? "À explorer" : "Tout est prêt"}
         />
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          <HomeStatTile icon={Sparkles} label="aliments goûtés" value={progress.testedFoods} />
-          <HomeStatTile icon={Leaf} label="catégories" value={uniqueCategoriesCount} />
-          <HomeStatTile icon={PencilLine} label="notes" value={notesCount} />
-        </div>
-      </div>
-
-      {recentTests.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <SectionHeader
-            eyebrow="Journal"
-            title="Derniers tests"
+        {suggestions.length > 0 ? (
+          <TodayFoodCarousel foods={suggestions} store={store} />
+        ) : (
+          <EmptyState
+            icon={Check}
+            title="Tout est prêt"
             action={
-              <NavLink
-                to="/history"
-                className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-              >
-                Voir tout
-              </NavLink>
+              <Button asChild variant="outline">
+                <NavLink to="/foods">
+                  <Carrot data-icon="inline-start" aria-hidden="true" />
+                  Voir les aliments
+                </NavLink>
+              </Button>
             }
-          />
-          <AnimatedList className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            {recentTests.slice(0, 3).map((test) => {
-              const food = foods.find((item) => item.id === test.foodId)
-              if (!food) return null
-              return (
-                <AnimatedListItem
-                  key={test.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border bg-card/80 px-3 py-3 shadow-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{food.name}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <p className="text-sm text-muted-foreground">{testDateTimeLabel(test)}</p>
-                      {activePopotePackId !== null && test.isPopote && <PopoteBadge />}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status={test.reaction === "aucune réaction" ? "testé" : "réaction"} />
-                    <FoodDetail food={food} store={store} test={test} compact />
-                  </div>
-                </AnimatedListItem>
-              )
-            })}
-          </AnimatedList>
-        </div>
-      )}
+          >
+            Aucune suggestion immédiate. Tu peux parcourir le catalogue pour choisir un aliment.
+          </EmptyState>
+        )}
+      </section>
 
-      <SourcesSection />
+      <TodayGuidancePreview stage={stage} />
 
       <Disclaimer compact />
     </>
   )
 }
 
-function BabyHero({
+function TodayHero({
   ageMonths,
-  birthDate,
-  childName,
-  milestone,
+  displayName,
+  message,
+  remainingCount,
+  testedCount,
 }: {
   ageMonths: number
-  birthDate: string
-  childName: string
-  milestone: { months: number; daysAway: number } | null
+  displayName: string
+  message: string
+  remainingCount: number
+  testedCount: number
 }) {
-  const displayName = childName.trim() ? childName.trim() : "Bébé"
-  const formattedBirth = birthDate
-    ? new Date(`${birthDate}T00:00:00`).toLocaleDateString("fr-FR")
-    : null
-
   return (
-    <section className="paper-surface soft-ring relative overflow-hidden rounded-[1.625rem] p-4 sm:p-5">
-      <div className="flex items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm"
-        >
-          <Baby className="size-6" />
+    <section className="paper-surface soft-ring overflow-hidden rounded-hero p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="font-rounded text-2xl font-extrabold tracking-[-0.01em]">Aujourd'hui</h1>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-status-reaction/12 px-3 py-1 text-xs font-bold text-status-reaction">
+          <Baby className="size-3.5" aria-hidden="true" />
+          {ageMonths} mois
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="eyebrow">Bonjour</p>
-          <h1 className="font-rounded text-2xl font-extrabold tracking-[-0.01em]">
-            {displayName}, {ageMonths} mois
-          </h1>
-          {formattedBirth && (
-            <p className="mt-0.5 text-xs text-muted-foreground">Né(e) le {formattedBirth}</p>
-          )}
-        </div>
-        {milestone && (
-          <span className="hidden shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:inline-flex">
-            {milestone.months} mois dans {milestone.daysAway} j
-          </span>
-        )}
       </div>
-      {milestone && (
-        <p className="mt-3 rounded-lg bg-muted/50 px-3 py-2 text-xs leading-5 text-muted-foreground sm:hidden">
-          Bientôt {milestone.months} mois — dans {milestone.daysAway} jour{milestone.daysAway > 1 ? "s" : ""}.
-        </p>
-      )}
+      <p className="mt-3 text-lg font-bold tracking-[-0.01em]">Bonjour {displayName}</p>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">{message}</p>
+      <div className="mt-4 grid grid-cols-2 gap-2.5">
+        <TodayHeroStat icon={BadgeCheck} value={testedCount} label="testés" tone="tested" />
+        <TodayHeroStat icon={Sparkles} value={remainingCount} label="à explorer" tone="accent" />
+      </div>
     </section>
   )
 }
 
-function HomeStatTile({
+function TodayHeroStat({
   icon: Icon,
   label,
+  tone,
   value,
 }: {
   icon: LucideIcon
   label: string
+  tone: "tested" | "accent"
   value: number
 }) {
   return (
+    <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-3 py-2">
+      <Icon
+        aria-hidden="true"
+        className={cn("size-4 shrink-0", tone === "tested" ? "text-status-tested" : "text-accent-foreground")}
+      />
+      <span className="font-rounded text-base font-extrabold tracking-tight">{value}</span>
+      <span className="truncate text-xs font-semibold text-muted-foreground">{label}</span>
+    </div>
+  )
+}
+
+function TodayFoodCarousel({ foods: items, store }: { foods: Food[]; store: ReturnType<typeof useBabyStore> }) {
+  return (
+    <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+      <div className="flex snap-x snap-mandatory gap-3">
+        {items.map((food) => (
+          <TodayFoodHeroCard key={food.id} food={food} store={store} />
+        ))}
+        <NavLink
+          to="/foods"
+          className="flex w-[16rem] shrink-0 snap-start flex-col justify-between gap-4 rounded-hero border border-primary/20 bg-primary/[0.06] p-5 shadow-card transition-colors hover:border-primary/35"
+        >
+          <span
+            aria-hidden="true"
+            className="flex size-14 items-center justify-center rounded-2xl bg-primary/12 text-primary"
+          >
+            <Carrot className="size-7" />
+          </span>
+          <div>
+            <p className="text-lg font-bold tracking-[-0.01em]">Voir tout</p>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground">Parcourir le catalogue complet.</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary">
+            Ouvrir
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </span>
+        </NavLink>
+      </div>
+    </div>
+  )
+}
+
+function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
+  const [openTab, setOpenTab] = useState<FoodPanelTab | null>(null)
+  const inSeason = isInSeason(food)
+
+  return (
+    <>
+      <div className="flex w-[16rem] shrink-0 snap-start flex-col gap-4 rounded-hero border bg-card/90 p-5 shadow-card">
+        <button
+          type="button"
+          className="flex flex-1 flex-col items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          onClick={() => setOpenTab("infos")}
+          aria-label={`Voir les repères de ${food.name}`}
+        >
+          <FoodEmoji food={food} size="lg" />
+          <div className="min-w-0">
+            <p className="eyebrow">{food.category}</p>
+            <p className="mt-1 text-lg font-bold leading-tight tracking-[-0.01em]">{food.name}</p>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground">{ageSummary(food)}</p>
+          </div>
+        </button>
+        {inSeason && (
+          <div>
+            <SeasonBadge />
+          </div>
+        )}
+        <Button type="button" className="h-11 w-full" onClick={() => setOpenTab("add")}>
+          <Plus data-icon="inline-start" aria-hidden="true" />
+          Ajouter
+        </Button>
+      </div>
+      {openTab && (
+        <FoodTestDrawer
+          food={food}
+          store={store}
+          initialTab={openTab}
+          open
+          onOpenChange={(next) => {
+            if (!next) setOpenTab(null)
+          }}
+        />
+      )}
+    </>
+  )
+}
+
+function TodayGuidancePreview({ stage }: { stage: ReturnType<typeof guidanceStageFor> }) {
+  return (
     <NavLink
-      to="/discoveries"
-      className="flex flex-col items-center gap-1 rounded-xl border bg-card/85 px-2 py-3 text-center shadow-sm transition-colors hover:border-primary/30 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      to="/guidance"
+      className="flex flex-col gap-3 rounded-card border bg-card/85 p-4 shadow-soft transition-colors hover:border-status-tested/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
-      <span className="font-rounded text-xl font-extrabold tracking-tight">{value}</span>
-      <span className="text-xs leading-tight text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-3">
+        <span
+          aria-hidden="true"
+          className="flex size-11 shrink-0 items-center justify-center rounded-md bg-status-tested/12 text-status-tested"
+        >
+          <FileSearch className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-status-tested">Repère {stage.ageRange}</p>
+          <p className="font-semibold leading-tight">{stage.title}</p>
+        </div>
+        <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      </div>
+      <p className="text-sm leading-6 text-muted-foreground">{stage.texture}</p>
+      <ul className="grid gap-1.5">
+        {stage.principles.slice(0, 2).map((principle, index) => (
+          <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+            <CircleCheck className="mt-0.5 size-4 shrink-0 text-status-tested" aria-hidden="true" />
+            <span className="leading-5">{principle}</span>
+          </li>
+        ))}
+      </ul>
     </NavLink>
   )
 }
@@ -1640,103 +1641,6 @@ function SettingsPage({
   )
 }
 
-type ThemeAccent = { icon: LucideIcon; bg: string; text: string }
-
-const sourceThemeAccents: Record<string, ThemeAccent> = {
-  "Âges": {
-    icon: Clock,
-    bg: "bg-amber-100/80 dark:bg-amber-950/40",
-    text: "text-amber-700 dark:text-amber-300",
-  },
-  "Allergènes": {
-    icon: ShieldCheck,
-    bg: "bg-rose-100/80 dark:bg-rose-950/40",
-    text: "text-rose-700 dark:text-rose-300",
-  },
-  "Aliments à éviter": {
-    icon: LockKeyhole,
-    bg: "bg-violet-100/80 dark:bg-violet-950/40",
-    text: "text-violet-700 dark:text-violet-300",
-  },
-  "Préparations": {
-    icon: Utensils,
-    bg: "bg-emerald-100/80 dark:bg-emerald-950/40",
-    text: "text-emerald-700 dark:text-emerald-300",
-  },
-}
-
-const defaultThemeAccent: ThemeAccent = {
-  icon: BookOpen,
-  bg: "bg-muted",
-  text: "text-muted-foreground",
-}
-
-function SourcesSection() {
-  const groups = sourcesByTheme()
-  const themes = Object.entries(groups).filter(([, items]) => items.length > 0)
-
-  return (
-    <section className="flex flex-col gap-3">
-      <SectionHeader
-        eyebrow="Confiance"
-        title="Sources & repères"
-        action={
-          <span className="text-xs text-muted-foreground">Vérifié en {reviewedAt}</span>
-        }
-      />
-      <div className="grid gap-3 sm:grid-cols-2">
-        {themes.map(([theme, items]) => {
-          const accent = sourceThemeAccents[theme] ?? defaultThemeAccent
-          const Icon = accent.icon
-          return (
-            <article
-              key={theme}
-              className="flex flex-col gap-3 rounded-2xl border bg-card/85 p-4 shadow-sm transition-colors hover:border-primary/25"
-            >
-              <header className="flex items-center gap-2.5">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-full",
-                    accent.bg,
-                  )}
-                >
-                  <Icon className={cn("size-4", accent.text)} />
-                </span>
-                <p className="font-semibold tracking-tight">{theme}</p>
-              </header>
-              <ul className="grid gap-3">
-                {items.map((source) => (
-                  <li key={source.id} className="grid gap-0.5">
-                    <a
-                      className="group inline-flex items-start gap-1.5 text-sm font-medium text-foreground underline-offset-4 hover:underline"
-                      href={source.url}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <span className="leading-5">{source.title}</span>
-                      <ExternalLink
-                        aria-hidden="true"
-                        className="mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
-                      />
-                    </a>
-                    <span className="text-xs text-muted-foreground">
-                      {source.organization} · consulté le {source.accessedAt}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          )
-        })}
-      </div>
-      <p className="flex items-center gap-2 text-xs leading-5 text-muted-foreground">
-        <ShieldCheck aria-hidden="true" className="size-4" />
-        {foodSourceReferences.length} références suivies, à revérifier régulièrement.
-      </p>
-    </section>
-  )
-}
 
 function InstallHelpSection() {
   return (
@@ -2027,58 +1931,16 @@ const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: Re
   )
 })
 
-function FoodDetail({
-  food,
-  store,
-  test,
-  compact = false,
-  inverted = false,
-}: {
-  food: Food
-  store: ReturnType<typeof useBabyStore>
-  test?: FoodTest
-  compact?: boolean
-  inverted?: boolean
-}) {
-  const [open, setOpen] = useState(false)
-  const existingTest = test ?? store.latestByFood.get(food.id)
-
-  return (
-    <>
-      <Button
-        type="button"
-        variant={inverted ? "secondary" : compact ? "outline" : "default"}
-        size={compact ? "icon" : "sm"}
-        className={cn(!compact && "h-10")}
-        onClick={() => setOpen(true)}
-        aria-label={
-          compact
-            ? `${existingTest ? "Modifier" : "Tester"} ${food.name}`
-            : `${existingTest ? "Modifier le test de" : "Marquer"} ${food.name}`
-        }
-      >
-        {compact ? (
-          <ChevronRight aria-hidden="true" />
-        ) : (
-          <>
-            <Plus data-icon="inline-start" aria-hidden="true" />
-            {existingTest ? "Modifier" : "Tester"}
-          </>
-        )}
-      </Button>
-      {open && <FoodTestDrawer food={food} store={store} test={test} open={open} onOpenChange={setOpen} />}
-    </>
-  )
-}
-
 function FoodTestDrawer({
   food,
+  initialTab,
   onOpenChange,
   open,
   store,
   test,
 }: {
   food: Food
+  initialTab?: FoodPanelTab
   onOpenChange: (open: boolean) => void
   open: boolean
   store: ReturnType<typeof useBabyStore>
@@ -2087,6 +1949,7 @@ function FoodTestDrawer({
   const { activePopotePackId } = useAppOptions()
   const foodTests = useMemo(() => store.tests.filter((item) => item.foodId === food.id), [food.id, store.tests])
   const latestFoodTest = foodTests[0]
+  const [selectedTab, setSelectedTab] = useState<FoodPanelTab>(() => initialTab ?? (test ? "add" : "infos"))
   const [selectedTest, setSelectedTest] = useState<FoodTest | null>(() => test ?? null)
   const isEditing = Boolean(selectedTest)
   const [date, setDate] = useState(() => selectedTest?.date ?? new Date().toISOString().slice(0, 10))
@@ -2139,6 +2002,7 @@ function FoodTestDrawer({
   }
 
   function editTest(nextTest: FoodTest) {
+    setSelectedTab("add")
     setSelectedTest(nextTest)
     setDate(nextTest.date)
     setMealTime(nextTest.mealTime || defaultMealTimePreset.time)
@@ -2225,9 +2089,7 @@ function FoodTestDrawer({
             <h2 id={titleId} className="truncate text-lg font-semibold text-foreground">
               {food.name}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {food.category} · {isEditing ? "Modifier la prise" : "Nouvelle prise"}
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{food.category}</p>
           </div>
           <button
             type="button"
@@ -2238,8 +2100,34 @@ function FoodTestDrawer({
             <X className="size-5" aria-hidden="true" />
           </button>
         </div>
+        <div className="shrink-0 px-5 pb-3">
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1" role="tablist" aria-label="Vue de la fiche">
+            {([
+              { id: "infos", label: "Infos" },
+              { id: "add", label: isEditing ? "Modifier" : "Ajouter" },
+            ] as const).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={selectedTab === tab.id}
+                className={cn(
+                  "flex min-h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  selectedTab === tab.id
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+                onClick={() => setSelectedTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5">
           <div className="flex min-w-0 flex-col gap-4 pb-4">
+            {selectedTab === "infos" && (
+            <div className="flex min-w-0 flex-col gap-4">
             <div className="flex flex-wrap gap-2">
               <StatusBadge status={status} />
               {isInSeason(food) && <SeasonBadge />}
@@ -2247,6 +2135,8 @@ function FoodTestDrawer({
               {isFoodInPack(food, activePopotePackId) && <PopoteBadge label="Popote possible" />}
               <SeasonMonthsGrid activeMonths={food.seasonMonths} />
             </div>
+            <FoodPanelGuidanceCard ageMonths={store.profile.ageMonths} />
+            <FoodPanelReferenceCard food={food} />
             <p className="rounded-xl bg-muted/65 p-4 text-sm leading-6">{food.preparation}</p>
             <FoodSourceNote food={food} />
             {foodTests.length > 0 && (
@@ -2340,7 +2230,9 @@ function FoodTestDrawer({
                 </div>
               </div>
             )}
-            <Separator />
+            </div>
+            )}
+            {selectedTab === "add" && (
             <div className="flex min-w-0 flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">
@@ -2485,8 +2377,10 @@ function FoodTestDrawer({
                 </Button>
               )}
             </div>
+            )}
           </div>
         </div>
+        {selectedTab === "add" && (
         <div className="shrink-0 border-t bg-background/95 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur lg:pb-4">
           <div className="grid gap-2">
             <Button type="button" className="h-12 w-full" onClick={saveTest} disabled={isSaving}>
@@ -2495,9 +2389,96 @@ function FoodTestDrawer({
             </Button>
           </div>
         </div>
+        )}
       </div>
     </>,
     document.body,
+  )
+}
+
+// Carte « Repères bébé » du panneau aliment — porte FoodBabyGuidanceCard (iOS).
+function FoodPanelGuidanceCard({ ageMonths }: { ageMonths: number }) {
+  const stage = guidanceStageFor(ageMonths)
+
+  return (
+    <div className="rounded-card border border-status-tested/20 bg-gradient-to-br from-card to-status-tested/[0.07] p-4 shadow-soft">
+      <div className="flex items-center gap-3">
+        <span
+          aria-hidden="true"
+          className="flex size-11 shrink-0 items-center justify-center rounded-md bg-status-tested/12 text-status-tested"
+        >
+          <FileSearch className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="font-semibold text-status-tested">Repères bébé</p>
+          <p className="text-sm font-medium text-muted-foreground">{stage.ageRange}</p>
+        </div>
+      </div>
+      <p className="mt-3 font-semibold leading-tight">{stage.title}</p>
+      <ul className="mt-2 grid gap-1.5">
+        {[stage.texture, stage.milk].map((text, index) => (
+          <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+            <CircleCheck className="mt-0.5 size-4 shrink-0 text-status-tested" aria-hidden="true" />
+            <span className="leading-5">{text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// Carte « Repères aliment » du panneau aliment — porte FoodReferenceCard (iOS).
+function FoodPanelReferenceCard({ food }: { food: Food }) {
+  return (
+    <div className="rounded-card border bg-card/85 p-4 shadow-soft">
+      <div className="flex items-center gap-2">
+        <BookOpen className="size-4 text-muted-foreground" aria-hidden="true" />
+        <p className="font-semibold text-muted-foreground">Repères aliment</p>
+      </div>
+
+      <div className="mt-3 flex items-start gap-3 rounded-md border border-primary/15 bg-primary/[0.08] p-3">
+        <span
+          aria-hidden="true"
+          className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/12 text-primary"
+        >
+          <CalendarClock className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Introduction</p>
+          <p className="mt-0.5 text-sm font-medium leading-5">{ageSummary(food)}</p>
+        </div>
+      </div>
+
+      <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+        <FoodReferenceChip icon={Utensils} title="Famille" value={food.category} />
+        <FoodReferenceChip icon={Leaf} title="Saison" value={monthNames(food.seasonMonths)} />
+      </div>
+    </div>
+  )
+}
+
+function FoodReferenceChip({
+  icon: Icon,
+  title,
+  value,
+}: {
+  icon: LucideIcon
+  title: string
+  value: string
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md bg-muted/55 p-3">
+      <span
+        aria-hidden="true"
+        className="flex size-8 items-center justify-center rounded-md bg-background/70 text-muted-foreground"
+      >
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{title}</p>
+        <p className="mt-0.5 text-sm font-semibold leading-5">{value}</p>
+      </div>
+    </div>
   )
 }
 
@@ -2692,10 +2673,9 @@ function Disclaimer({ compact = false }: { compact?: boolean }) {
 }
 
 const navigationItems = [
-  { to: "/", label: "Accueil", icon: Home },
-  { to: "/foods", label: "Aliments", icon: Leaf },
-  { to: "/history", label: "Journal", icon: NotebookText },
-  { to: "/discoveries", label: "Badges", icon: Award },
+  { to: "/", label: "Aujourd'hui", icon: Sun },
+  { to: "/foods", label: "Aliments", icon: Carrot },
+  { to: "/discoveries", label: "Progression", icon: ChartPie },
   { to: "/settings", label: "Réglages", icon: Settings },
 ]
 
@@ -2739,7 +2719,7 @@ function BottomNav() {
       aria-label="Navigation principale"
       className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-2xl border-t bg-background/95 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1.5 shadow-nav backdrop-blur lg:hidden"
     >
-      <div className="grid grid-cols-5 gap-1">
+      <div className="grid grid-cols-4 gap-1">
         {navigationItems.map((item) => (
           <NavLink
             key={item.to}
