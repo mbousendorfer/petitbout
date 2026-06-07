@@ -61,7 +61,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/sonner"
-import { categories, foods, isFoodInPack, popotePacks, type Food } from "@/data/foods"
+import { categories, foods, isFoodInPack, popotePacks, type Food, type FoodCategory } from "@/data/foods"
 import { foodSourceReferences, reviewedAt, sourcesByTheme } from "@/data/sources"
 import { backupFileName, backupToJson } from "@/lib/backup"
 import {
@@ -1897,11 +1897,36 @@ function ThemeButton({
   )
 }
 
+// Argile per-category tints (DiversiColors): each food category carries a
+// muted editorial colour — sage/coral/honey/plum/slate/olive — so the
+// catalogue reads at a glance. "Divers" falls back to the clay primary.
+// Full class strings (not interpolated) so Tailwind keeps them on purge.
+const categoryEmojiTile: Record<FoodCategory, string> = {
+  Légumes: "bg-category-vegetable/[0.16] border-category-vegetable/[0.22]",
+  Fruits: "bg-category-fruit/[0.16] border-category-fruit/[0.22]",
+  Féculents: "bg-category-starch/[0.16] border-category-starch/[0.22]",
+  Protéines: "bg-category-protein/[0.16] border-category-protein/[0.22]",
+  "Produits laitiers": "bg-category-dairy/[0.16] border-category-dairy/[0.22]",
+  "Matières grasses": "bg-category-fat/[0.16] border-category-fat/[0.22]",
+  Divers: "bg-primary/[0.14] border-primary/[0.20]",
+}
+
+const categoryTextColor: Record<FoodCategory, string> = {
+  Légumes: "text-category-vegetable",
+  Fruits: "text-category-fruit",
+  Féculents: "text-category-starch",
+  Protéines: "text-category-protein",
+  "Produits laitiers": "text-category-dairy",
+  "Matières grasses": "text-category-fat",
+  Divers: "text-primary",
+}
+
 function FoodEmoji({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" }) {
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground shadow-sm",
+        "flex shrink-0 items-center justify-center rounded-2xl border",
+        categoryEmojiTile[food.category],
         size === "sm" && "size-10",
         size === "md" && "size-12",
         size === "lg" && "size-14",
