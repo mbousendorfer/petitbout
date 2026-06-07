@@ -49,6 +49,14 @@ const config = {
           attention: "hsl(var(--status-attention))",
           "attention-foreground": "hsl(var(--status-attention-foreground))",
         },
+        category: {
+          vegetable: "hsl(var(--cat-vegetable))",
+          fruit: "hsl(var(--cat-fruit))",
+          starch: "hsl(var(--cat-starch))",
+          protein: "hsl(var(--cat-protein))",
+          dairy: "hsl(var(--cat-dairy))",
+          fat: "hsl(var(--cat-fat))",
+        },
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
@@ -56,13 +64,17 @@ const config = {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 6px)",
+        // Argile card radii (DiversiRadius): md 18, lg 26, hero 30
+        card: "1.625rem",
+        hero: "1.875rem",
       },
       boxShadow: {
-        soft: "0 18px 45px -30px hsl(var(--shadow-color) / 0.38)",
-        card: "0 18px 48px -36px hsl(var(--shadow-color) / 0.42)",
-        nav: "0 -18px 48px -34px hsl(var(--shadow-color) / 0.48)",
+        // Argile elevation: short, subtle, warm — replaces the long soft shadows.
+        soft: "0 3px 10px -4px hsl(var(--shadow-color) / 0.12)",
+        card: "0 6px 18px -10px hsl(var(--shadow-color) / 0.18)",
+        nav: "0 -8px 28px -16px hsl(var(--shadow-color) / 0.22)",
       },
     },
   },
