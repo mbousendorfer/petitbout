@@ -28,6 +28,7 @@ import {
   guidanceStageIndexFor,
   guidanceStages,
   type GuidanceRule,
+  type GuidanceSource,
   type GuidanceStage,
 } from "@/data/guidance"
 import { cn } from "@/lib/utils"
@@ -366,19 +367,29 @@ function CautionCard({ item }: { item: GuidanceRule }) {
   const Icon = item.icon
 
   return (
-    <div className="flex items-start gap-3 rounded-card border border-destructive/20 bg-destructive/[0.07] p-4 shadow-soft">
+    <div className="flex items-start gap-3.5 rounded-card border border-destructive/20 bg-destructive/[0.06] p-4 shadow-soft">
       <span
         aria-hidden="true"
-        className="flex size-10 shrink-0 items-center justify-center rounded-md bg-destructive/12 text-destructive"
+        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-destructive/[0.12] text-destructive"
       >
         <Icon className="size-5" />
       </span>
       <div className="min-w-0">
-        <h3 className="font-semibold leading-tight">{item.title}</h3>
+        <h3 className="font-bold leading-tight">{item.title}</h3>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.detail}</p>
       </div>
     </div>
   )
+}
+
+// Icône contextuelle par éditeur (cf. iOS sourceIcon(for:)).
+function sourceIconFor(publisher: string): LucideIcon {
+  const value = publisher.toLowerCase()
+  if (value.includes("assurance")) return BriefcaseMedical
+  if (value.includes("oms") || value.includes("organisation")) return Globe
+  if (value.includes("nejm")) return FileText
+  if (value.includes("hcsp")) return Landmark
+  return FileSearch
 }
 
 function GuidanceSources() {
@@ -389,30 +400,48 @@ function GuidanceSources() {
         title="Sources utilisées"
         subtitle="Les ressources publiques derrière les repères."
       />
-      <ul className="grid gap-2.5 sm:grid-cols-2">
-        {guidanceSources.map((source) => (
-          <li key={source.url}>
-            <a
-              className="group flex h-full flex-col gap-1 rounded-card border bg-card/85 p-4 shadow-soft transition-colors hover:border-primary/25"
-              href={source.url}
-              rel="noreferrer"
-              target="_blank"
-            >
-              <span className="inline-flex items-start gap-1.5 text-sm font-semibold text-foreground underline-offset-4 group-hover:underline">
-                <span className="leading-5">{source.title}</span>
-                <ExternalLink
-                  aria-hidden="true"
-                  className="mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
-                />
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {source.publisher} · {source.year}
-              </span>
-            </a>
-          </li>
+      <div className="overflow-hidden rounded-card border bg-card/85 shadow-soft">
+        {guidanceSources.map((source, index) => (
+          <SourceRow key={source.url} source={source} last={index === guidanceSources.length - 1} />
         ))}
-      </ul>
+      </div>
     </section>
+  )
+}
+
+function SourceRow({ last, source }: { last: boolean; source: GuidanceSource }) {
+  const Icon = sourceIconFor(source.publisher)
+
+  return (
+    <a
+      className={cn(
+        "group flex items-center gap-3 px-3 py-3.5 transition-colors hover:bg-status-tested/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-status-tested/60",
+        !last && "border-b border-border/40",
+      )}
+      href={source.url}
+      rel="noreferrer"
+      target="_blank"
+    >
+      <span
+        aria-hidden="true"
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-tested/[0.09] text-status-tested"
+      >
+        <Icon className="size-[1.05rem]" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-1.5">
+          <span className="truncate text-xs font-semibold text-muted-foreground">{source.publisher}</span>
+          <span className="shrink-0 text-[0.6875rem] font-medium text-muted-foreground/70">{source.year}</span>
+        </div>
+        <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-5 text-foreground underline-offset-4 group-hover:underline">
+          {source.title}
+        </p>
+      </div>
+      <ArrowUpRight
+        aria-hidden="true"
+        className="size-4 shrink-0 self-start text-status-tested/45 transition-colors group-hover:text-status-tested"
+      />
+    </a>
   )
 }
 
