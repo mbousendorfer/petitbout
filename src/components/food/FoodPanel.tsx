@@ -167,43 +167,43 @@ export function FoodTestDrawer({
         data-side="bottom"
         data-state="open"
       >
-        <div className="relative shrink-0 px-4 pb-3 pt-4">
-          <FoodHeroCard food={food} />
-          <button
-            type="button"
-            className="absolute right-6 top-6 inline-flex size-9 items-center justify-center rounded-full bg-card/80 text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => onOpenChange(false)}
-            aria-label="Fermer"
-          >
-            <X className="size-5" aria-hidden="true" />
-          </button>
-        </div>
-        <div className="shrink-0 px-5 pb-3">
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1" role="tablist" aria-label="Vue de la fiche">
-            {([
-              { id: "add", label: isEditing ? "Modifier" : "Ajouter" },
-              { id: "infos", label: "Infos" },
-            ] as const).map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={selectedTab === tab.id}
-                className={cn(
-                  "flex min-h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  selectedTab === tab.id
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-                onClick={() => setSelectedTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
+        <button
+          type="button"
+          className="absolute right-4 top-4 z-20 inline-flex size-9 items-center justify-center rounded-full bg-card/85 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={() => onOpenChange(false)}
+          aria-label="Fermer"
+        >
+          <X className="size-5" aria-hidden="true" />
+        </button>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="px-4 pb-3 pt-4">
+            <FoodHeroCard food={food} />
           </div>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5">
-          <div className="flex min-w-0 flex-col gap-4 pb-4">
+          <div className="sticky top-0 z-10 border-b border-border/40 bg-background/95 px-5 pb-3 pt-1 backdrop-blur">
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1" role="tablist" aria-label="Vue de la fiche">
+              {([
+                { id: "add", label: isEditing ? "Modifier" : "Ajouter" },
+                { id: "infos", label: "Infos" },
+              ] as const).map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedTab === tab.id}
+                  className={cn(
+                    "flex min-h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    selectedTab === tab.id
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setSelectedTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-col gap-4 px-5 pb-4 pt-4">
             {selectedTab === "infos" && (
             <div className="flex min-w-0 flex-col gap-4">
             <div className="flex flex-wrap gap-2">
