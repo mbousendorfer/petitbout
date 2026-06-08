@@ -1,24 +1,15 @@
-import { BadgeCheck, Clock, Leaf, Sparkles } from "lucide-react"
+import { BadgeCheck, Clock, Leaf } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { type Food } from "@/data/foods"
 import { currentMonth, monthNames } from "@/lib/food-utils"
 import { cn } from "@/lib/utils"
 
 export function StatusBadge({ status }: { status: string }) {
-  if (status === "réaction") {
-    return (
-      <Badge className="h-8 gap-1.5 border-transparent bg-status-reaction px-3 text-status-reaction-foreground">
-        <Sparkles className="size-3.5" aria-hidden="true" />
-        réaction
-      </Badge>
-    )
-  }
-
-  if (status === "testé") {
+  if (status !== "non testé") {
     return (
       <Badge className="h-8 gap-1.5 border-transparent bg-status-tested px-3 text-status-tested-foreground">
         <BadgeCheck className="size-3.5" aria-hidden="true" />
-        testé
+        Testé
       </Badge>
     )
   }
@@ -26,7 +17,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <Badge variant="outline" className="h-8 gap-1.5 border-border bg-status-untested px-3 text-status-untested-foreground">
       <Clock className="size-3.5" aria-hidden="true" />
-      à tester
+      Non testé
     </Badge>
   )
 }

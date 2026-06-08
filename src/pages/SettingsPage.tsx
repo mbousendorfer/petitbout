@@ -103,7 +103,7 @@ export function SettingsPage({
 
       <div className="grid gap-1 lg:grid-cols-2 lg:gap-4">
         <SettingsSection
-          description="Profil et code partagés entre vos appareils."
+          description="Profil et code partagés entre tes appareils."
           title="Espace famille"
         >
           <label className="grid gap-1.5 text-sm font-medium">
@@ -134,7 +134,7 @@ export function SettingsPage({
             )}
           </label>
           <label className="grid gap-1.5 text-sm font-medium">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">Nom de l’enfant</span>
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Prénom</span>
             <Input
               className="h-11 bg-background/70"
               placeholder="Ex. Alba"
@@ -171,7 +171,7 @@ export function SettingsPage({
 
         <InstallHelpSection />
 
-        <SettingsSection description="Gardez une copie, restaurez le suivi ou préparez un rendez-vous." title="Sauvegarde">
+        <SettingsSection description="Garde une copie, restaure le suivi ou prépare un rendez-vous." title="Sauvegarde">
           <Button type="button" variant="outline" className="h-11 justify-start" onClick={exportBackup}>
             <Download data-icon="inline-start" aria-hidden="true" />
             Exporter les données
@@ -211,7 +211,7 @@ export function SettingsPage({
 export function InstallHelpSection() {
   return (
     <SettingsSection
-      description="Installez Diversibebs sur l’écran d’accueil pour y revenir d’un geste, hors connexion."
+      description="Installe Diversibebs sur l’écran d’accueil pour y revenir d’un geste, hors connexion."
       title="Installation"
     >
       <div className="rounded-lg border bg-card/85 p-3 text-sm leading-6 shadow-sm">
@@ -220,9 +220,9 @@ export function InstallHelpSection() {
           iPhone et iPad
         </p>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-5 text-muted-foreground">
-          <li>Ouvrez l’app dans Safari.</li>
-          <li>Touchez le bouton Partager (icône en forme de flèche).</li>
-          <li>Choisissez « Sur l’écran d’accueil » puis Ajouter.</li>
+          <li>Ouvre l’app dans Safari.</li>
+          <li>Touche le bouton Partager (icône en forme de flèche).</li>
+          <li>Choisis « Sur l’écran d’accueil » puis Ajouter.</li>
         </ol>
       </div>
       <div className="rounded-lg border bg-card/85 p-3 text-sm leading-6 shadow-sm">
@@ -231,9 +231,9 @@ export function InstallHelpSection() {
           Android
         </p>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-5 text-muted-foreground">
-          <li>Ouvrez l’app dans Chrome.</li>
-          <li>Touchez le menu (trois points) en haut à droite.</li>
-          <li>Choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».</li>
+          <li>Ouvre l’app dans Chrome.</li>
+          <li>Touche le menu (trois points) en haut à droite.</li>
+          <li>Choisis « Installer l’application » ou « Ajouter à l’écran d’accueil ».</li>
         </ol>
       </div>
       <p className="text-xs leading-5 text-muted-foreground">

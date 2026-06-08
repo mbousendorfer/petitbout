@@ -91,12 +91,12 @@ describe("getStatus", () => {
   })
 
   it("returns 'testé' when latest reaction is 'aucune réaction'", () => {
-    const map = new Map<string, FoodTest>([[carotte.id, test("aucune réaction")]])
+    const map = new Map<string, FoodTest>([[carotte.id, test("Aucune")]])
     expect(getStatus(carotte.id, map)).toBe("testé")
   })
 
   it("returns 'réaction' when latest reaction is anything else", () => {
-    const map = new Map<string, FoodTest>([[carotte.id, test("rougeur")]])
+    const map = new Map<string, FoodTest>([[carotte.id, test("Allergie")]])
     expect(getStatus(carotte.id, map)).toBe("réaction")
   })
 })
@@ -168,7 +168,7 @@ describe("applyFoodFilters", () => {
     return { latestByFood }
   }
 
-  function test(foodId: string, reaction: FoodTest["reaction"] = "aucune réaction"): FoodTest {
+  function test(foodId: string, reaction: FoodTest["reaction"] = "Aucune"): FoodTest {
     return {
       id: `t-${foodId}`,
       foodId,
@@ -209,7 +209,7 @@ describe("applyFoodFilters", () => {
     const carotte = makeFood({ id: "carotte" })
     const banane = makeFood({ id: "banane" })
     const latestByFood = new Map([
-      ["carotte", test("carotte", "rougeur")],
+      ["carotte", test("carotte", "Allergie")],
       ["banane", test("banane")],
     ])
     const result = applyFoodFilters(
@@ -267,7 +267,7 @@ describe("countWithFilterChange (intersectional counts)", () => {
           foodId: "a",
           date: "2026-05-01",
           mealTime: "midi",
-          reaction: "aucune réaction",
+          reaction: "Aucune",
           note: "",
         },
       ],

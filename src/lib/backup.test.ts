@@ -14,7 +14,7 @@ function test(overrides: Partial<FoodTest> = {}): FoodTest {
     foodId: "carotte",
     date: "2026-05-01",
     mealTime: "midi",
-    reaction: "aucune réaction",
+    reaction: "Aucune",
     note: "",
     ...overrides,
   }

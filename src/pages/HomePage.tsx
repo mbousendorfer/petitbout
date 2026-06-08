@@ -1,13 +1,14 @@
 import { useState, useMemo } from "react"
 import { NavLink } from "react-router-dom"
-import { ArrowRight, Baby, BadgeCheck, Carrot, Check, ChevronRight, CircleCheck, FileSearch, Plus, Sparkles, type LucideIcon } from "lucide-react"
+import { ArrowRight, Baby, BadgeCheck, Carrot, Check, ChevronRight, FileSearch, Plus, Sparkles, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { foods, type Food } from "@/data/foods"
-import { guidanceStageFor } from "@/data/guidance"
+import { guidanceStageFor, guidanceStageIndexFor } from "@/data/guidance"
 import { isAgeReady } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { SectionHeader, EmptyState, Disclaimer } from "@/components/primitives"
+import { StageProgressStrip } from "@/components/StageProgressStrip"
 import { FoodHeroCard } from "@/components/food/FoodHeroCard"
 import { FoodTestDrawer, type FoodPanelTab } from "@/components/food/FoodPanel"
 
@@ -26,6 +27,7 @@ export function HomePage({
     [ageMonths, store.testedFoodIds],
   )
   const stage = guidanceStageFor(ageMonths)
+  const currentStageIndex = guidanceStageIndexFor(ageMonths)
 
   const heroMessage =
     testedCount === 0
@@ -45,7 +47,11 @@ export function HomePage({
       <section className="flex flex-col gap-3">
         <SectionHeader
           eyebrow="Idées du moment"
-          title={suggestions.length > 0 ? "À explorer" : "Tout est prêt"}
+          title={
+            suggestions.length > 0
+              ? "Choisis un aliment à ajouter au carnet."
+              : "Tout est prêt pour choisir un prochain aliment."
+          }
         />
         {suggestions.length > 0 ? (
           <TodayFoodCarousel foods={suggestions} store={store} />
@@ -67,7 +73,7 @@ export function HomePage({
         )}
       </section>
 
-      <TodayGuidancePreview stage={stage} />
+      <TodayGuidancePreview stage={stage} currentStageIndex={currentStageIndex} />
 
       <Disclaimer compact />
     </>
@@ -197,34 +203,35 @@ export function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnTy
   )
 }
 
-export function TodayGuidancePreview({ stage }: { stage: ReturnType<typeof guidanceStageFor> }) {
+export function TodayGuidancePreview({
+  stage,
+  currentStageIndex,
+}: {
+  stage: ReturnType<typeof guidanceStageFor>
+  currentStageIndex: number
+}) {
   return (
     <NavLink
       to="/guidance"
-      className="flex flex-col gap-3 rounded-card border bg-card/85 p-4 shadow-soft transition-colors hover:border-status-tested/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="flex flex-col gap-4 rounded-card border bg-card/85 p-5 shadow-soft transition-colors hover:border-status-tested/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <div className="flex items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-11 shrink-0 items-center justify-center rounded-md bg-status-tested/12 text-status-tested"
-        >
-          <FileSearch className="size-5" />
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-status-tested">
+          <FileSearch className="size-4 shrink-0" aria-hidden="true" />
+          Repère actuel
         </span>
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-status-tested">Repère {stage.ageRange}</p>
-          <p className="font-semibold leading-tight">{stage.title}</p>
-        </div>
-        <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <span className="shrink-0 rounded-full bg-status-tested/10 px-2 py-0.5 text-xs font-bold text-status-tested">
+          {stage.ageRange}
+        </span>
+        <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground/65" aria-hidden="true" />
       </div>
-      <p className="text-sm leading-6 text-muted-foreground">{stage.texture}</p>
-      <ul className="grid gap-1.5">
-        {stage.principles.slice(0, 2).map((principle, index) => (
-          <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-            <CircleCheck className="mt-0.5 size-4 shrink-0 text-status-tested" aria-hidden="true" />
-            <span className="leading-5">{principle}</span>
-          </li>
-        ))}
-      </ul>
+
+      <div className="flex flex-col gap-1.5">
+        <p className="font-semibold leading-tight">{stage.title}</p>
+        <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{stage.texture}</p>
+      </div>
+
+      <StageProgressStrip currentStageIndex={currentStageIndex} />
     </NavLink>
   )
 }

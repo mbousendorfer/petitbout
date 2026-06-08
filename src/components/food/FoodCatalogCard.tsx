@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { AlertTriangle, Check, Plus } from "lucide-react"
+import { Check, Plus } from "lucide-react"
 
 import { type Food } from "@/data/foods"
 import { getStatus } from "@/lib/food-utils"
@@ -20,11 +20,6 @@ export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType
       <span className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary font-bold text-primary-foreground shadow-sm">
         <Plus className="size-4" aria-hidden="true" />
         Ajouter
-      </span>
-    ) : status === "réaction" ? (
-      <span className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-status-reaction/12 font-bold text-status-reaction">
-        <AlertTriangle className="size-4" aria-hidden="true" />
-        Réaction
       </span>
     ) : (
       <span className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-status-tested/12 font-bold text-status-tested">

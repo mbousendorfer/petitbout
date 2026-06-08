@@ -244,7 +244,7 @@ const textureKeywords = [
 ]
 
 function hasObservation(tests: FoodTest[]) {
-  return tests.some((trial) => trial.reaction !== "aucune réaction" || trial.note.trim().length > 0)
+  return tests.some((trial) => trial.reaction !== "Aucune" || trial.note.trim().length > 0)
 }
 
 function hasTextureNote(tests: FoodTest[]) {

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 const disclaimer =
-  "Diversibebs garde des repères de suivi. En cas de doute, de réaction importante ou de question médicale, demandez l’avis d’un professionnel de santé."
+  "Repères généraux, pas diagnostic. En cas de doute, de réaction ou de situation particulière, demande conseil à un professionnel de santé."
 export function PageLoading({ label }: { label: string }) {
   return (
     <>

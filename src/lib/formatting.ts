@@ -17,19 +17,23 @@ export const mealTimePresets: Array<{
 export const defaultMealTimePreset = mealTimePresets[1]
 
 export const reactionLabels: Record<Reaction, string> = {
-  "aucune réaction": "RAS",
-  "digestion difficile": "Digestion",
-  rougeur: "Rougeur",
-  vomissement: "Vomissement",
-  autre: "Autre",
+  Aucune: "Aucune",
+  Aime: "Aime",
+  "Aime pas": "Aime pas",
+  Allergie: "Allergie",
+  Vomi: "Vomi",
+  Digestion: "Digestion",
+  Autre: "Autre",
 }
 
 export const reactionDisplay: Record<Reaction, { emoji: string; label: string }> = {
-  "aucune réaction": { emoji: "😊", label: "RAS" },
-  "digestion difficile": { emoji: "😣", label: "Digestion" },
-  rougeur: { emoji: "🔴", label: "Rougeur" },
-  vomissement: { emoji: "🤢", label: "Vomi" },
-  autre: { emoji: "✍️", label: "Autre" },
+  Aucune: { emoji: "😊", label: "Aucune" },
+  Aime: { emoji: "❤️", label: "Aime" },
+  "Aime pas": { emoji: "💔", label: "Aime pas" },
+  Allergie: { emoji: "⚠️", label: "Allergie" },
+  Vomi: { emoji: "🤢", label: "Vomi" },
+  Digestion: { emoji: "😣", label: "Digestion" },
+  Autre: { emoji: "✍️", label: "Autre" },
 }
 export function mealTimePresetFor(time: string): MealTimePresetId {
   return mealTimePresets.find((preset) => preset.time === time)?.id ?? "custom"

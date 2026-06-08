@@ -15,8 +15,8 @@ type StatusFilter = "all" | "untested" | "tested"
 
 const statusOptions: Array<{ id: StatusFilter; label: string }> = [
   { id: "all", label: "Tous" },
-  { id: "untested", label: "À tester" },
-  { id: "tested", label: "Testés" },
+  { id: "untested", label: "Non testé" },
+  { id: "tested", label: "Testé" },
 ]
 
 export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
@@ -65,7 +65,7 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
 
       <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <div className="flex gap-2">
-          <CategoryChip label="Toutes" active={category === "all"} onClick={() => setCategory("all")} />
+          <CategoryChip label="Tout" active={category === "all"} onClick={() => setCategory("all")} />
           {categories.map((item) => (
             <CategoryChip key={item} label={item} active={category === item} onClick={() => setCategory(item)} />
           ))}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase"
 
-export type Reaction = "aucune réaction" | "digestion difficile" | "rougeur" | "vomissement" | "autre"
+export type Reaction = "Aucune" | "Aime" | "Aime pas" | "Allergie" | "Vomi" | "Digestion" | "Autre"
 
 export type FoodTest = {
   id: string
@@ -49,12 +49,24 @@ const initialState: StoredState = {
 }
 
 const validReactions: Reaction[] = [
-  "aucune réaction",
-  "digestion difficile",
-  "rougeur",
-  "vomissement",
-  "autre",
+  "Aucune",
+  "Aime",
+  "Aime pas",
+  "Allergie",
+  "Vomi",
+  "Digestion",
+  "Autre",
 ]
+
+// Anciennes valeurs de réaction (proto pré-alignement iOS) → nouvel ensemble iOS.
+// Garde les carnets locaux et distants lisibles après la migration.
+const legacyReactionMap: Record<string, Reaction> = {
+  "aucune réaction": "Aucune",
+  "digestion difficile": "Digestion",
+  rougeur: "Allergie",
+  vomissement: "Vomi",
+  autre: "Autre",
+}
 
 function calculateAgeMonths(birthDate: string) {
   if (!birthDate) return null
@@ -97,8 +109,10 @@ function removeLocalStorage(key: string) {
   }
 }
 
-function isReaction(value: unknown): value is Reaction {
-  return typeof value === "string" && validReactions.includes(value as Reaction)
+function coerceReaction(value: unknown): Reaction {
+  if (typeof value !== "string") return "Aucune"
+  if (validReactions.includes(value as Reaction)) return value as Reaction
+  return legacyReactionMap[value] ?? "Aucune"
 }
 
 function normalizeStoredState(value: Partial<StoredState> | null | undefined): StoredState {
@@ -113,15 +127,13 @@ function normalizeStoredState(value: Partial<StoredState> | null | undefined): S
     },
     tests: sortTests(
       (value?.tests ?? [])
-        .filter((test): test is FoodTest =>
-          Boolean(test.id && test.foodId && test.date && isReaction(test.reaction)),
-        )
+        .filter((test): test is FoodTest => Boolean(test.id && test.foodId && test.date))
         .map((test) => ({
           id: test.id,
           foodId: test.foodId,
           date: test.date,
           mealTime: typeof test.mealTime === "string" ? test.mealTime : "",
-          reaction: test.reaction,
+          reaction: coerceReaction(test.reaction),
           note: test.note ?? "",
         })),
     ),
@@ -200,7 +212,7 @@ function parseRemoteState(data: unknown, fallbackState: StoredState = initialSta
       foodId: test.foodId ?? "",
       date: test.date ?? "",
       mealTime: test.mealTime ?? "",
-      reaction: test.reaction ?? "aucune réaction",
+      reaction: coerceReaction(test.reaction),
       note: test.note ?? "",
     })),
   })

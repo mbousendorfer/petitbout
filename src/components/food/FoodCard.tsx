@@ -15,13 +15,11 @@ export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; st
   const CategoryIcon = meta.icon
   const [open, setOpen] = useState(false)
 
-  const statusLabel = status === "non testé" ? "À tester" : status === "réaction" ? "Réaction" : "Testé"
+  const statusLabel = status === "non testé" ? "Non testé" : "Testé"
   const statusClass =
     status === "non testé"
       ? "bg-muted text-muted-foreground"
-      : status === "réaction"
-        ? "bg-status-reaction/12 text-status-reaction"
-        : "bg-status-tested/12 text-status-tested"
+      : "bg-status-tested/12 text-status-tested"
 
   return (
     <>

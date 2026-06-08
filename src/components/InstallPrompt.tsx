@@ -78,8 +78,8 @@ export function InstallPrompt() {
             {installed
               ? "L’app est déjà disponible depuis l’écran d’accueil de cet appareil."
               : isIos
-              ? "Sur iPhone ou iPad : partagez cette page, puis choisissez Ajouter à l’écran d’accueil."
-              : "Ajoutez l’app à l’écran d’accueil pour l’ouvrir plus vite et l’utiliser hors ligne."}
+              ? "Sur iPhone ou iPad : partage cette page, puis choisis Ajouter à l’écran d’accueil."
+              : "Ajoute l’app à l’écran d’accueil pour l’ouvrir plus vite et l’utiliser hors ligne."}
           </p>
           {!installed && !isIos && deferredPrompt && (
             <Button type="button" size="sm" className="mt-3" onClick={install}>

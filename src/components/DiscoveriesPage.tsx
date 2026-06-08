@@ -169,7 +169,7 @@ export function DiscoveriesPage({ badgeUnlockDates, childName, tests }: Discover
       </section>
 
       <section className="flex flex-col gap-3">
-        <SectionTitle title="Familles d'aliments" subtitle="Un coup d'œil aux univers déjà rencontrés." />
+        <SectionTitle title="Familles d'aliments" subtitle="Un coup d'oeil aux univers déjà rencontrés." />
         <Card className="paper-surface overflow-hidden">
           <CardContent className="grid gap-0 p-4 sm:p-5">
             {categories.map((category, index) => {

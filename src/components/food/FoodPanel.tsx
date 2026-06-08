@@ -42,16 +42,16 @@ export function FoodTestDrawer({
   const [mealTimePreset, setMealTimePreset] = useState<MealTimePresetId>(() =>
     selectedTest?.mealTime ? mealTimePresetFor(selectedTest.mealTime) : defaultMealTimePreset.id,
   )
-  const [reaction, setReaction] = useState<Reaction>(() => selectedTest?.reaction ?? "aucune réaction")
+  const [reaction, setReaction] = useState<Reaction>(() => selectedTest?.reaction ?? "Aucune")
   const [note, setNote] = useState(() => selectedTest?.note ?? "")
   const [showReaction, setShowReaction] = useState(
-    () => Boolean(selectedTest && selectedTest.reaction !== "aucune réaction"),
+    () => Boolean(selectedTest && selectedTest.reaction !== "Aucune"),
   )
   const [confirmingRemovalId, setConfirmingRemovalId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const status = getStatus(food.id, store.latestByFood)
-  const reactionSummary = reaction === "aucune réaction" ? "Rien à signaler" : reactionLabels[reaction]
-  const reactionIsSevere = reaction === "vomissement" || reaction === "rougeur"
+  const reactionSummary = reaction === "Aucune" ? "Rien à signaler" : reactionLabels[reaction]
+  const reactionIsSevere = reaction === "Allergie" || reaction === "Vomi"
 
   useEffect(() => {
     if (!open) return
@@ -81,7 +81,7 @@ export function FoodTestDrawer({
     setDate(new Date().toISOString().slice(0, 10))
     setMealTime(defaultMealTimePreset.time)
     setMealTimePreset(defaultMealTimePreset.id)
-    setReaction("aucune réaction")
+    setReaction("Aucune")
     setNote("")
     setShowReaction(false)
     setConfirmingRemovalId(null)
@@ -95,7 +95,7 @@ export function FoodTestDrawer({
     setMealTimePreset(nextTest.mealTime ? mealTimePresetFor(nextTest.mealTime) : defaultMealTimePreset.id)
     setReaction(nextTest.reaction)
     setNote(nextTest.note)
-    setShowReaction(nextTest.reaction !== "aucune réaction")
+    setShowReaction(nextTest.reaction !== "Aucune")
     setConfirmingRemovalId(null)
   }
 
@@ -142,7 +142,7 @@ export function FoodTestDrawer({
     }
 
     await store.deleteTest(testToRemove.id)
-    toast.success(`${food.name} retiré du journal`)
+    toast.success(`${food.name} retiré du carnet`)
     setConfirmingRemovalId(null)
 
     if (selectedTest?.id === testToRemove.id) {
@@ -271,7 +271,7 @@ export function FoodTestDrawer({
                                 onClick={() => removeTrackedTest(trackedTest)}
                               >
                                 <Trash2 data-icon="inline-start" aria-hidden="true" />
-                                Confirmer
+                                Supprimer
                               </Button>
                             </>
                           ) : (
@@ -418,7 +418,7 @@ export function FoodTestDrawer({
                       aria-hidden="true"
                       className={cn(
                         "flex size-8 shrink-0 items-center justify-center rounded-full text-base",
-                        reaction === "aucune réaction" ? "bg-muted" : "bg-status-reaction/15",
+                        reaction === "Aucune" ? "bg-muted" : "bg-status-reaction/15",
                       )}
                     >
                       {reactionDisplay[reaction].emoji}
@@ -447,7 +447,7 @@ export function FoodTestDrawer({
                               className={cn(
                                 "flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                 isSelected
-                                  ? reactionOption === "aucune réaction"
+                                  ? reactionOption === "Aucune"
                                     ? "border-status-tested/30 bg-status-tested/12 text-status-tested"
                                     : "border-status-reaction/30 bg-status-reaction/12 text-status-reaction"
                                   : "border-border bg-muted/40 text-muted-foreground hover:text-foreground",
@@ -465,7 +465,7 @@ export function FoodTestDrawer({
                       {reactionIsSevere && (
                         <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
                           <CrossIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-                          Symptôme important : demandez un avis médical.
+                          Symptôme important : demande un avis médical.
                         </p>
                       )}
                     </div>
@@ -481,7 +481,7 @@ export function FoodTestDrawer({
           <div className="grid gap-2">
             <Button type="button" className="h-12 w-full" onClick={saveTest} disabled={isSaving}>
               {isSaving && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}
-              {isSaving ? "Sauvegarde..." : isEditing ? "Sauvegarder les changements" : "Ajouter cette prise"}
+              {isSaving ? "Enregistrement…" : isEditing ? "Enregistrer" : "Ajouter"}
             </Button>
           </div>
         </div>

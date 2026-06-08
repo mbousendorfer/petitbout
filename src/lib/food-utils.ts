@@ -108,7 +108,7 @@ export function ageSummary(food: Food) {
 export function getStatus(foodId: string, latestByFood: Map<string, FoodTest>) {
   const latest = latestByFood.get(foodId)
   if (!latest) return "non testé"
-  if (latest.reaction === "aucune réaction") return "testé"
+  if (latest.reaction === "Aucune") return "testé"
   return "réaction"
 }
 

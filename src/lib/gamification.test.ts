@@ -10,7 +10,7 @@ function test(foodId: string, overrides: Partial<FoodTest> = {}): FoodTest {
     foodId,
     date: "2026-05-01",
     mealTime: "12:00",
-    reaction: "aucune réaction",
+    reaction: "Aucune",
     note: "",
     ...overrides,
   }
@@ -74,7 +74,7 @@ describe("calculateBadges", () => {
   })
 
   it("treats a recorded reaction or note as an observation", () => {
-    const tests = [test(aFruit.id, { reaction: "rougeur" })]
+    const tests = [test(aFruit.id, { reaction: "Allergie" })]
     expect(calculateBadges(foods, tests).find((badge) => badge.id === "reaction_noted")?.unlocked).toBe(true)
   })
 

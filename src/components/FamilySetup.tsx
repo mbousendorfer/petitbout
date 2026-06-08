@@ -35,14 +35,14 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
           Un suivi doux, partagé et toujours sous la main.
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Ouvrez votre espace famille avec un code partagé pour retrouver le suivi sur vos appareils.
+          Ouvre ton espace famille avec un code partagé pour retrouver le suivi sur tes appareils.
         </p>
       </HeroPanel>
       <Card className="paper-surface">
         <CardHeader>
           <CardTitle>Code famille</CardTitle>
           <CardDescription>
-            Utilisez le même code sur vos deux téléphones pour partager le suivi.
+            Utilise le même code sur tes deux téléphones pour partager le suivi.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -67,7 +67,7 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
             </p>
           )}
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Utilisez le même code sur vos appareils. Toute personne ayant ce code peut ouvrir le même suivi.
+            Utilise le même code sur tes appareils. Toute personne ayant ce code peut ouvrir le même suivi.
           </p>
         </CardContent>
       </Card>
