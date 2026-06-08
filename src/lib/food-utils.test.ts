@@ -21,7 +21,6 @@ function makeFood(overrides: Partial<Food> = {}): Food {
     name: "Carotte",
     emoji: "🥕",
     category: "Légumes",
-    popotePackIds: [],
     minAgeMonths: 4,
     possibleAgeMonths: 4,
     recommendedAgeMonths: 6,
@@ -82,7 +81,6 @@ describe("getStatus", () => {
       foodId: "carotte",
       date: "2026-05-01",
       mealTime: "midi",
-      isPopote: false,
       reaction,
       note: "",
     }
@@ -166,8 +164,8 @@ describe("weeklySuggestions", () => {
 })
 
 describe("applyFoodFilters", () => {
-  function context(latestByFood: Map<string, FoodTest> = new Map(), packId: string | null = null) {
-    return { latestByFood, activePopotePackId: packId }
+  function context(latestByFood: Map<string, FoodTest> = new Map()) {
+    return { latestByFood }
   }
 
   function test(foodId: string, reaction: FoodTest["reaction"] = "aucune réaction"): FoodTest {
@@ -176,7 +174,6 @@ describe("applyFoodFilters", () => {
       foodId,
       date: "2026-05-01",
       mealTime: "midi",
-      isPopote: false,
       reaction,
       note: "",
     }
@@ -235,23 +232,6 @@ describe("applyFoodFilters", () => {
     expect(result.map((food) => food.id)).toEqual(["carotte"])
   })
 
-  it("filters by popoteOnly only when a pack is active", () => {
-    const banane = makeFood({ id: "banane", popotePackIds: ["decouverte"] })
-    const cerise = makeFood({ id: "cerise", popotePackIds: [] })
-    const offResult = applyFoodFilters(
-      [banane, cerise],
-      makeFilters({ popoteOnly: true }),
-      context(new Map(), null),
-    )
-    expect(offResult).toHaveLength(2)
-    const onResult = applyFoodFilters(
-      [banane, cerise],
-      makeFilters({ popoteOnly: true }),
-      context(new Map(), "decouverte"),
-    )
-    expect(onResult.map((food) => food.id)).toEqual(["banane"])
-  })
-
   it("returns an empty array when filters exclude everything", () => {
     const carotte = makeFood({ id: "carotte", category: "Légumes" })
     const result = applyFoodFilters(
@@ -269,7 +249,7 @@ describe("countWithFilterChange (intersectional counts)", () => {
     const b = makeFood({ id: "b", category: "Légumes", tags: [] })
     const c = makeFood({ id: "c", category: "Fruits", tags: ["allergène"] })
     const base = makeFilters({ category: "Légumes" })
-    const context = { latestByFood: new Map<string, FoodTest>(), activePopotePackId: null }
+    const context = { latestByFood: new Map<string, FoodTest>() }
 
     const allergenCount = countWithFilterChange([a, b, c], base, "allergensOnly", true, context)
     expect(allergenCount).toBe(1)
@@ -287,13 +267,12 @@ describe("countWithFilterChange (intersectional counts)", () => {
           foodId: "a",
           date: "2026-05-01",
           mealTime: "midi",
-          isPopote: false,
           reaction: "aucune réaction",
           note: "",
         },
       ],
     ])
-    const context = { latestByFood, activePopotePackId: null }
+    const context = { latestByFood }
     const base = makeFilters({ status: "non-testes" })
 
     expect(countWithFilterChange([a, b, c], base, "status", "tous", context)).toBe(3)

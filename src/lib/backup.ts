@@ -1,7 +1,7 @@
 import { foods } from "@/data/foods"
 import type { BabyBackup, FoodTest, StoredState } from "@/lib/storage"
 
-const csvHeaders = ["Date", "Moment", "Aliment", "Catégorie", "Réaction", "Popote", "Note"]
+const csvHeaders = ["Date", "Moment", "Aliment", "Catégorie", "Réaction", "Note"]
 
 function csvCell(value: string | number | boolean) {
   const text = String(value)
@@ -29,7 +29,6 @@ export function testsToCsv(tests: FoodTest[]) {
       food?.name ?? test.foodId,
       food?.category ?? "",
       test.reaction,
-      test.isPopote ? "oui" : "non",
       test.note,
     ]
   })

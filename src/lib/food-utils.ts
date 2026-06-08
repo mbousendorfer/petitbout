@@ -1,4 +1,4 @@
-import { categories, isFoodInPack, type Food, type FoodCategory } from "@/data/foods"
+import { categories, type Food, type FoodCategory } from "@/data/foods"
 import type { FoodTest } from "@/lib/storage"
 
 export type FoodStatusFilter = "tous" | "non-testes" | "testes" | "reaction"
@@ -9,7 +9,6 @@ export type FoodFilters = {
   allergensOnly: boolean
   category: FoodCategoryFilter
   introduction: IntroductionFilter
-  popoteOnly: boolean
   seasonOnly: boolean
   status: FoodStatusFilter
 }
@@ -18,14 +17,12 @@ export const initialFoodFilters: FoodFilters = {
   allergensOnly: false,
   category: "Toutes",
   introduction: "toutes",
-  popoteOnly: false,
   seasonOnly: false,
   status: "tous",
 }
 
 export type FoodFilterContext = {
   latestByFood: Map<string, FoodTest>
-  activePopotePackId: string | null
 }
 
 export function applyFoodFilters(
@@ -33,7 +30,7 @@ export function applyFoodFilters(
   filters: FoodFilters,
   context: FoodFilterContext,
 ): Food[] {
-  const { latestByFood, activePopotePackId } = context
+  const { latestByFood } = context
 
   return foods
     .filter((food) => {
@@ -50,16 +47,13 @@ export function applyFoodFilters(
         (filters.introduction === "possible" && food.level === "possible")
       const matchesSeason = !filters.seasonOnly || isInSeason(food)
       const matchesAllergens = !filters.allergensOnly || food.tags.includes("allergène")
-      const matchesPopote =
-        activePopotePackId === null || !filters.popoteOnly || isFoodInPack(food, activePopotePackId)
 
       return (
         matchesCategory &&
         matchesStatus &&
         matchesIntroduction &&
         matchesSeason &&
-        matchesAllergens &&
-        matchesPopote
+        matchesAllergens
       )
     })
     .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }))
@@ -81,8 +75,7 @@ export function hasActiveFoodFilters(filters: FoodFilters): boolean {
     filters.status !== "tous" ||
     filters.introduction !== "toutes" ||
     filters.seasonOnly ||
-    filters.allergensOnly ||
-    filters.popoteOnly
+    filters.allergensOnly
   )
 }
 

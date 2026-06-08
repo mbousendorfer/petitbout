@@ -1,21 +1,20 @@
 import { useState, useEffect, useMemo, useId } from "react"
 import { createPortal } from "react-dom"
-import { BookOpen, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, PackageCheck, PencilLine, Plus, ShieldCheck, Trash2, Utensils, X, type LucideIcon } from "lucide-react"
+import { BookOpen, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, PencilLine, Plus, ShieldCheck, Trash2, Utensils, X, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { isFoodInPack, type Food } from "@/data/foods"
+import { type Food } from "@/data/foods"
 import { guidanceStageFor } from "@/data/guidance"
 import { foodSourceReferences } from "@/data/sources"
 import { ageSummary, getStatus, isInSeason, monthNames } from "@/lib/food-utils"
 import { reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, testDateTimeLabel, type MealTimePresetId } from "@/lib/formatting"
-import { useAppOptions } from "@/app/AppOptions"
 import { FoodEmoji } from "@/components/food/FoodEmoji"
-import { StatusBadge, SeasonBadge, IntroductionBadge, PopoteBadge, SeasonMonthsGrid } from "@/components/food/FoodBadges"
+import { StatusBadge, SeasonBadge, IntroductionBadge, SeasonMonthsGrid } from "@/components/food/FoodBadges"
 
 export type FoodPanelTab = "infos" | "add"
 export function FoodTestDrawer({
@@ -33,7 +32,6 @@ export function FoodTestDrawer({
   store: ReturnType<typeof useBabyStore>
   test?: FoodTest
 }) {
-  const { activePopotePackId } = useAppOptions()
   const foodTests = useMemo(() => store.tests.filter((item) => item.foodId === food.id), [food.id, store.tests])
   const latestFoodTest = foodTests[0]
   const [selectedTab, setSelectedTab] = useState<FoodPanelTab>(() => initialTab ?? "add")
@@ -44,7 +42,6 @@ export function FoodTestDrawer({
   const [mealTimePreset, setMealTimePreset] = useState<MealTimePresetId>(() =>
     selectedTest?.mealTime ? mealTimePresetFor(selectedTest.mealTime) : defaultMealTimePreset.id,
   )
-  const [isPopote, setIsPopote] = useState(() => selectedTest?.isPopote ?? false)
   const [reaction, setReaction] = useState<Reaction>(() => selectedTest?.reaction ?? "aucune réaction")
   const [note, setNote] = useState(() => selectedTest?.note ?? "")
   const [showReaction, setShowReaction] = useState(
@@ -85,7 +82,6 @@ export function FoodTestDrawer({
     setDate(new Date().toISOString().slice(0, 10))
     setMealTime(defaultMealTimePreset.time)
     setMealTimePreset(defaultMealTimePreset.id)
-    setIsPopote(false)
     setReaction("aucune réaction")
     setNote("")
     setShowReaction(false)
@@ -98,7 +94,6 @@ export function FoodTestDrawer({
     setDate(nextTest.date)
     setMealTime(nextTest.mealTime || defaultMealTimePreset.time)
     setMealTimePreset(nextTest.mealTime ? mealTimePresetFor(nextTest.mealTime) : defaultMealTimePreset.id)
-    setIsPopote(nextTest.isPopote)
     setReaction(nextTest.reaction)
     setNote(nextTest.note)
     setShowReaction(nextTest.reaction !== "aucune réaction")
@@ -112,7 +107,6 @@ export function FoodTestDrawer({
       foodId: food.id,
       date,
       mealTime,
-      isPopote: isFoodInPack(food, activePopotePackId) ? isPopote : selectedTest?.isPopote ?? false,
       reaction,
       note,
     }
@@ -223,7 +217,6 @@ export function FoodTestDrawer({
               <StatusBadge status={status} />
               {isInSeason(food) && <SeasonBadge />}
               <IntroductionBadge level={food.level} />
-              {isFoodInPack(food, activePopotePackId) && <PopoteBadge label="Popote possible" />}
               <SeasonMonthsGrid activeMonths={food.seasonMonths} />
             </div>
             <FoodPanelGuidanceCard ageMonths={store.profile.ageMonths} />
@@ -406,21 +399,6 @@ export function FoodTestDrawer({
                   />
                 </div>
               </div>
-
-              {isFoodInPack(food, activePopotePackId) && (
-                <label className="flex items-center justify-between gap-3 rounded-xl border bg-card/80 p-3 text-sm font-medium">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <PackageCheck aria-hidden="true" />
-                    Testé via une gourde Popote
-                  </span>
-                  <input
-                    className="size-5 accent-primary"
-                    type="checkbox"
-                    checked={isPopote}
-                    onChange={(event) => setIsPopote(event.target.checked)}
-                  />
-                </label>
-              )}
 
               <div className="flex min-w-0 flex-col gap-2.5">
                 <div className="min-w-0">

@@ -16,15 +16,16 @@ create table if not exists public.baby_food_tests (
   food_id text not null,
   date date not null,
   meal_time time,
-  is_popote boolean not null default false,
   reaction text not null,
   note text not null default '',
   created_at timestamptz not null default now()
 );
 
 alter table public.baby_food_tests
-  add column if not exists is_popote boolean not null default false,
   add column if not exists meal_time time;
+
+alter table public.baby_food_tests
+  drop column if exists is_popote;
 
 create index if not exists baby_food_tests_family_code_hash_created_at_idx
   on public.baby_food_tests (family_code_hash, created_at desc);
@@ -65,7 +66,6 @@ as $$
             'foodId', food_id,
             'date', date,
             'mealTime', coalesce(to_char(meal_time, 'HH24:MI'), ''),
-            'isPopote', is_popote,
             'reaction', reaction,
             'note', note
           )
@@ -116,6 +116,7 @@ $$;
 
 drop function if exists public.add_baby_food_test(uuid, text, text, date, text, text);
 drop function if exists public.add_baby_food_test(uuid, text, text, date, text, text, boolean);
+drop function if exists public.add_baby_food_test(uuid, text, text, date, text, text, boolean, time);
 
 create or replace function public.add_baby_food_test(
   p_id uuid,
@@ -124,7 +125,6 @@ create or replace function public.add_baby_food_test(
   p_date date,
   p_reaction text,
   p_note text,
-  p_is_popote boolean,
   p_meal_time time
 )
 returns void
@@ -138,7 +138,6 @@ as $$
     food_id,
     date,
     meal_time,
-    is_popote,
     reaction,
     note
   )
@@ -148,13 +147,13 @@ as $$
     p_food_id,
     p_date,
     p_meal_time,
-    coalesce(p_is_popote, false),
     p_reaction,
     coalesce(p_note, '')
   );
 $$;
 
 drop function if exists public.update_baby_food_test(uuid, text, date, text, text, boolean);
+drop function if exists public.update_baby_food_test(uuid, text, date, text, text, boolean, time);
 
 create or replace function public.update_baby_food_test(
   p_id uuid,
@@ -162,7 +161,6 @@ create or replace function public.update_baby_food_test(
   p_date date,
   p_reaction text,
   p_note text,
-  p_is_popote boolean,
   p_meal_time time
 )
 returns void
@@ -175,8 +173,7 @@ as $$
     date = p_date,
     meal_time = p_meal_time,
     reaction = p_reaction,
-    note = coalesce(p_note, ''),
-    is_popote = coalesce(p_is_popote, false)
+    note = coalesce(p_note, '')
   where id = p_id
     and family_code_hash = p_family_code_hash;
 $$;
@@ -197,6 +194,6 @@ $$;
 
 grant execute on function public.get_baby_family_state(text) to anon, authenticated;
 grant execute on function public.upsert_baby_profile(text, integer, text, date) to anon, authenticated;
-grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text, boolean, time) to anon, authenticated;
-grant execute on function public.update_baby_food_test(uuid, text, date, text, text, boolean, time) to anon, authenticated;
+grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text, time) to anon, authenticated;
+grant execute on function public.update_baby_food_test(uuid, text, date, text, text, time) to anon, authenticated;
 grant execute on function public.delete_baby_food_test(uuid, text) to anon, authenticated;

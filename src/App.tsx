@@ -9,7 +9,6 @@ import { PageLoading } from "@/components/primitives"
 import { HomePage } from "@/pages/HomePage"
 import { FoodsPage } from "@/pages/FoodsPage"
 import { SettingsPage } from "@/pages/SettingsPage"
-import { AppOptionsContext, useStoredAppOptions } from "@/app/AppOptions"
 import { useTheme } from "@/app/useTheme"
 import { useBadgeUnlockDates } from "@/app/useBadgeUnlockDates"
 import { foods } from "@/data/foods"
@@ -28,26 +27,22 @@ function App() {
   const store = useBabyStore()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
   const [theme, setTheme] = useTheme()
-  const appOptions = useStoredAppOptions()
   const badgeUnlockDates = useBadgeUnlockDates(store.tests, store.syncStatus)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
 
   if (!store.familySession) {
     return (
-      <AppOptionsContext.Provider value={appOptions}>
-        <div className="safe-shell soft-surface">
-          <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-5 px-4 py-5 sm:px-6">
-            <FamilySetup store={store} />
-          </main>
-          <Toaster />
-        </div>
-      </AppOptionsContext.Provider>
+      <div className="safe-shell soft-surface">
+        <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-5 px-4 py-5 sm:px-6">
+          <FamilySetup store={store} />
+        </main>
+        <Toaster />
+      </div>
     )
   }
 
   return (
-    <AppOptionsContext.Provider value={appOptions}>
-      <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
+    <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
         <DesktopNav />
         <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-5 sm:px-6 lg:mx-0 lg:max-w-6xl lg:px-0 lg:py-8">
           <PwaStatus />
@@ -82,7 +77,6 @@ function App() {
         <BottomNav />
         <Toaster />
       </div>
-    </AppOptionsContext.Provider>
   )
 }
 

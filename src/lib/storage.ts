@@ -9,7 +9,6 @@ export type FoodTest = {
   foodId: string
   date: string
   mealTime: string
-  isPopote: boolean
   reaction: Reaction
   note: string
 }
@@ -122,7 +121,6 @@ function normalizeStoredState(value: Partial<StoredState> | null | undefined): S
           foodId: test.foodId,
           date: test.date,
           mealTime: typeof test.mealTime === "string" ? test.mealTime : "",
-          isPopote: test.isPopote ?? false,
           reaction: test.reaction,
           note: test.note ?? "",
         })),
@@ -184,7 +182,6 @@ function parseRemoteState(data: unknown, fallbackState: StoredState = initialSta
     tests?: Array<{
       id?: string
       foodId?: string
-      isPopote?: boolean
       date?: string
       mealTime?: string
       reaction?: Reaction
@@ -203,7 +200,6 @@ function parseRemoteState(data: unknown, fallbackState: StoredState = initialSta
       foodId: test.foodId ?? "",
       date: test.date ?? "",
       mealTime: test.mealTime ?? "",
-      isPopote: test.isPopote ?? false,
       reaction: test.reaction ?? "aucune réaction",
       note: test.note ?? "",
     })),
@@ -421,7 +417,6 @@ export function useBabyStore() {
       p_family_code_hash: familySession.familyCodeHash,
       p_food_id: nextTest.foodId,
       p_id: nextTest.id,
-      p_is_popote: nextTest.isPopote,
       p_meal_time: nextTest.mealTime || null,
       p_note: nextTest.note,
       p_reaction: nextTest.reaction,
@@ -461,7 +456,6 @@ export function useBabyStore() {
       p_date: testWithId.date,
       p_family_code_hash: familySession.familyCodeHash,
       p_id: testWithId.id,
-      p_is_popote: testWithId.isPopote,
       p_meal_time: testWithId.mealTime || null,
       p_note: testWithId.note,
       p_reaction: testWithId.reaction,

@@ -14,7 +14,6 @@ function test(overrides: Partial<FoodTest> = {}): FoodTest {
     foodId: "carotte",
     date: "2026-05-01",
     mealTime: "midi",
-    isPopote: false,
     reaction: "aucune réaction",
     note: "",
     ...overrides,
@@ -58,17 +57,12 @@ describe("testsToCsv", () => {
   it("starts with the header row", () => {
     const csv = testsToCsv([])
     expect(csv.split("\n")[0]).toBe(
-      '"Date","Moment","Aliment","Catégorie","Réaction","Popote","Note"',
+      '"Date","Moment","Aliment","Catégorie","Réaction","Note"',
     )
   })
 
   it("escapes double quotes by doubling them", () => {
     const csv = testsToCsv([test({ note: 'avec "guillemets"' })])
     expect(csv).toContain('"avec ""guillemets"""')
-  })
-
-  it("renders the popote column as 'oui' or 'non'", () => {
-    const csv = testsToCsv([test({ isPopote: true })])
-    expect(csv).toContain('"oui"')
   })
 })

@@ -87,7 +87,6 @@ describe("parseBackupPayload", () => {
     })
     expect(result.state.tests).toHaveLength(1)
     expect(result.state.tests[0].mealTime).toBe("")
-    expect(result.state.tests[0].isPopote).toBe(false)
     expect(result.state.tests[0].note).toBe("")
   })
 

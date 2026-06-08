@@ -33,7 +33,6 @@ export type BabyFoodTestRow = {
   food_id: string
   date: string
   meal_time: string | null
-  is_popote: boolean
   reaction: string
   note: string
   created_at: string

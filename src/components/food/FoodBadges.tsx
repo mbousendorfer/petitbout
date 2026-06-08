@@ -1,4 +1,4 @@
-import { BadgeCheck, Clock, Leaf, PackageCheck, Sparkles } from "lucide-react"
+import { BadgeCheck, Clock, Leaf, Sparkles } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { type Food } from "@/data/foods"
 import { currentMonth, monthNames } from "@/lib/food-utils"
@@ -53,15 +53,6 @@ export function IntroductionBadge({ level }: { level: Food["level"] }) {
           : "border-status-attention/25 bg-status-attention/15 text-amber-900 dark:text-amber-200",
       )}
     >
-      {label}
-    </Badge>
-  )
-}
-
-export function PopoteBadge({ label = "Popote" }: { label?: string }) {
-  return (
-    <Badge variant="outline" className="h-8 gap-1.5 border-accent/80 bg-accent/55 px-3 text-accent-foreground">
-      <PackageCheck className="size-4" aria-hidden="true" />
       {label}
     </Badge>
   )

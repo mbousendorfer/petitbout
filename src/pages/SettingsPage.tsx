@@ -3,12 +3,10 @@ import { Check, Copy, Download, Home, LogOut, Monitor, Moon, Sun, Trash2, Upload
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { popotePacks } from "@/data/foods"
 import { backupFileName, backupToJson } from "@/lib/backup"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { downloadTextFile } from "@/lib/formatting"
-import { useAppOptions } from "@/app/AppOptions"
 import { type ThemeMode } from "@/app/useTheme"
 import { Header } from "@/components/primitives"
 
@@ -21,7 +19,6 @@ export function SettingsPage({
   theme: ThemeMode
   setTheme: (theme: ThemeMode) => void
 }) {
-  const { activePopotePackId, setActivePopotePackId } = useAppOptions()
   const [childName, setChildName] = useState(store.profile.childName)
   const [birthDate, setBirthDate] = useState(store.profile.birthDate)
   const [isSavingChildProfile, setIsSavingChildProfile] = useState(false)
@@ -172,31 +169,6 @@ export function SettingsPage({
           </div>
         </SettingsSection>
 
-        <SettingsSection description="Activez l’option pour afficher les filtres, badges et choix liés à un pack Popote." title="Option Popote">
-          <PopoteToggle
-            enabled={activePopotePackId !== null}
-            onToggle={(enabled) =>
-              setActivePopotePackId(enabled ? popotePacks[0]?.id ?? null : null)
-            }
-          />
-          {activePopotePackId !== null && popotePacks.length > 0 && (
-            <div className="grid gap-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Pack utilisé
-              </p>
-              {popotePacks.map((pack) => (
-                <PopotePackOption
-                  key={pack.id}
-                  description={`${pack.foodIds.size} aliments inclus.`}
-                  label={pack.name}
-                  selected={activePopotePackId === pack.id}
-                  onSelect={() => setActivePopotePackId(pack.id)}
-                />
-              ))}
-            </div>
-          )}
-        </SettingsSection>
-
         <InstallHelpSection />
 
         <SettingsSection description="Gardez une copie, restaurez le suivi ou préparez un rendez-vous." title="Sauvegarde">
@@ -286,87 +258,6 @@ export function SettingsSection({
       <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
       <div className="mt-3 grid gap-3">{children}</div>
     </section>
-  )
-}
-
-export function PopoteToggle({
-  enabled,
-  onToggle,
-}: {
-  enabled: boolean
-  onToggle: (enabled: boolean) => void
-}) {
-  return (
-    <button
-      type="button"
-      className="flex w-full items-center justify-between gap-3 rounded-lg bg-muted/55 p-3 text-left transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      onClick={() => onToggle(!enabled)}
-      aria-pressed={enabled}
-    >
-      <span className="flex min-w-0 flex-col gap-1">
-        <span className="text-sm font-semibold">Option Popote</span>
-        <span className="text-xs font-normal leading-5 text-muted-foreground">
-          {enabled
-            ? "Filtres, badges et choix Popote affichés."
-            : "Garder l’app minimale, sans filtres Popote."}
-        </span>
-      </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors",
-          enabled ? "bg-primary" : "bg-muted",
-        )}
-      >
-        <span
-          className={cn(
-            "size-5 rounded-full bg-background shadow-sm transition-transform",
-            enabled && "translate-x-5",
-          )}
-        />
-      </span>
-    </button>
-  )
-}
-
-export function PopotePackOption({
-  description,
-  label,
-  onSelect,
-  selected,
-}: {
-  description: string
-  label: string
-  onSelect: () => void
-  selected: boolean
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={cn(
-        "flex w-full items-center justify-between gap-3 rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        selected
-          ? "border-primary/40 bg-primary/10"
-          : "border-transparent bg-muted/55 hover:bg-muted/80",
-      )}
-    >
-      <span className="flex min-w-0 flex-col gap-1">
-        <span className="text-sm font-semibold">{label}</span>
-        <span className="text-xs font-normal leading-5 text-muted-foreground">{description}</span>
-      </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-          selected ? "border-primary" : "border-muted-foreground/40",
-        )}
-      >
-        {selected && <span className="size-2.5 rounded-full bg-primary" />}
-      </span>
-    </button>
   )
 }
 

@@ -16,7 +16,6 @@ export type Food = {
   name: string
   emoji: string
   category: FoodCategory
-  popotePackIds: string[]
   minAgeMonths: number
   possibleAgeMonths?: number
   recommendedAgeMonths?: number
@@ -129,96 +128,6 @@ const legumeNames = new Set([
 
 const nutNames = new Set(["Amande", "Noisette", "Noix"])
 
-export type PopotePack = {
-  id: string
-  name: string
-  foodIds: Set<string>
-}
-
-export const popotePacks: PopotePack[] = [
-  {
-    id: "decouverte",
-    name: "Pack découverte",
-    foodIds: new Set([
-      "artichaut",
-      "banane",
-      "betterave",
-      "boeuf",
-      "brasse-nature",
-      "brocoli",
-      "carotte",
-      "cerise",
-      "colin-d-alaska",
-      "courge-butternut",
-      "dinde",
-      "epinards",
-      "figue",
-      "framboise",
-      "haricots-verts",
-      "mirabelle",
-      "mure",
-      "myrtille",
-      "panais",
-      "patate-douce",
-      "peche",
-      "petits-pois",
-      "poire",
-      "polenta",
-      "pomme",
-      "pomme-de-terre",
-      "porridge",
-      "prune",
-      "tomate",
-      "veau",
-    ]),
-  },
-  {
-    id: "gros-gros-decouverte",
-    name: "Gros gros pack découverte",
-    foodIds: new Set([
-      "artichaut",
-      "banane",
-      "betterave",
-      "boeuf",
-      "brasse-nature",
-      "brocoli",
-      "carotte",
-      "colin-d-alaska",
-      "courge-butternut",
-      "dinde",
-      "epinards",
-      "figue",
-      "fraise",
-      "framboise",
-      "haricots-verts",
-      "mirabelle",
-      "mure",
-      "myrtille",
-      "panais",
-      "patate-douce",
-      "peche",
-      "petits-pois",
-      "poire",
-      "polenta",
-      "pomme",
-      "pomme-de-terre",
-      "porridge",
-      "prune",
-      "tomate",
-      "veau",
-    ]),
-  },
-]
-
-export function isFoodInPack(food: Food, packId: string | null) {
-  if (!packId) return false
-  return food.popotePackIds.includes(packId)
-}
-
-function popotePackIdsForFood(id: string) {
-  return popotePacks.filter((pack) => pack.foodIds.has(id)).map((pack) => pack.id)
-}
-
 function preparationFor(source: FoodSource) {
   if (source.preparation) return source.preparation
 
@@ -288,7 +197,6 @@ function makeFood(source: FoodSource): Food {
     name: source.name,
     emoji: source.emoji,
     category: source.category,
-    popotePackIds: popotePackIdsForFood(id),
     minAgeMonths,
     possibleAgeMonths,
     recommendedAgeMonths,
