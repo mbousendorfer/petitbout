@@ -383,13 +383,13 @@ function CautionCard({ item }: { item: GuidanceRule }) {
 }
 
 // Icône contextuelle par éditeur (cf. iOS sourceIcon(for:)).
-function sourceIconFor(publisher: string): LucideIcon {
+function SourceIcon({ className, publisher }: { className?: string; publisher: string }) {
   const value = publisher.toLowerCase()
-  if (value.includes("assurance")) return BriefcaseMedical
-  if (value.includes("oms") || value.includes("organisation")) return Globe
-  if (value.includes("nejm")) return FileText
-  if (value.includes("hcsp")) return Landmark
-  return FileSearch
+  if (value.includes("assurance")) return <BriefcaseMedical className={className} />
+  if (value.includes("oms") || value.includes("organisation")) return <Globe className={className} />
+  if (value.includes("nejm")) return <FileText className={className} />
+  if (value.includes("hcsp")) return <Landmark className={className} />
+  return <FileSearch className={className} />
 }
 
 function GuidanceSources() {
@@ -410,8 +410,6 @@ function GuidanceSources() {
 }
 
 function SourceRow({ last, source }: { last: boolean; source: GuidanceSource }) {
-  const Icon = sourceIconFor(source.publisher)
-
   return (
     <a
       className={cn(
@@ -426,7 +424,7 @@ function SourceRow({ last, source }: { last: boolean; source: GuidanceSource }) 
         aria-hidden="true"
         className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-tested/[0.09] text-status-tested"
       >
-        <Icon className="size-[1.05rem]" />
+        <SourceIcon className="size-[1.05rem]" publisher={source.publisher} />
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-1.5">
