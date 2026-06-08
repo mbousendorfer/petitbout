@@ -1,13 +1,20 @@
 import {
+  ArrowUpRight,
   BadgeCheck,
+  BriefcaseMedical,
   Calendar,
   CircleCheck,
   Cross,
-  ExternalLink,
   FileSearch,
+  FileText,
+  Globe,
+  Hand,
+  Landmark,
+  Leaf,
   ShieldAlert,
   Sparkles,
   Star,
+  Utensils,
   Waypoints,
   type LucideIcon,
 } from "lucide-react"
@@ -21,6 +28,7 @@ import {
   guidanceStageIndexFor,
   guidanceStages,
   type GuidanceRule,
+  type GuidanceSource,
   type GuidanceStage,
 } from "@/data/guidance"
 import { cn } from "@/lib/utils"
@@ -224,9 +232,14 @@ function GuidanceStagesCarousel({ currentStageIndex }: { currentStageIndex: numb
         subtitle="Une progression souple, à adapter au rythme de bébé."
       />
       <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-        <div className="flex snap-x snap-mandatory gap-3">
+        <div className="flex snap-x snap-mandatory gap-4">
           {guidanceStages.map((stage, index) => (
-            <StageCarouselCard key={stage.ageRange} stage={stage} isCurrent={index === currentStageIndex} />
+            <StageCarouselCard
+              key={stage.ageRange}
+              stage={stage}
+              index={index}
+              isCurrent={index === currentStageIndex}
+            />
           ))}
         </div>
       </div>
@@ -234,38 +247,60 @@ function GuidanceStagesCarousel({ currentStageIndex }: { currentStageIndex: numb
   )
 }
 
-function StageCarouselCard({ isCurrent, stage }: { isCurrent: boolean; stage: GuidanceStage }) {
-  const Icon = isCurrent ? Sparkles : Calendar
+// Teinte + icône par étape (cf. iOS GuidanceStageCarouselCard : olive / leaf / sky / berry).
+// Classes littérales complètes pour rester sûres au purge Tailwind.
+const stageMeta: Array<{ icon: LucideIcon; text: string; iconBg: string; iconBgCurrent: string }> = [
+  { icon: Calendar, text: "text-category-fat", iconBg: "bg-category-fat/10", iconBgCurrent: "bg-category-fat/20" },
+  { icon: Leaf, text: "text-status-tested", iconBg: "bg-status-tested/10", iconBgCurrent: "bg-status-tested/20" },
+  { icon: Hand, text: "text-category-dairy", iconBg: "bg-category-dairy/10", iconBgCurrent: "bg-category-dairy/20" },
+  { icon: Utensils, text: "text-category-protein", iconBg: "bg-category-protein/10", iconBgCurrent: "bg-category-protein/20" },
+]
+
+function StageCarouselCard({ index, isCurrent, stage }: { index: number; isCurrent: boolean; stage: GuidanceStage }) {
+  const meta = stageMeta[index] ?? stageMeta[0]
+  const Icon = meta.icon
+  const keyPoint = stage.principles[0] ?? stage.texture
 
   return (
     <div
       className={cn(
-        "flex min-h-[15rem] w-[16rem] shrink-0 snap-start flex-col gap-4 rounded-hero border bg-card p-4",
-        isCurrent ? "border-status-tested/35" : "border-border shadow-soft",
+        "flex h-[16.5rem] w-[17rem] shrink-0 snap-start flex-col gap-4 rounded-hero border bg-card p-5",
+        isCurrent ? "border-status-tested/40" : "border-border shadow-soft",
       )}
       style={isCurrent ? { boxShadow: "0 10px 26px -14px hsl(var(--status-tested) / 0.55)" } : undefined}
     >
-      <div className="flex items-baseline justify-between gap-2">
-        <p className="font-rounded text-2xl font-extrabold tracking-[-0.01em]">{stage.ageRange}</p>
-        {isCurrent && (
-          <span className="shrink-0 rounded-full bg-status-tested/12 px-2.5 py-1 text-xs font-bold text-status-tested">
-            Actuel
-          </span>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
+      <div className="flex items-start gap-3">
         <span
           aria-hidden="true"
           className={cn(
-            "flex size-11 items-center justify-center rounded-md",
-            isCurrent ? "bg-status-tested/12 text-status-tested" : "bg-muted text-muted-foreground",
+            "flex size-14 shrink-0 items-center justify-center rounded-card",
+            isCurrent ? meta.iconBgCurrent : meta.iconBg,
+            meta.text,
           )}
         >
-          <Icon className="size-5" />
+          <Icon className="size-6" />
         </span>
-        <p className="line-clamp-2 font-semibold leading-tight">{stage.title}</p>
-        <p className="line-clamp-2 text-sm leading-5 text-muted-foreground">{stage.texture}</p>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={cn("text-xs font-bold uppercase tracking-wide", meta.text)}>Étape {index + 1}</span>
+            {isCurrent && (
+              <span className="rounded-full bg-status-tested/12 px-2 py-0.5 text-[11px] font-bold text-status-tested">
+                Actuel
+              </span>
+            )}
+          </div>
+          <p className="font-rounded text-2xl font-extrabold leading-none tracking-[-0.01em]">{stage.ageRange}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <p className="line-clamp-2 font-bold leading-tight">{stage.title}</p>
+        <p className="line-clamp-2 text-sm font-medium leading-5 text-muted-foreground">{stage.texture}</p>
+      </div>
+
+      <div className="mt-auto flex items-start gap-2 border-t border-border/30 pt-3">
+        <CircleCheck aria-hidden="true" className={cn("mt-0.5 size-4 shrink-0", meta.text)} />
+        <p className="line-clamp-2 text-xs font-semibold leading-5 text-foreground/70">{keyPoint}</p>
       </div>
     </div>
   )
@@ -332,19 +367,29 @@ function CautionCard({ item }: { item: GuidanceRule }) {
   const Icon = item.icon
 
   return (
-    <div className="flex items-start gap-3 rounded-card border border-destructive/20 bg-destructive/[0.07] p-4 shadow-soft">
+    <div className="flex items-start gap-3.5 rounded-card border border-destructive/20 bg-destructive/[0.06] p-4 shadow-soft">
       <span
         aria-hidden="true"
-        className="flex size-10 shrink-0 items-center justify-center rounded-md bg-destructive/12 text-destructive"
+        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-destructive/[0.12] text-destructive"
       >
         <Icon className="size-5" />
       </span>
       <div className="min-w-0">
-        <h3 className="font-semibold leading-tight">{item.title}</h3>
+        <h3 className="font-bold leading-tight">{item.title}</h3>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.detail}</p>
       </div>
     </div>
   )
+}
+
+// Icône contextuelle par éditeur (cf. iOS sourceIcon(for:)).
+function sourceIconFor(publisher: string): LucideIcon {
+  const value = publisher.toLowerCase()
+  if (value.includes("assurance")) return BriefcaseMedical
+  if (value.includes("oms") || value.includes("organisation")) return Globe
+  if (value.includes("nejm")) return FileText
+  if (value.includes("hcsp")) return Landmark
+  return FileSearch
 }
 
 function GuidanceSources() {
@@ -355,30 +400,48 @@ function GuidanceSources() {
         title="Sources utilisées"
         subtitle="Les ressources publiques derrière les repères."
       />
-      <ul className="grid gap-2.5 sm:grid-cols-2">
-        {guidanceSources.map((source) => (
-          <li key={source.url}>
-            <a
-              className="group flex h-full flex-col gap-1 rounded-card border bg-card/85 p-4 shadow-soft transition-colors hover:border-primary/25"
-              href={source.url}
-              rel="noreferrer"
-              target="_blank"
-            >
-              <span className="inline-flex items-start gap-1.5 text-sm font-semibold text-foreground underline-offset-4 group-hover:underline">
-                <span className="leading-5">{source.title}</span>
-                <ExternalLink
-                  aria-hidden="true"
-                  className="mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
-                />
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {source.publisher} · {source.year}
-              </span>
-            </a>
-          </li>
+      <div className="overflow-hidden rounded-card border bg-card/85 shadow-soft">
+        {guidanceSources.map((source, index) => (
+          <SourceRow key={source.url} source={source} last={index === guidanceSources.length - 1} />
         ))}
-      </ul>
+      </div>
     </section>
+  )
+}
+
+function SourceRow({ last, source }: { last: boolean; source: GuidanceSource }) {
+  const Icon = sourceIconFor(source.publisher)
+
+  return (
+    <a
+      className={cn(
+        "group flex items-center gap-3 px-3 py-3.5 transition-colors hover:bg-status-tested/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-status-tested/60",
+        !last && "border-b border-border/40",
+      )}
+      href={source.url}
+      rel="noreferrer"
+      target="_blank"
+    >
+      <span
+        aria-hidden="true"
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-tested/[0.09] text-status-tested"
+      >
+        <Icon className="size-[1.05rem]" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-1.5">
+          <span className="truncate text-xs font-semibold text-muted-foreground">{source.publisher}</span>
+          <span className="shrink-0 text-[0.6875rem] font-medium text-muted-foreground/70">{source.year}</span>
+        </div>
+        <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-5 text-foreground underline-offset-4 group-hover:underline">
+          {source.title}
+        </p>
+      </div>
+      <ArrowUpRight
+        aria-hidden="true"
+        className="size-4 shrink-0 self-start text-status-tested/45 transition-colors group-hover:text-status-tested"
+      />
+    </a>
   )
 }
 
