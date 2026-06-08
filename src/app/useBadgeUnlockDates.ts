@@ -33,7 +33,7 @@ export function useBadgeUnlockDates(
 
     if (hasCheckedExistingBadges.current) {
       newlyUnlocked.slice(0, 3).forEach((badge) => {
-        toast.success(`Badge débloqué : ${badge.name}`)
+        toast.success(`Badge débloqué : ${badge.title}`)
       })
     }
 
