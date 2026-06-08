@@ -1,6 +1,8 @@
 import {
   BadgeCheck,
+  Calendar,
   CircleCheck,
+  Cross,
   ExternalLink,
   FileSearch,
   ShieldAlert,
@@ -42,8 +44,8 @@ export function GuidancePage({ ageMonths, childName }: GuidancePageProps) {
         currentStageIndex={currentStageIndex}
       />
       <GuidanceEssentials childName={displayName} stage={currentStage} />
+      <GuidanceStagesCarousel currentStageIndex={currentStageIndex} />
       <GuidanceRules />
-      <GuidanceStagesTimeline currentStageIndex={currentStageIndex} />
       <GuidanceAvoid />
       <GuidanceSources />
       <GuidanceDisclaimer />
@@ -65,10 +67,7 @@ function GuidanceHero({
   return (
     <section className="flex flex-col gap-5">
       <header className="flex flex-col gap-2 pt-2">
-        <p className="eyebrow">Repères</p>
-        <h1 className="font-rounded text-[2rem] font-extrabold leading-[1.1] tracking-[-0.01em]">
-          Sources et repères
-        </h1>
+        <h1 className="font-rounded text-[2rem] font-extrabold leading-[1.1] tracking-[-0.01em]">Repères</h1>
         <p className="text-sm leading-6 text-muted-foreground">
           Des repères simples pour suivre la diversification, sans remplacer un avis médical.
         </p>
@@ -115,11 +114,7 @@ function StageProgressStrip({ currentStageIndex }: { currentStageIndex: number }
         return (
           <div key={stage.ageRange} className="flex min-w-0 flex-1 flex-col gap-1.5">
             <span
-              className={cn(
-                "rounded-full transition-colors",
-                isCurrent ? "h-2 ring-2 ring-status-season-month" : "h-1.5",
-                reached ? "bg-status-tested" : "bg-border",
-              )}
+              className={cn("rounded-full transition-colors", isCurrent ? "h-2" : "h-1.5", reached ? "bg-status-tested" : "bg-border")}
             />
             <span
               className={cn(
@@ -220,6 +215,56 @@ function InsightCard({
   )
 }
 
+function GuidanceStagesCarousel({ currentStageIndex }: { currentStageIndex: number }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <GuidanceSectionHeader
+        icon={Waypoints}
+        title="Étapes"
+        subtitle="Une progression souple, à adapter au rythme de bébé."
+      />
+      <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+        <div className="flex snap-x snap-mandatory gap-3">
+          {guidanceStages.map((stage, index) => (
+            <StageCarouselCard key={stage.ageRange} stage={stage} isCurrent={index === currentStageIndex} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function StageCarouselCard({ isCurrent, stage }: { isCurrent: boolean; stage: GuidanceStage }) {
+  const Icon = isCurrent ? Sparkles : Calendar
+
+  return (
+    <div
+      className={cn(
+        "flex min-h-[15rem] w-[16rem] shrink-0 snap-start flex-col gap-3 rounded-hero border bg-card p-4 shadow-soft",
+        isCurrent ? "border-status-tested/30" : "border-border",
+      )}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="font-rounded text-xl font-extrabold tracking-[-0.01em]">{stage.ageRange}</p>
+        {isCurrent && (
+          <span className="rounded-full bg-status-tested/12 px-2 py-0.5 text-xs font-bold text-status-tested">Actuel</span>
+        )}
+      </div>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "flex size-10 items-center justify-center rounded-md",
+          isCurrent ? "bg-status-tested/12 text-status-tested" : "bg-muted text-muted-foreground",
+        )}
+      >
+        <Icon className="size-5" />
+      </span>
+      <p className="line-clamp-2 font-semibold leading-tight">{stage.title}</p>
+      <p className="line-clamp-3 text-sm leading-5 text-muted-foreground">{stage.texture}</p>
+    </div>
+  )
+}
+
 function GuidanceRules() {
   return (
     <section className="flex flex-col gap-3">
@@ -239,7 +284,6 @@ function GuidanceRules() {
 
 function RuleCard({ index, rule }: { index: number; rule: GuidanceRule }) {
   const Icon = rule.icon
-  // Alternance de teinte façon iOS : la 2e règle (allergènes) en clay/primary.
   const accent = index === 1 ? "primary" : "tested"
 
   return (
@@ -255,110 +299,12 @@ function RuleCard({ index, rule }: { index: number; rule: GuidanceRule }) {
       </span>
       <div className="min-w-0">
         <div className="flex items-baseline gap-2">
-          <span
-            className={cn(
-              "text-xs font-bold",
-              accent === "primary" ? "text-primary" : "text-status-tested",
-            )}
-          >
+          <span className={cn("text-xs font-bold", accent === "primary" ? "text-primary" : "text-status-tested")}>
             {String(index + 1).padStart(2, "0")}
           </span>
           <h3 className="font-semibold leading-tight">{rule.title}</h3>
         </div>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">{rule.detail}</p>
-      </div>
-    </div>
-  )
-}
-
-function GuidanceStagesTimeline({ currentStageIndex }: { currentStageIndex: number }) {
-  return (
-    <section className="flex flex-col gap-3">
-      <GuidanceSectionHeader
-        icon={Waypoints}
-        title="Étapes"
-        subtitle="Une progression souple, à adapter au rythme de bébé."
-      />
-      <div className="grid gap-2.5">
-        {guidanceStages.map((stage, index) => (
-          <StageTimelineCard
-            key={stage.ageRange}
-            stage={stage}
-            index={index}
-            isCurrent={index === currentStageIndex}
-            isLast={index === guidanceStages.length - 1}
-          />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function StageTimelineCard({
-  index,
-  isCurrent,
-  isLast,
-  stage,
-}: {
-  index: number
-  isCurrent: boolean
-  isLast: boolean
-  stage: GuidanceStage
-}) {
-  return (
-    <div className="flex gap-3">
-      <div className="flex flex-col items-center">
-        <span
-          aria-hidden="true"
-          className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold",
-            isCurrent
-              ? "bg-status-tested text-status-tested-foreground"
-              : "bg-status-tested/12 text-status-tested",
-          )}
-        >
-          {index + 1}
-        </span>
-        {!isLast && (
-          <span
-            aria-hidden="true"
-            className={cn(
-              "mt-1 w-0.5 flex-1 rounded-full",
-              isCurrent ? "bg-status-tested/25" : "bg-border",
-            )}
-          />
-        )}
-      </div>
-
-      <div
-        className={cn(
-          "mb-2 min-w-0 flex-1 rounded-card border bg-card/85 p-4 shadow-soft",
-          isCurrent && "border-status-tested/30",
-        )}
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-1 text-xs font-bold",
-              isCurrent
-                ? "bg-status-tested/12 text-status-tested"
-                : "bg-muted text-muted-foreground",
-            )}
-          >
-            {stage.ageRange}
-          </span>
-          {isCurrent && <span className="text-xs font-bold text-status-season-month">Actuel</span>}
-        </div>
-        <h3 className="mt-2 font-semibold leading-tight">{stage.title}</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">{stage.texture}</p>
-        <ul className="mt-2 grid gap-1.5">
-          {stage.principles.slice(0, 2).map((principle, principleIndex) => (
-            <li key={principleIndex} className="flex items-start gap-2 text-sm text-muted-foreground">
-              <CircleCheck className="mt-0.5 size-4 shrink-0 text-status-tested" aria-hidden="true" />
-              <span className="leading-5">{principle}</span>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   )
@@ -405,8 +351,8 @@ function GuidanceSources() {
     <section className="flex flex-col gap-3">
       <GuidanceSectionHeader
         icon={FileSearch}
-        title="Sources"
-        subtitle="Les repères s'appuient sur des ressources publiques et scientifiques."
+        title="Sources utilisées"
+        subtitle="Les ressources publiques derrière les repères."
       />
       <ul className="grid gap-2.5 sm:grid-cols-2">
         {guidanceSources.map((source) => (
@@ -437,15 +383,12 @@ function GuidanceSources() {
 
 function GuidanceDisclaimer() {
   return (
-    <div className="flex items-start gap-3 rounded-card border border-destructive/20 bg-destructive/[0.07] p-4">
-      <ShieldAlert className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden="true" />
-      <div className="min-w-0">
-        <p className="font-semibold">Repère, pas diagnostic</p>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Ces repères sont généraux. En cas de doute, de réaction ou de situation particulière, demande conseil
-          à un professionnel de santé.
-        </p>
-      </div>
+    <div className="flex items-start gap-2 px-1">
+      <Cross className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+      <p className="text-xs leading-5 text-muted-foreground">
+        Repères généraux, pas diagnostic. En cas de doute, de réaction ou de situation particulière, demande conseil
+        à un professionnel de santé.
+      </p>
     </div>
   )
 }
