@@ -8,7 +8,6 @@ import { BottomNav, DesktopNav } from "@/components/Navigation"
 import { PageLoading } from "@/components/primitives"
 import { HomePage } from "@/pages/HomePage"
 import { FoodsPage } from "@/pages/FoodsPage"
-import { HistoryPage } from "@/pages/HistoryPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { AppOptionsContext, useStoredAppOptions } from "@/app/AppOptions"
 import { useTheme } from "@/app/useTheme"
@@ -56,7 +55,7 @@ function App() {
             <Route path="/" element={<HomePage store={store} suggestions={suggestions} />} />
             <Route path="/foods" element={<FoodsPage store={store} />} />
             <Route path="/week" element={<Navigate to="/" replace />} />
-            <Route path="/history" element={<HistoryPage store={store} />} />
+            <Route path="/history" element={<Navigate to="/" replace />} />
             <Route
               path="/guidance"
               element={

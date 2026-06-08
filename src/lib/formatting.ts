@@ -49,68 +49,6 @@ export function testDateTimeLabel(test: FoodTest) {
   return time ? `${date} · ${time}` : date
 }
 
-export function historyDateLabel(date: string) {
-  const eventDate = new Date(`${date}T00:00:00`)
-  const today = new Date()
-  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const yesterday = new Date(todayDate)
-  yesterday.setDate(todayDate.getDate() - 1)
-
-  if (eventDate.getTime() === todayDate.getTime()) return "Aujourd’hui"
-  if (eventDate.getTime() === yesterday.getTime()) return "Hier"
-
-  return eventDate.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
-}
-
-export function historyDateDetailLabel(date: string) {
-  const eventDate = new Date(`${date}T00:00:00`)
-  const today = new Date()
-  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const yesterday = new Date(todayDate)
-  yesterday.setDate(todayDate.getDate() - 1)
-
-  if (eventDate.getTime() !== todayDate.getTime() && eventDate.getTime() !== yesterday.getTime()) {
-    return eventDate.toLocaleDateString("fr-FR", { weekday: "long" })
-  }
-
-  return eventDate.toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
-}
-
-export function historyEventTimeParts(test: FoodTest) {
-  if (!test.mealTime) return { time: "—", moment: "Moment non renseigné" }
-
-  const label = mealTimeLabel(test.mealTime)
-  return label === test.mealTime ? { time: test.mealTime, moment: "" } : { time: test.mealTime, moment: label }
-}
-
-export function groupTestsByDate(tests: FoodTest[]) {
-  const groups: Array<{ date: string; tests: FoodTest[] }> = []
-  const groupByDate = new Map<string, FoodTest[]>()
-
-  tests.forEach((test) => {
-    const dateTests = groupByDate.get(test.date)
-    if (dateTests) {
-      dateTests.push(test)
-      return
-    }
-
-    const nextTests = [test]
-    groupByDate.set(test.date, nextTests)
-    groups.push({ date: test.date, tests: nextTests })
-  })
-
-  return groups
-}
-
 export function downloadTextFile(content: string, fileName: string, type: string) {
   const blob = new Blob([content], { type })
   const url = URL.createObjectURL(blob)
