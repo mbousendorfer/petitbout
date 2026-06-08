@@ -8,6 +8,7 @@ import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { EmptyState, Header } from "@/components/primitives"
 import { FoodCard } from "@/components/food/FoodCard"
+import { FoodCatalogCard } from "@/components/food/FoodCatalogCard"
 
 type CategoryFilter = FoodCategory | "all"
 type StatusFilter = "all" | "untested" | "tested"
@@ -90,11 +91,20 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
       </div>
 
       {filteredFoods.length > 0 ? (
-        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
-          {filteredFoods.map((food) => (
-            <FoodCard key={food.id} food={food} store={store} />
-          ))}
-        </div>
+        <>
+          {/* Mobile / tablette : liste compacte, scannable */}
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:hidden">
+            {filteredFoods.map((food) => (
+              <FoodCard key={food.id} food={food} store={store} />
+            ))}
+          </div>
+          {/* Desktop : grille de cartes visuelles (cf. cartes « À explorer ») */}
+          <div className="hidden gap-4 lg:grid lg:grid-cols-3 xl:grid-cols-4">
+            {filteredFoods.map((food) => (
+              <FoodCatalogCard key={food.id} food={food} store={store} />
+            ))}
+          </div>
+        </>
       ) : (
         <EmptyState icon={Search} title="Aucun aliment trouvé">
           Essaie une autre recherche ou enlève un filtre.
