@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useId } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { createPortal } from "react-dom"
 import { BookOpen, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, PencilLine, Plus, ShieldCheck, Trash2, Utensils, X, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -13,7 +13,7 @@ import { ageSummary, getStatus, isInSeason, monthNames } from "@/lib/food-utils"
 import { reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, testDateTimeLabel, type MealTimePresetId } from "@/lib/formatting"
-import { FoodEmoji } from "@/components/food/FoodEmoji"
+import { FoodHeroCard } from "@/components/food/FoodHeroCard"
 import { StatusBadge, SeasonBadge, IntroductionBadge, SeasonMonthsGrid } from "@/components/food/FoodBadges"
 
 export type FoodPanelTab = "infos" | "add"
@@ -49,7 +49,6 @@ export function FoodTestDrawer({
   )
   const [confirmingRemovalId, setConfirmingRemovalId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const titleId = useId()
   const status = getStatus(food.id, store.latestByFood)
   const reactionSummary = reaction === "aucune réaction" ? "Rien à signaler" : reactionLabels[reaction]
   const reactionIsSevere = reaction === "vomissement" || reaction === "rougeur"
@@ -163,22 +162,16 @@ export function FoodTestDrawer({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby={titleId}
+        aria-label={food.name}
         className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[84svh] min-h-[58svh] w-full max-w-2xl flex-col gap-0 overflow-hidden rounded-t-2xl border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:min-h-0 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(760px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:border"
         data-side="bottom"
         data-state="open"
       >
-        <div className="relative flex shrink-0 items-start gap-3 px-5 pb-3 pt-5">
-          <FoodEmoji food={food} size="sm" />
-          <div className="min-w-0 flex-1 pr-10">
-            <h2 id={titleId} className="truncate text-lg font-semibold text-foreground">
-              {food.name}
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">{food.category}</p>
-          </div>
+        <div className="relative shrink-0 px-4 pb-3 pt-4">
+          <FoodHeroCard food={food} />
           <button
             type="button"
-            className="absolute right-4 top-4 inline-flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute right-6 top-6 inline-flex size-9 items-center justify-center rounded-full bg-card/80 text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => onOpenChange(false)}
             aria-label="Fermer"
           >

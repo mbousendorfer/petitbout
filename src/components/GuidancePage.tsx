@@ -240,27 +240,33 @@ function StageCarouselCard({ isCurrent, stage }: { isCurrent: boolean; stage: Gu
   return (
     <div
       className={cn(
-        "flex min-h-[15rem] w-[16rem] shrink-0 snap-start flex-col gap-3 rounded-hero border bg-card p-4 shadow-soft",
-        isCurrent ? "border-status-tested/30" : "border-border",
+        "flex min-h-[15rem] w-[16rem] shrink-0 snap-start flex-col gap-4 rounded-hero border bg-card p-4",
+        isCurrent ? "border-status-tested/35" : "border-border shadow-soft",
       )}
+      style={isCurrent ? { boxShadow: "0 10px 26px -14px hsl(var(--status-tested) / 0.55)" } : undefined}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <p className="font-rounded text-xl font-extrabold tracking-[-0.01em]">{stage.ageRange}</p>
+        <p className="font-rounded text-2xl font-extrabold tracking-[-0.01em]">{stage.ageRange}</p>
         {isCurrent && (
-          <span className="rounded-full bg-status-tested/12 px-2 py-0.5 text-xs font-bold text-status-tested">Actuel</span>
+          <span className="shrink-0 rounded-full bg-status-tested/12 px-2.5 py-1 text-xs font-bold text-status-tested">
+            Actuel
+          </span>
         )}
       </div>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex size-10 items-center justify-center rounded-md",
-          isCurrent ? "bg-status-tested/12 text-status-tested" : "bg-muted text-muted-foreground",
-        )}
-      >
-        <Icon className="size-5" />
-      </span>
-      <p className="line-clamp-2 font-semibold leading-tight">{stage.title}</p>
-      <p className="line-clamp-3 text-sm leading-5 text-muted-foreground">{stage.texture}</p>
+
+      <div className="flex flex-col gap-2">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "flex size-11 items-center justify-center rounded-md",
+            isCurrent ? "bg-status-tested/12 text-status-tested" : "bg-muted text-muted-foreground",
+          )}
+        >
+          <Icon className="size-5" />
+        </span>
+        <p className="line-clamp-2 font-semibold leading-tight">{stage.title}</p>
+        <p className="line-clamp-2 text-sm leading-5 text-muted-foreground">{stage.texture}</p>
+      </div>
     </div>
   )
 }
@@ -273,38 +279,33 @@ function GuidanceRules() {
         title="Règles d'or"
         subtitle="Des repères simples, pensés pour guider sans pression."
       />
-      <div className="grid gap-2.5">
+      <div className="overflow-hidden rounded-card border bg-card/85 shadow-soft">
         {guidanceRules.map((rule, index) => (
-          <RuleCard key={rule.title} rule={rule} index={index} />
+          <RuleRow key={rule.title} rule={rule} index={index} last={index === guidanceRules.length - 1} />
         ))}
       </div>
     </section>
   )
 }
 
-function RuleCard({ index, rule }: { index: number; rule: GuidanceRule }) {
+function RuleRow({ index, last, rule }: { index: number; last: boolean; rule: GuidanceRule }) {
   const Icon = rule.icon
   const accent = index === 1 ? "primary" : "tested"
 
   return (
-    <div className="flex items-start gap-3 rounded-card border bg-card/85 p-4 shadow-soft">
+    <div className={cn("flex items-start gap-3 px-4 py-3.5", !last && "border-b border-border/40")}>
       <span
         aria-hidden="true"
         className={cn(
-          "flex size-11 shrink-0 items-center justify-center rounded-md",
+          "flex size-9 shrink-0 items-center justify-center rounded-md",
           accent === "primary" ? "bg-primary/12 text-primary" : "bg-status-tested/12 text-status-tested",
         )}
       >
         <Icon className="size-5" />
       </span>
       <div className="min-w-0">
-        <div className="flex items-baseline gap-2">
-          <span className={cn("text-xs font-bold", accent === "primary" ? "text-primary" : "text-status-tested")}>
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <h3 className="font-semibold leading-tight">{rule.title}</h3>
-        </div>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">{rule.detail}</p>
+        <h3 className="font-semibold leading-snug">{rule.title}</h3>
+        <p className="mt-0.5 text-sm leading-5 text-muted-foreground">{rule.detail}</p>
       </div>
     </div>
   )
