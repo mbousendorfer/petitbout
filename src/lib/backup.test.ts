@@ -43,7 +43,7 @@ describe("backupToJson", () => {
       version: 1,
       exportedAt: "2026-05-18T08:00:00.000Z",
       state: {
-        profile: { ageMonths: 6, birthDate: "2025-11-01", childName: "Sam" },
+        profile: { ageMonths: 6, avatarEmoji: "👶", birthDate: "2025-11-01", childName: "Sam" },
         tests: [],
       },
       familySession: null,

@@ -1,10 +1,10 @@
 import { type ReactNode } from "react"
-import { type LucideIcon } from "lucide-react"
+import { Cross, type LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 const disclaimer =
-  "Repères généraux, pas diagnostic. En cas de doute, de réaction ou de situation particulière, demande conseil à un professionnel de santé."
+  "Diversibebs ne remplace pas l'avis d'un professionnel de santé. En cas de doute, de réaction ou de situation particulière, demande conseil."
 export function PageLoading({ label }: { label: string }) {
   return (
     <>
@@ -113,8 +113,23 @@ export function Header({ eyebrow, title }: { eyebrow: string; title: string }) {
 
 export function Disclaimer({ compact = false }: { compact?: boolean }) {
   return (
-    <p className={cn("rounded-xl border bg-card/80 p-4 text-sm leading-6 text-muted-foreground shadow-sm", compact && "p-3 text-xs")}>
-      {disclaimer}
-    </p>
+    <div
+      role="note"
+      className={cn(
+        "flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm",
+        compact && "gap-2.5 p-3",
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary",
+          compact ? "size-7" : "size-8",
+        )}
+      >
+        <Cross className={compact ? "size-3.5" : "size-4"} />
+      </span>
+      <p className={cn("text-sm leading-6 text-foreground/80", compact && "text-xs leading-5")}>{disclaimer}</p>
+    </div>
   )
 }

@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, type ReactNode } from "react"
-import { Check, Copy, Download, Home, LogOut, Monitor, Moon, Sun, Trash2, Upload } from "lucide-react"
+import { useRef, type ReactNode } from "react"
+import { NavLink } from "react-router-dom"
+import { ChevronRight, Copy, Download, Home, LogOut, Monitor, Moon, Sun, Trash2, Upload } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +10,14 @@ import { cn } from "@/lib/utils"
 import { downloadTextFile } from "@/lib/formatting"
 import { type ThemeMode } from "@/app/useTheme"
 import { Header } from "@/components/primitives"
+import { BabyAvatar } from "@/components/BabyAvatar"
+
+function birthDateLabel(birthDate: string) {
+  if (!birthDate) return null
+  const date = new Date(`${birthDate}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
+}
 
 export function SettingsPage({
   store,
@@ -19,18 +28,10 @@ export function SettingsPage({
   theme: ThemeMode
   setTheme: (theme: ThemeMode) => void
 }) {
-  const [childName, setChildName] = useState(store.profile.childName)
-  const [birthDate, setBirthDate] = useState(store.profile.birthDate)
-  const [isSavingChildProfile, setIsSavingChildProfile] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
   const familyCodeLabel = store.familySession?.familyCodeLabel ?? ""
-  const hasChildProfileChanges =
-    childName.trim() !== store.profile.childName || birthDate !== store.profile.birthDate
-
-  useEffect(() => {
-    setChildName(store.profile.childName)
-    setBirthDate(store.profile.birthDate)
-  }, [store.profile.birthDate, store.profile.childName])
+  const displayName = store.profile.childName.trim() ? store.profile.childName.trim() : "bébé"
+  const bornLabel = birthDateLabel(store.profile.birthDate)
 
   async function copyFamilyCode() {
     if (!familyCodeLabel) {
@@ -40,20 +41,6 @@ export function SettingsPage({
 
     await navigator.clipboard.writeText(familyCodeLabel)
     toast.success("Code famille copié")
-  }
-
-  async function saveChildProfile() {
-    if (!hasChildProfileChanges) return
-
-    setIsSavingChildProfile(true)
-    const didSync = await store.updateProfile({ childName: childName.trim(), birthDate })
-    setIsSavingChildProfile(false)
-
-    if (didSync) {
-      toast.success("Profil enfant sauvegardé")
-    } else {
-      toast.warning("Sauvegardé sur cet appareil, synchro à vérifier")
-    }
   }
 
   function exportBackup() {
@@ -101,9 +88,24 @@ export function SettingsPage({
     <>
       <Header eyebrow="Préférences" title="Réglages" />
 
+      <NavLink
+        to="/profile"
+        className="paper-surface soft-ring flex items-center gap-3 rounded-hero p-4 transition-colors hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        aria-label={`Modifier le profil de ${displayName}`}
+      >
+        <BabyAvatar emoji={store.profile.avatarEmoji} size={56} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-lg font-bold tracking-[-0.01em]">{displayName}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {store.profile.ageMonths} mois{bornLabel ? ` · né le ${bornLabel}` : ""}
+          </p>
+        </div>
+        <ChevronRight className="size-5 shrink-0 text-muted-foreground/65" aria-hidden="true" />
+      </NavLink>
+
       <div className="grid gap-1 lg:grid-cols-2 lg:gap-4">
         <SettingsSection
-          description="Profil et code partagés entre tes appareils."
+          description="Code partagé entre tes appareils pour retrouver le même suivi."
           title="Espace famille"
         >
           <label className="grid gap-1.5 text-sm font-medium">
@@ -133,32 +135,6 @@ export function SettingsPage({
               </span>
             )}
           </label>
-          <label className="grid gap-1.5 text-sm font-medium">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">Prénom</span>
-            <Input
-              className="h-11 bg-background/70"
-              placeholder="Ex. Alba"
-              value={childName}
-              onChange={(event) => setChildName(event.target.value)}
-            />
-          </label>
-          <label className="grid min-w-0 gap-1.5 text-sm font-medium">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">Date de naissance</span>
-            <Input
-              className="h-11 min-w-0 max-w-full bg-background/70"
-              type="date"
-              value={birthDate}
-              onChange={(event) => setBirthDate(event.target.value)}
-            />
-          </label>
-          <Button
-            type="button"
-            onClick={() => void saveChildProfile()}
-            disabled={!hasChildProfileChanges || isSavingChildProfile}
-          >
-            <Check data-icon="inline-start" aria-hidden="true" />
-            {isSavingChildProfile ? "Sauvegarde..." : "Sauvegarder"}
-          </Button>
         </SettingsSection>
 
         <SettingsSection description="Le thème reste propre à cet appareil." title="Apparence">

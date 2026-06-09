@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { NavLink } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
   Apple,
@@ -7,6 +8,7 @@ import {
   Carrot,
   ChartPie,
   Check,
+  ChevronRight,
   Clock,
   Droplet,
   Egg,
@@ -29,6 +31,7 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { BabyAvatar } from "@/components/BabyAvatar"
 import { categories, foods, type FoodCategory } from "@/data/foods"
 import {
   badgeCategoryOrder,
@@ -43,6 +46,7 @@ import type { FoodTest } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 
 type DiscoveriesPageProps = {
+  avatarEmoji: string
   badgeUnlockDates: BadgeUnlockDates
   childName: string
   tests: FoodTest[]
@@ -95,7 +99,7 @@ const cardMotion = {
   show: { opacity: 1, y: 0 },
 }
 
-export function DiscoveriesPage({ badgeUnlockDates, childName, tests }: DiscoveriesPageProps) {
+export function DiscoveriesPage({ avatarEmoji, badgeUnlockDates, childName, tests }: DiscoveriesPageProps) {
   const badges = useMemo(() => calculateBadges(foods, tests, badgeUnlockDates), [badgeUnlockDates, tests])
   const testedFoodIds = useMemo(() => new Set(tests.map((test) => test.foodId)), [tests])
 
@@ -129,14 +133,14 @@ export function DiscoveriesPage({ badgeUnlockDates, childName, tests }: Discover
 
   return (
     <>
-      <header className="flex flex-col gap-1.5 pt-2">
-        <p className="eyebrow">Carnet</p>
+      <header className="flex flex-col gap-2 pt-2">
         <h1 className="font-rounded text-[2rem] font-extrabold leading-[1.1] tracking-[-0.01em]">Progression</h1>
+        <p className="text-base leading-6 text-muted-foreground">{heroMessage}</p>
       </header>
 
       <ProgressHero
+        avatarEmoji={avatarEmoji}
         childName={displayName}
-        message={heroMessage}
         testedFoods={testedCount}
         catalogPercent={catalogPercent}
         unlockedBadges={unlockedBadges.length}
@@ -191,41 +195,57 @@ export function DiscoveriesPage({ badgeUnlockDates, childName, tests }: Discover
 }
 
 function ProgressHero({
+  avatarEmoji,
   catalogPercent,
   childName,
-  message,
   testedFoods,
   unlockedBadges,
 }: {
+  avatarEmoji: string
   catalogPercent: number
   childName: string
-  message: string
   testedFoods: number
   unlockedBadges: number
 }) {
   return (
     <Card className="paper-surface soft-ring overflow-hidden rounded-hero">
       <CardContent className="grid gap-4 p-5 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="text-xl font-bold tracking-[-0.01em]">Carnet de {childName}</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{message}</p>
-          </div>
-          <span
-            aria-hidden="true"
-            className="flex size-14 shrink-0 items-center justify-center rounded-full bg-status-season-month/15 text-status-season-month"
-          >
-            <Sparkles className="size-6" />
-          </span>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="min-w-0 truncate text-xl font-bold tracking-[-0.01em]">Carnet de {childName}</h2>
+          <BabyAvatar emoji={avatarEmoji} size={48} />
         </div>
-        <Progress value={catalogPercent} aria-label={`${catalogPercent}% du catalogue découvert`} />
         <div className="grid grid-cols-3 gap-2.5">
           <SummaryTile icon={BadgeCheck} value={`${testedFoods}`} label="aliments testés" tone="primary" />
           <SummaryTile icon={ChartPie} value={`${catalogPercent}%`} label="catalogue" tone="dairy" />
           <SummaryTile icon={Medal} value={`${unlockedBadges}`} label="badges" tone="honey" />
         </div>
+        <Progress value={catalogPercent} aria-label={`${catalogPercent}% du catalogue découvert`} />
+        <div className="border-t border-border/40 pt-3">
+          <JournalRow />
+        </div>
       </CardContent>
     </Card>
+  )
+}
+
+function JournalRow() {
+  return (
+    <NavLink
+      to="/journal"
+      className="-m-1 flex items-center gap-3 rounded-xl p-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
+      <span
+        aria-hidden="true"
+        className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/12 text-primary"
+      >
+        <NotebookPen className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold">Journal</span>
+        <span className="block text-sm leading-5 text-muted-foreground">Les aliments ajoutés, jour après jour</span>
+      </span>
+      <ChevronRight className="size-5 shrink-0 text-muted-foreground/65" aria-hidden="true" />
+    </NavLink>
   )
 }
 

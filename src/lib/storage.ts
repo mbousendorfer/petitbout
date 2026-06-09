@@ -15,9 +15,12 @@ export type FoodTest = {
 
 export type BabyProfile = {
   ageMonths: number
+  avatarEmoji: string
   birthDate: string
   childName: string
 }
+
+export const defaultAvatarEmoji = "👶"
 
 export type StoredState = {
   profile: BabyProfile
@@ -44,7 +47,7 @@ const legacyStorageKey = "diversibebs-state-v1"
 const familySessionKey = "diversibebs-family-session-v1"
 
 const initialState: StoredState = {
-  profile: { ageMonths: 4, birthDate: "", childName: "" },
+  profile: { ageMonths: 4, avatarEmoji: defaultAvatarEmoji, birthDate: "", childName: "" },
   tests: [],
 }
 
@@ -68,7 +71,7 @@ const legacyReactionMap: Record<string, Reaction> = {
   autre: "Autre",
 }
 
-function calculateAgeMonths(birthDate: string) {
+export function calculateAgeMonths(birthDate: string) {
   if (!birthDate) return null
 
   const birth = new Date(`${birthDate}T00:00:00`)
@@ -122,6 +125,7 @@ function normalizeStoredState(value: Partial<StoredState> | null | undefined): S
   return {
     profile: {
       ageMonths: computedAgeMonths ?? profile.ageMonths,
+      avatarEmoji: profile.avatarEmoji?.trim() ? profile.avatarEmoji : defaultAvatarEmoji,
       birthDate: profile.birthDate ?? "",
       childName: profile.childName ?? "",
     },
@@ -190,7 +194,7 @@ function parseRemoteState(data: unknown, fallbackState: StoredState = initialSta
   if (!data || typeof data !== "object") return fallbackState
 
   const value = data as {
-    profile?: { ageMonths?: number; birthDate?: string | null; childName?: string | null }
+    profile?: { ageMonths?: number; avatarEmoji?: string | null; birthDate?: string | null; childName?: string | null }
     tests?: Array<{
       id?: string
       foodId?: string
@@ -204,6 +208,8 @@ function parseRemoteState(data: unknown, fallbackState: StoredState = initialSta
   return normalizeStoredState({
     profile: {
       ageMonths: value.profile?.ageMonths ?? fallbackState.profile.ageMonths,
+      // L'avatar n'est pas synchronisé via Supabase : on conserve la valeur locale.
+      avatarEmoji: remoteTextOrFallback(value.profile?.avatarEmoji, fallbackState.profile.avatarEmoji),
       birthDate: remoteTextOrFallback(value.profile?.birthDate, fallbackState.profile.birthDate),
       childName: remoteTextOrFallback(value.profile?.childName, fallbackState.profile.childName),
     },

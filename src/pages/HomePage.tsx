@@ -8,6 +8,7 @@ import { isAgeReady } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { SectionHeader, EmptyState, Disclaimer } from "@/components/primitives"
+import { BabyAvatar } from "@/components/BabyAvatar"
 import { StageProgressStrip } from "@/components/StageProgressStrip"
 import { FoodHeroCard } from "@/components/food/FoodHeroCard"
 import { FoodTestDrawer, type FoodPanelTab } from "@/components/food/FoodPanel"
@@ -19,7 +20,7 @@ export function HomePage({
   store: ReturnType<typeof useBabyStore>
   suggestions: Food[]
 }) {
-  const { ageMonths, childName } = store.profile
+  const { ageMonths, avatarEmoji, childName } = store.profile
   const displayName = childName.trim() ? childName.trim() : "bébé"
   const testedCount = store.testedFoodIds.size
   const remainingCount = useMemo(
@@ -39,6 +40,7 @@ export function HomePage({
       <TodayHero
         displayName={displayName}
         ageMonths={ageMonths}
+        avatarEmoji={avatarEmoji}
         message={heroMessage}
         testedCount={testedCount}
         remainingCount={remainingCount}
@@ -82,12 +84,14 @@ export function HomePage({
 
 export function TodayHero({
   ageMonths,
+  avatarEmoji,
   displayName,
   message,
   remainingCount,
   testedCount,
 }: {
   ageMonths: number
+  avatarEmoji: string
   displayName: string
   message: string
   remainingCount: number
@@ -97,10 +101,13 @@ export function TodayHero({
     <section className="paper-surface soft-ring overflow-hidden rounded-hero p-5">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-rounded text-2xl font-extrabold tracking-[-0.01em]">Aujourd'hui</h1>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-status-reaction/12 px-3 py-1 text-xs font-bold text-status-reaction">
-          <Baby className="size-3.5" aria-hidden="true" />
-          {ageMonths} mois
-        </span>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-status-reaction/12 px-3 py-1 text-xs font-bold text-status-reaction">
+            <Baby className="size-3.5" aria-hidden="true" />
+            {ageMonths} mois
+          </span>
+          <BabyAvatar emoji={avatarEmoji} size={44} />
+        </div>
       </div>
       <p className="mt-3 text-lg font-bold tracking-[-0.01em]">Bonjour {displayName}</p>
       <p className="mt-1 text-sm leading-6 text-muted-foreground">{message}</p>

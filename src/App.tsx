@@ -23,6 +23,14 @@ const GuidancePage = lazy(() =>
   import("@/components/GuidancePage").then((module) => ({ default: module.GuidancePage })),
 )
 
+const JournalPage = lazy(() =>
+  import("@/pages/JournalPage").then((module) => ({ default: module.JournalPage })),
+)
+
+const ProfilePage = lazy(() =>
+  import("@/pages/ProfilePage").then((module) => ({ default: module.ProfilePage })),
+)
+
 function App() {
   const store = useBabyStore()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
@@ -67,11 +75,28 @@ function App() {
                     tests={store.tests}
                     badgeUnlockDates={badgeUnlockDates}
                     childName={store.profile.childName}
+                    avatarEmoji={store.profile.avatarEmoji}
                   />
                 </Suspense>
               }
             />
+            <Route
+              path="/journal"
+              element={
+                <Suspense fallback={<PageLoading label="Journal" />}>
+                  <JournalPage store={store} />
+                </Suspense>
+              }
+            />
             <Route path="/settings" element={<SettingsPage store={store} theme={theme} setTheme={setTheme} />} />
+            <Route
+              path="/profile"
+              element={
+                <Suspense fallback={<PageLoading label="Profil de bébé" />}>
+                  <ProfilePage store={store} />
+                </Suspense>
+              }
+            />
           </Routes>
         </main>
         <BottomNav />
