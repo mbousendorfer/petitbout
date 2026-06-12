@@ -1,25 +1,24 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
-import { BookOpen, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, PencilLine, Plus, ShieldCheck, Trash2, Utensils, X, type LucideIcon } from "lucide-react"
+import { AlertTriangle, BookOpen, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, Plus, Scale, ShieldCheck, Utensils, X, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { type Food } from "@/data/foods"
 import { guidanceStageFor } from "@/data/guidance"
 import { foodSourceReferences } from "@/data/sources"
-import { ageSummary, getStatus, isInSeason, monthNames } from "@/lib/food-utils"
+import { ageSummary, monthNames } from "@/lib/food-utils"
 import { reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
-import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, testDateTimeLabel, type MealTimePresetId } from "@/lib/formatting"
+import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, type MealTimePresetId } from "@/lib/formatting"
 import { FoodHeroCard } from "@/components/food/FoodHeroCard"
-import { StatusBadge, SeasonBadge, IntroductionBadge, SeasonMonthsGrid } from "@/components/food/FoodBadges"
+import { SeasonMonthsGrid } from "@/components/food/FoodBadges"
 
-export type FoodPanelTab = "infos" | "add"
+export type FoodPanelTab = "add"
 export function FoodTestDrawer({
   food,
-  initialTab,
+  initialTab: _initialTab,
   onOpenChange,
   open,
   store,
@@ -32,9 +31,6 @@ export function FoodTestDrawer({
   store: ReturnType<typeof useBabyStore>
   test?: FoodTest
 }) {
-  const foodTests = useMemo(() => store.tests.filter((item) => item.foodId === food.id), [food.id, store.tests])
-  const latestFoodTest = foodTests[0]
-  const [selectedTab, setSelectedTab] = useState<FoodPanelTab>(() => initialTab ?? "add")
   const [selectedTest, setSelectedTest] = useState<FoodTest | null>(() => test ?? null)
   const isEditing = Boolean(selectedTest)
   const [date, setDate] = useState(() => selectedTest?.date ?? new Date().toISOString().slice(0, 10))
@@ -43,15 +39,19 @@ export function FoodTestDrawer({
     selectedTest?.mealTime ? mealTimePresetFor(selectedTest.mealTime) : defaultMealTimePreset.id,
   )
   const [reaction, setReaction] = useState<Reaction>(() => selectedTest?.reaction ?? "Aucune")
+  const [reactionDetail, setReactionDetail] = useState(() => selectedTest?.reaction === "Autre" ? selectedTest.note : "")
   const [note, setNote] = useState(() => selectedTest?.note ?? "")
   const [showReaction, setShowReaction] = useState(
     () => Boolean(selectedTest && selectedTest.reaction !== "Aucune"),
   )
-  const [confirmingRemovalId, setConfirmingRemovalId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const status = getStatus(food.id, store.latestByFood)
   const reactionSummary = reaction === "Aucune" ? "Rien à signaler" : reactionLabels[reaction]
   const reactionIsSevere = reaction === "Allergie" || reaction === "Vomi"
+
+  function currentTimeValue() {
+    const now = new Date()
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+  }
 
   useEffect(() => {
     if (!open) return
@@ -70,44 +70,30 @@ export function FoodTestDrawer({
     }
   }, [onOpenChange, open])
 
-  useEffect(() => {
-    if (!confirmingRemovalId) return
-    const timeout = window.setTimeout(() => setConfirmingRemovalId(null), 3500)
-    return () => window.clearTimeout(timeout)
-  }, [confirmingRemovalId])
-
   function resetFormForNewTest() {
     setSelectedTest(null)
     setDate(new Date().toISOString().slice(0, 10))
     setMealTime(defaultMealTimePreset.time)
     setMealTimePreset(defaultMealTimePreset.id)
     setReaction("Aucune")
+    setReactionDetail("")
     setNote("")
     setShowReaction(false)
-    setConfirmingRemovalId(null)
-  }
-
-  function editTest(nextTest: FoodTest) {
-    setSelectedTab("add")
-    setSelectedTest(nextTest)
-    setDate(nextTest.date)
-    setMealTime(nextTest.mealTime || defaultMealTimePreset.time)
-    setMealTimePreset(nextTest.mealTime ? mealTimePresetFor(nextTest.mealTime) : defaultMealTimePreset.id)
-    setReaction(nextTest.reaction)
-    setNote(nextTest.note)
-    setShowReaction(nextTest.reaction !== "Aucune")
-    setConfirmingRemovalId(null)
   }
 
   async function saveTest() {
     if (isSaving) return
 
+    const cleanNote = note.trim()
+    const cleanReactionDetail = reaction === "Autre" ? reactionDetail.trim() : ""
     const nextTest = {
       foodId: food.id,
       date,
       mealTime,
       reaction,
-      note,
+      note: cleanReactionDetail && !cleanNote.includes(cleanReactionDetail)
+        ? [cleanNote, cleanReactionDetail].filter(Boolean).join(" · ")
+        : cleanNote,
     }
 
     setIsSaving(true)
@@ -127,27 +113,16 @@ export function FoodTestDrawer({
   }
 
   function selectMealTimePreset(presetId: MealTimePresetId) {
+    const wasCustom = mealTimePreset === "custom"
     setMealTimePreset(presetId)
 
-    if (presetId === "custom") return
-
-    const preset = mealTimePresets.find((item) => item.id === presetId)
-    if (preset) setMealTime(preset.time)
-  }
-
-  async function removeTrackedTest(testToRemove: FoodTest) {
-    if (confirmingRemovalId !== testToRemove.id) {
-      setConfirmingRemovalId(testToRemove.id)
+    if (presetId === "custom") {
+      if (!wasCustom) setMealTime(currentTimeValue())
       return
     }
 
-    await store.deleteTest(testToRemove.id)
-    toast.success(`${food.name} retiré du carnet`)
-    setConfirmingRemovalId(null)
-
-    if (selectedTest?.id === testToRemove.id) {
-      resetFormForNewTest()
-    }
+    const preset = mealTimePresets.find((item) => item.id === presetId)
+    if (preset) setMealTime(preset.time)
   }
 
   if (!open) return null
@@ -179,138 +154,12 @@ export function FoodTestDrawer({
           <div className="px-4 pb-3 pt-4">
             <FoodHeroCard food={food} />
           </div>
-          <div className="sticky top-0 z-10 border-b border-border/40 bg-background/95 px-5 pb-3 pt-1 backdrop-blur">
-            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1" role="tablist" aria-label="Vue de la fiche">
-              {([
-                { id: "add", label: isEditing ? "Modifier" : "Ajouter" },
-                { id: "infos", label: "Infos" },
-              ] as const).map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selectedTab === tab.id}
-                  className={cn(
-                    "flex min-h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    selectedTab === tab.id
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                  onClick={() => setSelectedTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
           <div className="flex min-w-0 flex-col gap-4 px-5 pb-4 pt-4">
-            {selectedTab === "infos" && (
-            <div className="flex min-w-0 flex-col gap-4">
-            <div className="flex flex-wrap gap-2">
-              <StatusBadge status={status} />
-              {isInSeason(food) && <SeasonBadge />}
-              <IntroductionBadge level={food.level} />
-              <SeasonMonthsGrid activeMonths={food.seasonMonths} />
-            </div>
-            <FoodPanelGuidanceCard ageMonths={store.profile.ageMonths} />
-            <FoodPanelReferenceCard food={food} />
-            <p className="rounded-xl bg-muted/65 p-4 text-sm leading-6">{food.preparation}</p>
-            <FoodSourceNote food={food} />
-            {foodTests.length > 0 && (
-              <div className="rounded-xl border bg-card/85 p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">Suivi</p>
-                    <p className="mt-1 text-sm font-medium">
-                      {foodTests.length} prise{foodTests.length > 1 ? "s" : ""} enregistrée{foodTests.length > 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  {latestFoodTest && (
-                    <Badge variant="outline" className="h-auto max-w-[52%] justify-start px-2 py-1 text-left text-xs leading-4">
-                      Dernière : {testDateTimeLabel(latestFoodTest)}
-                    </Badge>
-                  )}
-                </div>
-                <div className="mt-3 grid gap-2">
-                  {foodTests.slice(0, 4).map((trackedTest) => {
-                    const isSelectedTest = selectedTest?.id === trackedTest.id
-                    const isConfirmingRemoval = confirmingRemovalId === trackedTest.id
-
-                    return (
-                      <div
-                        key={trackedTest.id}
-                        className={cn(
-                          "flex min-w-0 items-center justify-between gap-3 rounded-lg border bg-background/55 px-3 py-2",
-                          isSelectedTest && "border-primary/35 bg-secondary/45",
-                        )}
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{testDateTimeLabel(trackedTest)}</p>
-                          <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-                            <span aria-hidden="true">{reactionDisplay[trackedTest.reaction].emoji}</span>
-                            <span className="truncate">{reactionLabels[trackedTest.reaction]}</span>
-                          </p>
-                        </div>
-                        <div className="flex min-h-8 shrink-0 items-center gap-1">
-                          {isConfirmingRemoval ? (
-                            <>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-xs"
-                                onClick={() => setConfirmingRemovalId(null)}
-                              >
-                                Annuler
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-2 text-xs text-destructive"
-                                onClick={() => removeTrackedTest(trackedTest)}
-                              >
-                                <Trash2 data-icon="inline-start" aria-hidden="true" />
-                                Supprimer
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 text-muted-foreground hover:text-foreground"
-                                onClick={() => editTest(trackedTest)}
-                                aria-label={`Modifier la prise de ${food.name} du ${testDateTimeLabel(trackedTest)}`}
-                                title="Modifier"
-                              >
-                                <PencilLine aria-hidden="true" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => removeTrackedTest(trackedTest)}
-                                aria-label={`Retirer cette prise de ${food.name}`}
-                                title="Retirer"
-                              >
-                                <Trash2 aria-hidden="true" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-            </div>
-            )}
-            {selectedTab === "add" && (
             <div className="flex min-w-0 flex-col gap-5">
+              <FoodPanelSeasonCard food={food} />
+              {food.isAllergen && <FoodPanelAllergenCard />}
+              <FoodInfoInlineNotes food={food} />
+
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="font-semibold tracking-[-0.01em]">{isEditing ? "Modifier" : "Ajouter un aliment"}</h3>
@@ -363,34 +212,30 @@ export function FoodTestDrawer({
                     )
                   })}
                 </div>
-                <div
-                  className={cn(
-                    "flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition-colors",
-                    mealTimePreset === "custom"
-                      ? "border-primary/35 bg-primary/10"
-                      : "border-border bg-background/50",
-                  )}
-                >
+                {mealTimePreset === "custom" ? (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 transition-colors">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                      <span className="truncate text-sm font-semibold">Heure</span>
+                    </div>
+                    <Input
+                      className="h-9 w-[7.5rem] shrink-0 bg-background/80"
+                      type="time"
+                      value={mealTime}
+                      aria-label="Heure de la prise"
+                      onChange={(event) => setMealTime(event.target.value)}
+                    />
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    className="flex min-w-0 flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+                    className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => selectMealTimePreset("custom")}
-                    aria-pressed={mealTimePreset === "custom"}
                   >
-                    <Clock className={cn("size-4 shrink-0", mealTimePreset === "custom" ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
-                    <span className="truncate text-sm font-medium">Entrer l’heure</span>
+                    <Clock className="size-4 shrink-0" aria-hidden="true" />
+                    Définir l’heure
                   </button>
-                  <Input
-                    className="h-9 w-[7.5rem] shrink-0 bg-background/70"
-                    type="time"
-                    value={mealTime}
-                    aria-label="Heure de la prise"
-                    onChange={(event) => {
-                      setMealTime(event.target.value)
-                      setMealTimePreset("custom")
-                    }}
-                  />
-                </div>
+                )}
               </div>
 
               <div className="flex min-w-0 flex-col gap-2.5">
@@ -468,15 +313,21 @@ export function FoodTestDrawer({
                           Symptôme important : demande un avis médical.
                         </p>
                       )}
+                      {reaction === "Autre" && (
+                        <Input
+                          className="h-10 bg-background/70"
+                          placeholder="Précise en quelques mots"
+                          value={reactionDetail}
+                          onChange={(event) => setReactionDetail(event.target.value)}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            )}
           </div>
         </div>
-        {selectedTab === "add" && (
         <div className="shrink-0 border-t bg-background/95 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur lg:pb-4">
           <div className="grid gap-2">
             <Button type="button" className="h-12 w-full" onClick={saveTest} disabled={isSaving}>
@@ -485,10 +336,94 @@ export function FoodTestDrawer({
             </Button>
           </div>
         </div>
-        )}
       </div>
     </>,
     document.body,
+  )
+}
+
+function FoodPanelSeasonCard({ food }: { food: Food }) {
+  return (
+    <div className="rounded-card border bg-card/90 p-4 shadow-soft">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <p className="flex items-center gap-1.5 text-sm font-bold text-status-season">
+          <Leaf className="size-4" aria-hidden="true" />
+          Saison
+        </p>
+        <p className="truncate text-xs font-medium text-muted-foreground">
+          {food.seasonText || monthNames(food.seasonMonths)}
+        </p>
+      </div>
+      <SeasonMonthsGrid activeMonths={food.seasonMonths} />
+    </div>
+  )
+}
+
+function FoodPanelAllergenCard() {
+  return (
+    <div className="rounded-card border border-destructive/20 bg-destructive/10 p-4 shadow-soft">
+      <p className="flex items-center gap-2 font-semibold text-destructive">
+        <AlertTriangle className="size-4" aria-hidden="true" />
+        Repère allergène
+      </p>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        Les repères actuels recommandent de ne pas retarder les allergènes courants une fois la diversification lancée. Introduire progressivement, en petite quantité, sous une forme adaptée à l'âge.
+      </p>
+      <ul className="mt-3 grid gap-1.5 text-sm leading-5 text-muted-foreground">
+        {[
+          "Proposer quand bébé va bien, sur un repas calme.",
+          "Éviter les formes dures, entières ou collantes.",
+          "En cas de terrain allergique connu, demander un avis médical.",
+        ].map((item) => (
+          <li key={item} className="flex items-start gap-2">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function FoodInfoInlineNotes({ food }: { food: Food }) {
+  if (!food.quantityNotes && !food.restrictionNotes) return null
+
+  return (
+    <div className="grid gap-3 px-1">
+      {food.quantityNotes && (
+        <FoodInfoInlineNote icon={Scale} title="Quantités" value={food.quantityNotes} />
+      )}
+      {food.restrictionNotes && (
+        <FoodInfoInlineNote icon={AlertTriangle} title="À noter" value={food.restrictionNotes} tone="destructive" />
+      )}
+    </div>
+  )
+}
+
+function FoodInfoInlineNote({
+  icon: Icon,
+  title,
+  tone = "muted",
+  value,
+}: {
+  icon: LucideIcon
+  title: string
+  tone?: "destructive" | "muted"
+  value: string
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <Icon
+        className={cn("mt-0.5 size-5 shrink-0", tone === "destructive" ? "text-destructive" : "text-muted-foreground")}
+        aria-hidden="true"
+      />
+      <div className="min-w-0">
+        <p className={cn("text-xs font-bold uppercase", tone === "destructive" ? "text-destructive" : "text-muted-foreground")}>
+          {title}
+        </p>
+        <p className="mt-0.5 text-sm leading-5 text-muted-foreground">{value}</p>
+      </div>
+    </div>
   )
 }
 

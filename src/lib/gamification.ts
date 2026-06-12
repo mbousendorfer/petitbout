@@ -50,6 +50,7 @@ export type GamificationContext = {
   testedFoodIds: Set<string>
   testedFoods: Food[]
   testedCategories: Set<string>
+  likedFoodIds: Set<string>
   mealMoments: Set<string>
   seasonalFoodIds: Set<string>
   foodColors: Set<string>
@@ -59,8 +60,7 @@ export type GamificationContext = {
 
 const badgeUnlockStorageKey = "diversibebs-badge-unlocks-v1"
 
-// Les 15 définitions, reprises mot pour mot de BadgeUnlockService.swift.
-// (« Petits favoris » / liked_three est omis : le modèle web ne capture pas l'appréciation « aimé ».)
+// Définitions reprises de BadgeUnlockService.swift.
 export const badgeDefinitions: BadgeDefinition[] = [
   {
     id: "first_food",
@@ -137,6 +137,15 @@ export const badgeDefinitions: BadgeDefinition[] = [
     target: 1,
   },
   {
+    id: "liked_three",
+    title: "Petits favoris",
+    detail: "Trois aliments aimés.",
+    unlockedDetail: "Trois aliments ont été aimés.",
+    iconKey: "heart",
+    category: "story",
+    target: 3,
+  },
+  {
     id: "reaction_noted",
     title: "Mémo utile",
     detail: "Une réaction ou une note renseignée.",
@@ -206,7 +215,7 @@ export const badgeDefinitions: BadgeDefinition[] = [
 ]
 
 function isAllergen(food: Food) {
-  return food.tags.includes("allergène")
+  return food.isAllergen || food.tags.includes("allergène")
 }
 
 function normalize(value: string) {
@@ -264,6 +273,7 @@ export function createGamificationContext(foods: Food[], tests: FoodTest[]): Gam
     testedFoodIds,
     testedFoods,
     testedCategories: new Set(testedFoods.map((food) => food.category)),
+    likedFoodIds: new Set(tests.filter((trial) => trial.reaction === "Aime").map((trial) => trial.foodId)),
     mealMoments: new Set(tests.map((trial) => mealTimePresetFor(trial.mealTime))),
     seasonalFoodIds: new Set(
       testedFoods.filter((food) => food.seasonMonths.includes(currentMonth)).map((food) => food.id),
@@ -294,6 +304,8 @@ function currentValue(badgeId: string, context: GamificationContext): number {
       return context.testedFoods.filter((food) => food.category === "Légumes").length
     case "first_allergen":
       return context.testedFoods.some(isAllergen) ? 1 : 0
+    case "liked_three":
+      return context.likedFoodIds.size
     case "reaction_noted":
       return context.hasObservation ? 1 : 0
     case "texture_note":

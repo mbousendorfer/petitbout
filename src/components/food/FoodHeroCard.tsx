@@ -21,7 +21,7 @@ export function FoodHeroCard({
   const meta = categoryMeta[food.category]
   const CategoryIcon = meta.icon
   const inSeason = isInSeason(food)
-  const recommendedAge = food.recommendedAgeMonths ?? food.minAgeMonths
+  const recommendedAge = food.recommendedAgeInMonths
 
   return (
     <div
@@ -52,7 +52,7 @@ export function FoodHeroCard({
       </span>
 
       <p className="relative line-clamp-2 font-rounded text-xl font-extrabold leading-tight tracking-[-0.01em]">{food.name}</p>
-      <p className="relative line-clamp-2 text-sm leading-5 text-muted-foreground">{food.preparation}</p>
+      <p className="relative line-clamp-2 text-sm leading-5 text-muted-foreground">{food.shortDescription}</p>
 
       <div className="relative mt-auto flex w-full flex-col gap-2.5 pt-2">
         <div className="flex items-center justify-center gap-1.5">
@@ -67,7 +67,7 @@ export function FoodHeroCard({
             )}
           >
             <Leaf className="size-3" aria-hidden="true" />
-            {inSeason ? "Saison" : "Hors saison"}
+            {inSeason ? "Saison" : food.seasonText || "Hors saison"}
           </span>
         </div>
         {footer}

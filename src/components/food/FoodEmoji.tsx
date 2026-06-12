@@ -8,7 +8,8 @@ const categoryEmojiTile: Record<FoodCategory, string> = {
   Protéines: "bg-category-protein/[0.16] border-category-protein/[0.22]",
   "Produits laitiers": "bg-category-dairy/[0.16] border-category-dairy/[0.22]",
   "Matières grasses": "bg-category-fat/[0.16] border-category-fat/[0.22]",
-  Divers: "bg-primary/[0.14] border-primary/[0.20]",
+  Allergènes: "bg-destructive/[0.12] border-destructive/[0.22]",
+  Autres: "bg-muted border-border",
 }
 
 export function FoodEmoji({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" }) {

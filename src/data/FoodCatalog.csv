@@ -1,0 +1,115 @@
+name;category;sourceCategory;status4;status6;status9;status12;recommendedAgeInMonths;seasonText;seasons;quantity4;quantity6;quantity9;quantity12;restriction;isAllergen;iconName;shortDescription
+artichaut;vegetable;Légumes;possible;recommended;recommended;recommended;6;mars à septembre;3,4,5,6,7,8,9;;;;;;false;🌿;Légume à introduire progressivement, saison : mars à septembre.
+asperge;vegetable;Légumes;possible;possible;recommended;recommended;9;avril à juin;4,5,6;;;;;;false;🌿;Légume à introduire progressivement, saison : avril à juin.
+aubergine;vegetable;Légumes;recommended;recommended;recommended;recommended;4;juin à septembre;6,7,8,9;;;;;;false;🍆;Légume conseillé dès 4 mois, saison : juin à septembre.
+avocat;vegetable;Légumes;possible;recommended;recommended;recommended;6;octobre à avril;1,2,3,4,10,11,12;;;;;;false;🥑;Texture fondante à proposer progressivement.
+blette;vegetable;Légumes;recommended;recommended;recommended;recommended;4;juin à novembre;6,7,8,9,10,11;;;;;;false;🥬;Légume conseillé dès 4 mois, saison : juin à novembre.
+betterave;vegetable;Légumes;recommended;recommended;recommended;recommended;4;octobre à mars;1,2,3,10,11,12;;;;;;false;🫜;Légume conseillé dès 4 mois, saison : octobre à mars.
+brocoli;vegetable;Légumes;recommended;recommended;recommended;recommended;4;juin à novembre;6,7,8,9,10,11;;;;;;false;🥦;Goût végétal marqué à proposer en petite quantité.
+carotte;vegetable;Légumes;recommended;recommended;recommended;recommended;4;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🥕;Douce, lisse et souvent appréciée pour les premières purées.
+céleri-branche;vegetable;Légumes;possible;recommended;recommended;recommended;6;juillet à janvier;1,7,8,9,10,11,12;;;;;;false;🥬;Légume à introduire progressivement, saison : juillet à janvier.
+céleri-rave;vegetable;Légumes;recommended;recommended;recommended;recommended;4;octobre à mars;1,2,3,10,11,12;;;;;;false;🥬;Légume conseillé dès 4 mois, saison : octobre à mars.
+champignon;vegetable;Légumes;possible;recommended;recommended;recommended;6;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🍄;À proposer bien cuit, en petite quantité.
+chou blanc;vegetable;Légumes;possible;possible;recommended;recommended;9;octobre à avril;1,2,3,4,10,11,12;;;;;;false;🥬;Chou à proposer progressivement selon la tolérance digestive.
+chou de Bruxelles;vegetable;Légumes;possible;possible;recommended;recommended;9;septembre à mars;1,2,3,9,10,11,12;;;;;;false;🥬;Chou à proposer progressivement selon la tolérance digestive.
+chou rouge;vegetable;Légumes;possible;possible;recommended;recommended;9;octobre à avril;1,2,3,4,10,11,12;;;;;;false;🥬;Chou à proposer progressivement selon la tolérance digestive.
+chou vert;vegetable;Légumes;possible;possible;recommended;recommended;9;octobre à avril;1,2,3,4,10,11,12;;;;;;false;🥬;Chou à proposer progressivement selon la tolérance digestive.
+chou-fleur;vegetable;Légumes;possible;possible;recommended;recommended;9;septembre à avril;1,2,3,4,9,10,11,12;;;;;;false;🥬;Chou à proposer progressivement selon la tolérance digestive.
+chou-rave;vegetable;Légumes;possible;possible;recommended;recommended;9;mars à novembre;3,4,5,6,7,8,9,10,11;;;;;;false;🥬;Légume à introduire progressivement, saison : mars à novembre.
+citrouille;vegetable;Légumes;recommended;recommended;recommended;recommended;4;septembre à décembre;9,10,11,12;;;;;;false;🎃;Texture douce et goût légèrement sucré.
+concombre;vegetable;Légumes;recommended;recommended;recommended;recommended;4;avril à octobre;4,5,6,7,8,9,10;;;;;;false;🥒;À proposer adapté à la texture de bébé.
+courgette;vegetable;Légumes;recommended;recommended;recommended;recommended;4;mai à septembre;5,6,7,8,9;;;;;;false;🥒;Texture légère, parfaite pour varier les légumes verts.
+endive;vegetable;Légumes;recommended;recommended;recommended;recommended;4;octobre à avril;1,2,3,4,10,11,12;;;;;;false;🥬;Légume conseillé dès 4 mois, saison : octobre à avril.
+épinards;vegetable;Légumes;recommended;recommended;recommended;recommended;4;septembre à juin;1,2,3,4,5,6,9,10,11,12;;;;;;false;🥬;Légume vert à proposer cuit et mixé.
+fenouil;vegetable;Légumes;recommended;recommended;recommended;recommended;4;mai à décembre;5,6,7,8,9,10,11,12;;;;;;false;🌿;Goût doux et anisé, à proposer progressivement.
+haricots verts;vegetable;Légumes;recommended;recommended;recommended;recommended;4;juillet à septembre;7,8,9;;;;;;false;🫛;Légume vert facile à intégrer aux purées.
+navet;vegetable;Légumes;recommended;recommended;recommended;recommended;4;octobre à mai;1,2,3,4,5,10,11,12;;;;;;false;🫜;Légume conseillé dès 4 mois, saison : octobre à mai.
+oignon;vegetable;Légumes;possible;possible;recommended;recommended;9;septembre à avril;1,2,3,4,9,10,11,12;;;;;;false;🧅;À utiliser en petite quantité pour parfumer.
+panais;vegetable;Légumes;recommended;recommended;recommended;recommended;4;octobre à février;1,2,10,11,12;;;;;;false;🌿;Légume fondant au goût doux.
+patate douce;vegetable;Légumes;recommended;recommended;recommended;recommended;4;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🍠;Naturellement fondante et légèrement sucrée.
+pâtisson;vegetable;Légumes;possible;recommended;recommended;recommended;6;juillet à novembre;7,8,9,10,11;;;;;;false;🎃;Courge douce à proposer progressivement.
+petits pois;vegetable;Légumes;recommended;recommended;recommended;recommended;4;mai à juin;5,6;;;;;;false;🫛;À proposer bien cuits, en texture adaptée.
+poireau;vegetable;Légumes;recommended;recommended;recommended;recommended;4;septembre à avril;1,2,3,4,9,10,11,12;;;;;;false;🌱;Légume doux pour parfumer les purées.
+poivron;vegetable;Légumes;possible;recommended;recommended;recommended;6;juin à septembre;6,7,8,9;;;;;;false;🫑;À proposer bien cuit, sans peau si besoin.
+potimarron;vegetable;Légumes;recommended;recommended;recommended;recommended;4;septembre à décembre;9,10,11,12;;;;;;false;🎃;Courge fondante au goût doux.
+potiron;vegetable;Légumes;recommended;recommended;recommended;recommended;4;octobre à janvier;1,10,11,12;;;;;;false;🎃;Texture douce et facile à mixer.
+radis;vegetable;Légumes;possible;recommended;recommended;recommended;6;mars à juin;3,4,5,6;;;;;;false;🌱;À proposer adapté à la texture de bébé.
+rutabaga;vegetable;Légumes;recommended;recommended;recommended;recommended;4;octobre à avril;1,2,3,4,10,11,12;;;;;;false;🫜;Légume racine à proposer en purée.
+salade;vegetable;Légumes;recommended;recommended;recommended;recommended;4;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🥬;À proposer cuite ou adaptée aux capacités de bébé.
+salsifis;vegetable;Légumes;possible;recommended;recommended;recommended;6;octobre à mars;1,2,3,10,11,12;;;;;;false;🌿;Légume à introduire progressivement, saison : octobre à mars.
+tomate;vegetable;Légumes;possible;recommended;recommended;recommended;6;mai à septembre;5,6,7,8,9;;;;;;false;🍅;À proposer bien mûre, adaptée à la texture.
+topinambour;vegetable;Légumes;recommended;recommended;recommended;recommended;4;novembre à avril;1,2,3,4,11,12;;;;;;false;🌿;À proposer progressivement selon la tolérance digestive.
+abricot;fruit;Fruits;recommended;recommended;recommended;recommended;4;juin à août;6,7,8;;;;;;false;🍑;Fruit conseillé dès 4 mois, saison : juin à août.
+amande;fruit;Fruits;possible;recommended;recommended;recommended;6;septembre et octobre;9,10;;;;;;true;🌰;Fruit à coque à proposer en purée fine, jamais entier.
+ananas;fruit;Fruits;possible;recommended;recommended;recommended;6;octobre à avril;1,2,3,4,10,11,12;;;;;;false;🍍;Fruit à introduire progressivement, saison : octobre à avril.
+banane;fruit;Fruits;recommended;recommended;recommended;recommended;4;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🍌;Texture crémeuse, très pratique au quotidien.
+cassis;fruit;Fruits;possible;recommended;recommended;recommended;6;août et septembre;8,9;;;;;;false;🫐;Fruit à introduire progressivement, saison : août et septembre.
+cerise;fruit;Fruits;possible;recommended;recommended;recommended;6;juin;6;;;;;;false;🍒;À proposer dénoyautée et adaptée à la texture.
+châtaigne;fruit;Fruits;possible;recommended;recommended;recommended;6;octobre;10;;;;;;true;🌰;À proposer cuite, mixée ou en purée.
+citron;fruit;Fruits;recommended;recommended;recommended;recommended;4;février à septembre / novembre à décembre;2,3,4,5,6,7,8,9,11,12;;;;;;false;🍋;À utiliser en petite quantité pour parfumer.
+clémentine;fruit;Fruits;recommended;recommended;recommended;recommended;4;novembre à janvier;1,11,12;;;;;;false;🍊;Fruit conseillé dès 4 mois, saison : novembre à janvier.
+coing;fruit;Fruits;recommended;recommended;recommended;recommended;4;octobre;10;;;;;;false;🍐;À proposer cuit, en compote.
+datte;fruit;Fruits;possible;possible;recommended;recommended;9;octobre à décembre;10,11,12;;;;;;false;🌴;Fruit sucré à proposer en petite quantité.
+figue;fruit;Fruits;possible;recommended;recommended;recommended;6;juillet à octobre;7,8,9,10;;;;;;false;🌰;Fruit à introduire progressivement, saison : juillet à octobre.
+fraise;fruit;Fruits;possible;recommended;recommended;recommended;6;avril à juin;4,5,6;;;;;;false;🍓;Fruit parfumé à introduire tranquillement.
+framboise;fruit;Fruits;possible;recommended;recommended;recommended;6;juillet à septembre;7,8,9;;;;;;false;🍓;Fruit rouge à proposer adapté à la texture.
+fruit de la passion;fruit;Fruits;possible;recommended;recommended;recommended;6;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🥭;Fruit à introduire progressivement.
+grenade;fruit;Fruits;possible;recommended;recommended;recommended;6;novembre à février;1,2,11,12;;;;;;false;🍎;À proposer adaptée pour éviter les grains entiers.
+groseille;fruit;Fruits;possible;recommended;recommended;recommended;6;juin à septembre;6,7,8,9;;;;;;false;🍓;Fruit acidulé à proposer progressivement.
+kaki;fruit;Fruits;recommended;recommended;recommended;recommended;4;octobre à janvier;1,10,11,12;;;;;;false;🍊;Fruit doux à proposer mûr.
+kiwi;fruit;Fruits;possible;recommended;recommended;recommended;6;novembre à mai;1,2,3,4,5,11,12;;;;;;false;🥝;Fruit à introduire progressivement.
+litchi;fruit;Fruits;possible;recommended;recommended;recommended;6;novembre à janvier;1,11,12;;;;;;false;🍒;Fruit à proposer en texture adaptée.
+mandarine;fruit;Fruits;recommended;recommended;recommended;recommended;4;novembre à janvier;1,11,12;;;;;;false;🍊;Fruit conseillé dès 4 mois, saison : novembre à janvier.
+mangue;fruit;Fruits;recommended;recommended;recommended;recommended;4;avril à juillet / décembre;4,5,6,7,12;;;;;;false;🥭;Texture fondante, à proposer mûre.
+melon;fruit;Fruits;recommended;recommended;recommended;recommended;4;juin à septembre;6,7,8,9;;;;;;false;🍈;Fruit doux à proposer adapté à la texture.
+mirabelle;fruit;Fruits;recommended;recommended;recommended;recommended;4;août à septembre;8,9;;;;;;false;🍑;Fruit conseillé dès 4 mois, saison : août à septembre.
+mûre;fruit;Fruits;possible;recommended;recommended;recommended;6;juillet à octobre;7,8,9,10;;;;;;false;🫐;Fruit à proposer adapté à la texture.
+myrtille;fruit;Fruits;possible;recommended;recommended;recommended;6;juin à septembre;6,7,8,9;;;;;;false;🫐;Fruit à proposer écrasé ou mixé.
+nectarine;fruit;Fruits;recommended;recommended;recommended;recommended;4;juin à août;6,7,8;;;;;;false;🍑;Fruit conseillé dès 4 mois, saison : juin à août.
+noisette;fruit;Fruits;possible;recommended;recommended;recommended;6;septembre à novembre;9,10,11;;;;;;true;🌰;Fruit à coque à proposer en purée fine, jamais entier.
+noix;fruit;Fruits;possible;recommended;recommended;recommended;6;octobre à novembre;10,11;;;;;;true;🌰;Fruit à coque à proposer en purée fine, jamais entier.
+orange;fruit;Fruits;recommended;recommended;recommended;recommended;4;décembre à avril;1,2,3,4,12;;;;;;false;🍊;Fruit conseillé dès 4 mois, saison : décembre à avril.
+pamplemousse;fruit;Fruits;recommended;recommended;recommended;recommended;4;décembre à mars;1,2,3,12;;;;;;false;🍊;Fruit conseillé dès 4 mois, saison : décembre à mars.
+papaye;fruit;Fruits;recommended;recommended;recommended;recommended;4;octobre à décembre;10,11,12;;;;;;false;🥭;Fruit fondant à proposer mûr.
+pastèque;fruit;Fruits;recommended;recommended;recommended;recommended;4;juin à août;6,7,8;;;;;;false;🍉;Fruit riche en eau à proposer en texture adaptée.
+pêche;fruit;Fruits;recommended;recommended;recommended;recommended;4;juin à août;6,7,8;;;;;;false;🍑;Fruit fondant au goût doux.
+poire;fruit;Fruits;recommended;recommended;recommended;recommended;4;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🍐;Fruit fondant au goût délicat.
+pomme;fruit;Fruits;recommended;recommended;recommended;recommended;4;septembre à mai;1,2,3,4,5,9,10,11,12;;;;;;false;🍎;Compote douce, facile à associer.
+prune;fruit;Fruits;recommended;recommended;recommended;recommended;4;juillet à octobre;7,8,9,10;;;;;;false;🍑;Fruit conseillé dès 4 mois, saison : juillet à octobre.
+pruneau;fruit;Fruits;recommended;recommended;recommended;recommended;4;toute l'année;1,2,3,4,5,6,7,8,9,10,11,12;;;;;;false;🍑;Fruit à proposer en compote ou purée.
+quetsche;fruit;Fruits;recommended;recommended;recommended;recommended;4;août à octobre;8,9,10;;;;;;false;🍑;Fruit conseillé dès 4 mois, saison : août à octobre.
+raisin;fruit;Fruits;recommended;recommended;recommended;recommended;4;juillet à octobre;7,8,9,10;;;;;;false;🍇;À proposer adapté pour éviter les grains entiers.
+rhubarbe;fruit;Fruits;possible;recommended;recommended;recommended;6;avril à juillet;4,5,6,7;;;;;;false;🌿;Fruit à introduire progressivement, saison : avril à juillet.
+farine infantile;starch;Féculents;recommended;recommended;recommended;recommended;4;;;;;;;;false;🥣;Féculent conseillé dès 4 mois.
+avoine;starch;Féculents;possible;recommended;recommended;recommended;6;;;;;;;;true;🌾;Céréale contenant du gluten, à introduire progressivement.
+blé (farine);starch;Féculents;possible;recommended;recommended;recommended;6;;;;;;;;true;🌾;Céréale contenant du gluten, à introduire progressivement.
+fèves;starch;Féculents;possible;possible;possible;recommended;12;;;;;;;;false;🫘;Légumineuse à proposer progressivement.
+haricots blancs;starch;Féculents;possible;possible;possible;recommended;12;;;;;;;;false;🫘;Légumineuse à proposer progressivement.
+haricots rouges;starch;Féculents;possible;possible;possible;recommended;12;;;;;;;;false;🫘;Légumineuse à proposer progressivement.
+lentilles corail;starch;Féculents;possible;possible;possible;recommended;12;;;;;;;;false;🫘;Légumineuse douce, utile pour varier les textures.
+lentilles vertes;starch;Féculents;possible;possible;possible;recommended;12;;;;;;;;false;🫘;Légumineuse à proposer progressivement.
+maïs (doux);starch;Féculents;recommended;recommended;recommended;recommended;4;;;;;;;;false;🌽;Féculent conseillé dès 4 mois.
+pain;starch;Féculents;;possible;recommended;recommended;9;;;;;;;;true;🍞;Contient du gluten, à proposer en texture adaptée.
+pâtes;starch;Féculents;;possible;recommended;recommended;9;;;;;;;;true;🍝;Contient du gluten, à proposer en texture adaptée.
+pois chiches;starch;Féculents;possible;possible;possible;recommended;12;;;;;;;;false;🫘;Légumineuse à proposer progressivement.
+polenta;starch;Féculents;possible;possible;recommended;recommended;9;;;;;;;;false;🌽;Féculent à proposer en texture adaptée.
+pomme de terre;starch;Féculents;recommended;recommended;recommended;recommended;4;;;;;;;;false;🥔;Texture douce pour lier les purées.
+quinoa;starch;Féculents;possible;possible;recommended;recommended;9;;;;;;;;false;🌾;Féculent à proposer progressivement.
+riz blanc;starch;Féculents;possible;possible;recommended;recommended;9;;;;;;;;false;🍚;Base simple pour épaissir un repas.
+riz semi-complet;starch;Féculents;;possible;recommended;recommended;9;;;;;;;;false;🍚;À proposer progressivement en texture adaptée.
+sarrasin;starch;Féculents;possible;possible;recommended;recommended;9;;;;;;;;false;🌾;Féculent à proposer progressivement.
+semoule, boulgour;starch;Féculents;possible;possible;recommended;recommended;9;;;;;;;;true;🌾;Contient du gluten, à mélanger avec légumes ou sauce douce.
+tapioca;starch;Féculents;possible;possible;recommended;recommended;9;;;;;;;;false;🥣;Féculent à proposer en texture adaptée.
+viande blanche;protein;Protéines animales;possible;;; ;6;;; ;10 g;15 g;20 g;;false;🍗;Quantité journalière indicative : 10 g à 6 mois, 15 g à 9 mois, 20 g à 12 mois.
+viande rouge;protein;Protéines animales;possible;;; ;6;;; ;10 g;15 g;20 g;;false;🥩;Quantité journalière indicative : 10 g à 6 mois, 15 g à 9 mois, 20 g à 12 mois.
+poisson maigre;protein;Protéines animales;possible;;; ;6;;; ;10 g;15 g;20 g;;true;🐟;Poisson bien cuit. Quantité indicative : 10 g à 6 mois, 15 g à 9 mois, 20 g à 12 mois.
+poisson gras;protein;Protéines animales;possible;;; ;6;;; ;10 g;15 g;20 g;;true;🐟;Poisson bien cuit. Quantité indicative : 10 g à 6 mois, 15 g à 9 mois, 20 g à 12 mois.
+oeuf;protein;Protéines animales;possible;;; ;6;;; ;1/4;1/4;1/3;;true;🥚;Œuf bien cuit. Quantité indicative : 1/4 à 6 et 9 mois, 1/3 à 12 mois.
+fruits de mer (cuits);protein;Protéines animales;possible;;; ;6;;; ;10 g;15 g;20 g;;true;🦐;Fruits de mer cuits. Quantité indicative : 10 g à 6 mois, 15 g à 9 mois, 20 g à 12 mois.
+charcuterie;protein;Protéines animales;;;;;36;;;;;;pas avant 3 ans;;false;🥓;À éviter avant 3 ans.
+miel;other;Divers;;;;possible;12;;;;;;;pas avant 1 an;false;🍯;À éviter avant 1 an.
+yaourt;dairy;Divers;possible;recommended;recommended;recommended;6;;;;;;;;true;🥛;Le lait maternel ou infantile reste le plus adapté, mais des laitages peuvent être proposés de temps en temps.
+fromage pasteurisé;dairy;Divers;possible;recommended;recommended;recommended;6;;;;;;;;true;🧀;Fromage pasteurisé à proposer de temps en temps.
+fromage au lait cru;dairy;Divers;;;;;60;;;;;;pas avant 5 ans;;true;🧀;À éviter avant 5 ans.
+herbes et épices;other;Divers;;recommended;recommended;recommended;6;;;;;;;;false;🌿;À utiliser en petite quantité pour parfumer.
+chocolat;other;Divers;;;;possible;12;;;;;;;;false;🍫;À proposer très occasionnellement.

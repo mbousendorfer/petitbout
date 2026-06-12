@@ -1,4 +1,4 @@
-import { Apple, Carrot, Droplet, Egg, Milk, Utensils, Wheat, type LucideIcon } from "lucide-react"
+import { AlertTriangle, Apple, Carrot, Droplet, Egg, Ellipsis, Milk, Wheat, type LucideIcon } from "lucide-react"
 
 import type { FoodCategory } from "@/data/foods"
 
@@ -55,15 +55,22 @@ export const categoryMeta: Record<FoodCategory, CategoryMeta> = {
     border: "border-category-dairy/20",
     gradientFrom: "from-category-dairy/25",
   },
-  Divers: {
-    icon: Utensils,
-    text: "text-primary",
-    tile: "bg-primary/12",
-    border: "border-primary/20",
-    gradientFrom: "from-primary/20",
+  Allergènes: {
+    icon: AlertTriangle,
+    text: "text-destructive",
+    tile: "bg-destructive/12",
+    border: "border-destructive/20",
+    gradientFrom: "from-destructive/20",
+  },
+  Autres: {
+    icon: Ellipsis,
+    text: "text-muted-foreground",
+    tile: "bg-muted",
+    border: "border-border",
+    gradientFrom: "from-muted/60",
   },
 }
 
-export function isAllergenFood(food: { tags: string[] }): boolean {
-  return food.tags.includes("allergène")
+export function isAllergenFood(food: { isAllergen?: boolean; tags: string[] }): boolean {
+  return Boolean(food.isAllergen) || food.tags.includes("allergène")
 }

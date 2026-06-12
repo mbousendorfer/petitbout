@@ -15,6 +15,7 @@ import {
   Globe,
   Grid3x3,
   HelpCircle,
+  Heart,
   Leaf,
   Medal,
   Milk,
@@ -60,6 +61,7 @@ const badgeIcons: Record<string, LucideIcon> = {
   apple: Apple,
   leaf: Leaf,
   "shield-alert": ShieldAlert,
+  heart: Heart,
   note: NotebookPen,
   pen: PenLine,
   clock: Clock,
@@ -86,7 +88,8 @@ const foodCategoryMeta: Record<FoodCategory, { icon: LucideIcon; text: string; b
   Protéines: { icon: Egg, text: "text-category-protein", bar: "bg-category-protein", tile: "bg-category-protein/12" },
   "Matières grasses": { icon: Droplet, text: "text-category-fat", bar: "bg-category-fat", tile: "bg-category-fat/12" },
   "Produits laitiers": { icon: Milk, text: "text-category-dairy", bar: "bg-category-dairy", tile: "bg-category-dairy/12" },
-  Divers: { icon: Utensils, text: "text-primary", bar: "bg-primary", tile: "bg-primary/12" },
+  Allergènes: { icon: ShieldAlert, text: "text-destructive", bar: "bg-destructive", tile: "bg-destructive/12" },
+  Autres: { icon: Utensils, text: "text-primary", bar: "bg-primary", tile: "bg-primary/12" },
 }
 
 const containerMotion = {

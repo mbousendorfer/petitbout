@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { NavLink } from "react-router-dom"
-import { ArrowRight, Baby, BadgeCheck, Carrot, Check, ChevronRight, FileSearch, Plus, Sparkles, type LucideIcon } from "lucide-react"
+import { ArrowRight, BadgeCheck, Cake, Carrot, Check, ChevronRight, FileSearch, Plus, Sparkles, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { foods, type Food } from "@/data/foods"
 import { guidanceStageFor, guidanceStageIndexFor } from "@/data/guidance"
@@ -99,17 +99,17 @@ export function TodayHero({
 }) {
   return (
     <section className="paper-surface soft-ring overflow-hidden rounded-hero p-5">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="font-rounded text-2xl font-extrabold tracking-[-0.01em]">Aujourd'hui</h1>
-        <div className="flex shrink-0 items-center gap-2.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-status-reaction/12 px-3 py-1 text-xs font-bold text-status-reaction">
-            <Baby className="size-3.5" aria-hidden="true" />
-            {ageMonths} mois
-          </span>
-          <BabyAvatar emoji={avatarEmoji} size={44} />
+      <div className="flex items-center gap-3">
+        <BabyAvatar emoji={avatarEmoji} size={48} />
+        <div className="min-w-0 flex-1">
+          <h1 className="font-rounded text-2xl font-extrabold tracking-normal">Aujourd'hui</h1>
+          <p className="truncate text-base font-semibold">Bonjour {displayName}</p>
         </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-muted/70 px-3 py-1.5 text-xs font-bold text-foreground/75 ring-1 ring-border/35">
+          <Cake className="size-3.5" aria-hidden="true" />
+          {ageMonths} mois
+        </span>
       </div>
-      <p className="mt-3 text-lg font-bold tracking-[-0.01em]">Bonjour {displayName}</p>
       <p className="mt-1 text-sm leading-6 text-muted-foreground">{message}</p>
       <div className="mt-4 grid grid-cols-2 gap-2.5">
         <TodayHeroStat icon={BadgeCheck} value={testedCount} label="testés" tone="tested" />

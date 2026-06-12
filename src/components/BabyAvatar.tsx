@@ -63,7 +63,7 @@ export function BabyAvatarPicker({
             <p className="eyebrow sticky top-0 z-10 -mx-3 bg-muted/20 px-3 pb-1 pt-0.5 backdrop-blur-sm">
               {section.title}
             </p>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="flex flex-wrap gap-2">
               {section.emojis.map((emoji) => {
                 const isSelected = value === emoji
 
@@ -75,7 +75,7 @@ export function BabyAvatarPicker({
                     aria-pressed={isSelected}
                     aria-label={`Avatar ${emoji}`}
                     className={cn(
-                      "flex aspect-square min-h-11 items-center justify-center rounded-full border text-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                      "flex size-14 items-center justify-center rounded-full border text-[2rem] leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                       isSelected
                         ? "border-primary/50 bg-primary/16 ring-2 ring-primary/50"
                         : "border-border bg-card hover:bg-muted",

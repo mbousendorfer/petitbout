@@ -12,6 +12,7 @@ import { FoodTestDrawer, type FoodPanelTab } from "@/components/food/FoodPanel"
 // avec un pied de carte qui reflète le statut de l'aliment.
 export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const status = getStatus(food.id, store.latestByFood)
+  const latestTest = store.latestByFood.get(food.id)
   const [openTab, setOpenTab] = useState<FoodPanelTab | null>(null)
   const tested = status !== "non testé"
 
@@ -33,7 +34,7 @@ export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType
       <button
         type="button"
         className="group rounded-hero text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        onClick={() => setOpenTab(tested ? "infos" : "add")}
+        onClick={() => setOpenTab("add")}
         aria-label={tested ? `Voir ${food.name}` : `Ajouter une prise de ${food.name}`}
       >
         <FoodHeroCard
@@ -48,6 +49,7 @@ export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType
         <FoodTestDrawer
           food={food}
           store={store}
+          test={latestTest}
           initialTab={openTab}
           open
           onOpenChange={(next) => {

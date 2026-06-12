@@ -1,4 +1,4 @@
-import { categories, type Food, type FoodCategory } from "@/data/foods"
+import { categories, type Food } from "@/data/foods"
 import type { FoodTest } from "@/lib/storage"
 
 export type FoodStatusFilter = "tous" | "non-testes" | "testes" | "reaction"
@@ -88,20 +88,20 @@ export function isInSeason(food: Food, month = currentMonth()) {
 }
 
 export function isAgeReady(food: Food, ageMonths: number) {
-  return food.minAgeMonths <= ageMonths
+  return food.recommendedAgeInMonths <= ageMonths
 }
 
 export function ageSummary(food: Food) {
   if (
-    food.possibleAgeMonths &&
-    food.recommendedAgeMonths &&
-    food.possibleAgeMonths !== food.recommendedAgeMonths
+    food.possibleIntroductionMonths.length > 0 &&
+    food.recommendedIntroductionMonths.length > 0 &&
+    food.possibleIntroductionMonths[0] !== food.recommendedAgeInMonths
   ) {
-    return `possible dès ${food.possibleAgeMonths} mois · conseillé dès ${food.recommendedAgeMonths} mois`
+    return `possible dès ${food.possibleIntroductionMonths[0]} mois · conseillé dès ${food.recommendedAgeInMonths} mois`
   }
 
-  if (food.recommendedAgeMonths) return `conseillé dès ${food.recommendedAgeMonths} mois`
-  if (food.possibleAgeMonths) return `possible dès ${food.possibleAgeMonths} mois`
+  if (food.recommendedAgeInMonths) return `conseillé dès ${food.recommendedAgeInMonths} mois`
+  if (food.possibleIntroductionMonths[0]) return `possible dès ${food.possibleIntroductionMonths[0]} mois`
   return `dès ${food.minAgeMonths} mois`
 }
 
@@ -126,34 +126,26 @@ export function weeklySuggestions(
   testedFoodIds: Set<string>,
   month = currentMonth(),
 ) {
-  const categoryCounts = new Map<FoodCategory, number>()
-  const ranked = foods
+  const testedCategories = new Set(
+    foods.filter((food) => testedFoodIds.has(food.id)).map((food) => food.category),
+  )
+
+  return foods
     .filter((food) => isAgeReady(food, ageMonths))
-    .filter((food) => !food.tags.includes("à éviter") && !food.tags.includes("pas avant 3 ans"))
     .filter((food) => !testedFoodIds.has(food.id))
     .sort((a, b) => {
-      const score = (food: Food) =>
-        (food.level === "conseillé" ? 30 : 0) +
-        (isInSeason(food, month) ? 20 : 0)
+      const seasonOrder = Number(!isInSeason(a, month)) - Number(!isInSeason(b, month))
+      if (seasonOrder !== 0) return seasonOrder
 
-      return score(b) - score(a) || a.category.localeCompare(b.category, "fr") || a.name.localeCompare(b.name, "fr")
+      const diversityOrder = Number(testedCategories.has(a.category)) - Number(testedCategories.has(b.category))
+      if (diversityOrder !== 0) return diversityOrder
+
+      return (
+        a.recommendedAgeInMonths - b.recommendedAgeInMonths ||
+        a.name.localeCompare(b.name, "fr", { sensitivity: "base" })
+      )
     })
-
-  const selected: Food[] = []
-
-  ranked.forEach((food) => {
-    if (selected.length >= 5) return
-    if ((categoryCounts.get(food.category) ?? 0) >= 2) return
-    selected.push(food)
-    categoryCounts.set(food.category, (categoryCounts.get(food.category) ?? 0) + 1)
-  })
-
-  ranked.forEach((food) => {
-    if (selected.length >= 5) return
-    if (!selected.includes(food)) selected.push(food)
-  })
-
-  return selected
+    .slice(0, 6)
 }
 
 export function suggestionReasons(food: Food, month = currentMonth()) {

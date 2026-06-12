@@ -20,9 +20,9 @@ const aFruit = foods.find((food) => food.category === "Fruits")!
 const anAllergen = foods.find((food) => food.tags.includes("allergène"))!
 
 describe("calculateBadges", () => {
-  it("returns the 15 iOS badges with progress and unlocked flags", () => {
+  it("returns the 16 iOS badges with progress and unlocked flags", () => {
     const badges = calculateBadges(foods, [])
-    expect(badges).toHaveLength(15)
+    expect(badges).toHaveLength(16)
     badges.forEach((badge) => {
       expect(badge).toMatchObject({
         id: expect.any(String),
@@ -41,9 +41,12 @@ describe("calculateBadges", () => {
     expect(badges.every((badge) => !badge.unlocked)).toBe(true)
   })
 
-  it("does not include the dropped 'liked' badge", () => {
+  it("includes the iOS liked badge", () => {
     const badges = calculateBadges(foods, [])
-    expect(badges.find((badge) => badge.id === "liked_three")).toBeUndefined()
+    expect(badges.find((badge) => badge.id === "liked_three")).toMatchObject({
+      progressTarget: 3,
+      unlocked: false,
+    })
   })
 
   it("unlocks 'first_food' as soon as one food is tested", () => {
@@ -59,6 +62,12 @@ describe("calculateBadges", () => {
   it("unlocks 'first_allergen' when an allergen food is tested", () => {
     const badges = calculateBadges(foods, [test(anAllergen.id)])
     expect(badges.find((badge) => badge.id === "first_allergen")?.unlocked).toBe(true)
+  })
+
+  it("unlocks 'liked_three' when three foods are marked as liked", () => {
+    const likedFoods = foods.slice(0, 3).map((food) => test(food.id, { reaction: "Aime" }))
+    const badges = calculateBadges(foods, likedFoods)
+    expect(badges.find((badge) => badge.id === "liked_three")?.unlocked).toBe(true)
   })
 
   it("targets every food family for the rare 'all_categories' badge", () => {

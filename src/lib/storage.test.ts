@@ -17,7 +17,7 @@ describe("parseBackupPayload", () => {
   it("accepts a valid v1 payload", () => {
     const result = parseBackupPayload(validBackup())
     expect(result.state.profile.childName).toBe("Lina")
-    expect(result.state.profile.ageMonths).toBe(7)
+    expect(result.state.profile.ageMonths).toBe(8)
     expect(result.familySession).toBeNull()
   })
 

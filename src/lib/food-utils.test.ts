@@ -21,11 +21,20 @@ function makeFood(overrides: Partial<Food> = {}): Food {
     name: "Carotte",
     emoji: "🥕",
     category: "Légumes",
+    sourceCategoryLabel: "Légumes",
     minAgeMonths: 4,
     possibleAgeMonths: 4,
+    possibleIntroductionMonths: [4],
+    recommendedAgeInMonths: 6,
     recommendedAgeMonths: 6,
+    recommendedIntroductionMonths: [6],
     seasonMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    seasonText: "toute l'année",
+    shortDescription: "Douce et lisse.",
     preparation: "Cuite et écrasée.",
+    quantityNotes: "",
+    restrictionNotes: "",
+    isAllergen: false,
     level: "conseillé",
     sourceIds: [],
     tags: [],
@@ -38,27 +47,39 @@ function makeFilters(overrides: Partial<FoodFilters> = {}): FoodFilters {
 }
 
 describe("isAgeReady", () => {
-  it("returns true when baby is older than minAgeMonths", () => {
-    expect(isAgeReady(makeFood({ minAgeMonths: 4 }), 6)).toBe(true)
+  it("returns true when baby is older than recommendedAgeInMonths", () => {
+    expect(isAgeReady(makeFood({ recommendedAgeInMonths: 4, recommendedAgeMonths: 4 }), 6)).toBe(true)
   })
 
-  it("returns false when baby is younger than minAgeMonths", () => {
-    expect(isAgeReady(makeFood({ minAgeMonths: 8 }), 6)).toBe(false)
+  it("returns false when baby is younger than recommendedAgeInMonths", () => {
+    expect(isAgeReady(makeFood({ recommendedAgeInMonths: 8, recommendedAgeMonths: 8 }), 6)).toBe(false)
   })
 
   it("returns true at the boundary", () => {
-    expect(isAgeReady(makeFood({ minAgeMonths: 6 }), 6)).toBe(true)
+    expect(isAgeReady(makeFood({ recommendedAgeInMonths: 6, recommendedAgeMonths: 6 }), 6)).toBe(true)
   })
 })
 
 describe("ageSummary", () => {
   it("describes both possible and recommended when they differ", () => {
-    const food = makeFood({ possibleAgeMonths: 4, recommendedAgeMonths: 8 })
+    const food = makeFood({
+      possibleAgeMonths: 4,
+      possibleIntroductionMonths: [4],
+      recommendedAgeInMonths: 8,
+      recommendedAgeMonths: 8,
+      recommendedIntroductionMonths: [8],
+    })
     expect(ageSummary(food)).toBe("possible dès 4 mois · conseillé dès 8 mois")
   })
 
   it("uses recommended-only phrasing when only that is set", () => {
-    const food = makeFood({ possibleAgeMonths: undefined, recommendedAgeMonths: 8 })
+    const food = makeFood({
+      possibleAgeMonths: undefined,
+      possibleIntroductionMonths: [],
+      recommendedAgeInMonths: 8,
+      recommendedAgeMonths: 8,
+      recommendedIntroductionMonths: [8],
+    })
     expect(ageSummary(food)).toBe("conseillé dès 8 mois")
   })
 
@@ -66,7 +87,10 @@ describe("ageSummary", () => {
     const food = makeFood({
       minAgeMonths: 12,
       possibleAgeMonths: undefined,
+      possibleIntroductionMonths: [],
+      recommendedAgeInMonths: 0,
       recommendedAgeMonths: undefined,
+      recommendedIntroductionMonths: [],
     })
     expect(ageSummary(food)).toBe("dès 12 mois")
   })
@@ -117,7 +141,7 @@ describe("weeklySuggestions", () => {
   const month = 6
 
   it("filters out foods the baby is too young for", () => {
-    const tooOld = makeFood({ id: "noix", minAgeMonths: 12, name: "Noix" })
+    const tooOld = makeFood({ id: "noix", recommendedAgeInMonths: 12, recommendedAgeMonths: 12, name: "Noix" })
     const result = weeklySuggestions([tooOld], 6, new Set(), month)
     expect(result).toEqual([])
   })
@@ -129,37 +153,42 @@ describe("weeklySuggestions", () => {
     expect(result.map((food) => food.id)).toEqual(["b"])
   })
 
-  it("filters out foods tagged 'à éviter' or 'pas avant 3 ans'", () => {
+  it("does not drop restricted foods when iOS age rules make them eligible", () => {
     const avoided = makeFood({ id: "sel", name: "Sel", tags: ["à éviter"] })
     const late = makeFood({ id: "noix", name: "Noix", tags: ["pas avant 3 ans"] })
     const ok = makeFood({ id: "carotte", name: "Carotte" })
     const result = weeklySuggestions([avoided, late, ok], 12, new Set(), month)
-    expect(result.map((food) => food.id)).toEqual(["carotte"])
+    expect(result.map((food) => food.id)).toEqual(["carotte", "noix", "sel"])
   })
 
-  it("returns at most 5 suggestions", () => {
+  it("returns at most 6 suggestions", () => {
     const items = Array.from({ length: 10 }, (_, index) =>
       makeFood({ id: `food-${index}`, name: `Food ${index}`, category: index % 2 === 0 ? "Légumes" : "Fruits" }),
     )
     const result = weeklySuggestions(items, 6, new Set(), month)
-    expect(result).toHaveLength(5)
+    expect(result).toHaveLength(6)
   })
 
-  it("caps each category to two foods in the first pass", () => {
-    const items = Array.from({ length: 6 }, (_, index) =>
-      makeFood({ id: `legume-${index}`, name: `Légume ${index}`, category: "Légumes" }),
-    )
-    const result = weeklySuggestions(items, 6, new Set(), month)
-    expect(result.length).toBeLessThanOrEqual(5)
-    const legumes = result.filter((food) => food.category === "Légumes")
-    expect(legumes.length).toBeGreaterThanOrEqual(2)
+  it("prefers in-season foods first", () => {
+    const inSeason = makeFood({ id: "saison", name: "Saison", seasonMonths: [month] })
+    const outOfSeason = makeFood({ id: "hors-saison", name: "Hors saison", seasonMonths: [1] })
+    const result = weeklySuggestions([outOfSeason, inSeason], 6, new Set(), month)
+    expect(result.map((food) => food.id)).toEqual(["saison", "hors-saison"])
   })
 
-  it("prefers 'conseillé' foods over 'possible' when both are in season", () => {
-    const conseille = makeFood({ id: "c", name: "C", level: "conseillé", category: "Légumes" })
-    const possible = makeFood({ id: "p", name: "P", level: "possible", category: "Fruits" })
-    const result = weeklySuggestions([possible, conseille], 6, new Set(), month)
-    expect(result[0].id).toBe("c")
+  it("prefers categories not yet tested after season", () => {
+    const vegetable = makeFood({ id: "legume", name: "Légume", category: "Légumes" })
+    const fruit = makeFood({ id: "fruit", name: "Fruit", category: "Fruits" })
+    const testedVegetable = makeFood({ id: "tested", name: "Testé", category: "Légumes" })
+    const result = weeklySuggestions([vegetable, fruit, testedVegetable], 6, new Set(["tested"]), month)
+    expect(result.map((food) => food.id)).toEqual(["fruit", "legume"])
+  })
+
+  it("uses recommended age as final ranking tie-breaker", () => {
+    const younger = makeFood({ id: "young", name: "Young", recommendedAgeInMonths: 4, recommendedAgeMonths: 4 })
+    const older = makeFood({ id: "old", name: "Old", recommendedAgeInMonths: 6, recommendedAgeMonths: 6 })
+    const result = weeklySuggestions([older, younger], 6, new Set(), month)
+    expect(result.map((food) => food.id)).toEqual(["young", "old"])
   })
 })
 

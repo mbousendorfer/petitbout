@@ -11,6 +11,7 @@ import { categoryMeta, isAllergenFood } from "@/components/food/categoryMeta"
 
 export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const status = getStatus(food.id, store.latestByFood)
+  const latestTest = store.latestByFood.get(food.id)
   const meta = categoryMeta[food.category]
   const CategoryIcon = meta.icon
   const [open, setOpen] = useState(false)
@@ -47,7 +48,16 @@ export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; st
         </div>
         <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-xs font-bold", statusClass)}>{statusLabel}</span>
       </button>
-      {open && <FoodTestDrawer food={food} store={store} initialTab="add" open={open} onOpenChange={setOpen} />}
+      {open && (
+        <FoodTestDrawer
+          food={food}
+          store={store}
+          test={latestTest}
+          initialTab="add"
+          open={open}
+          onOpenChange={setOpen}
+        />
+      )}
     </>
   )
 })

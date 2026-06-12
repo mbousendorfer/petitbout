@@ -3,7 +3,7 @@ import { Search } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import { categories, foods, type FoodCategory } from "@/data/foods"
-import { getStatus, isAgeReady } from "@/lib/food-utils"
+import { getStatus } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { EmptyState, Header } from "@/components/primitives"
@@ -25,17 +25,14 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const normalizedQuery = query.toLowerCase().trim()
 
-  const ageReadyFoods = useMemo(
-    () =>
-      foods
-        .filter((food) => isAgeReady(food, store.profile.ageMonths))
-        .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" })),
-    [store.profile.ageMonths],
+  const catalogFoods = useMemo(
+    () => [...foods].sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" })),
+    [],
   )
 
   const filteredFoods = useMemo(
     () =>
-      ageReadyFoods.filter((food) => {
+      catalogFoods.filter((food) => {
         const matchesQuery = food.name.toLowerCase().includes(normalizedQuery)
         const matchesCategory = category === "all" || food.category === category
         const status = getStatus(food.id, store.latestByFood)
@@ -45,7 +42,7 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
           (statusFilter === "tested" && status !== "non testé")
         return matchesQuery && matchesCategory && matchesStatus
       }),
-    [ageReadyFoods, normalizedQuery, category, statusFilter, store.latestByFood],
+    [catalogFoods, normalizedQuery, category, statusFilter, store.latestByFood],
   )
 
   return (
@@ -72,7 +69,7 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted/60 p-1" role="tablist" aria-label="Filtrer par statut">
+      <div className="grid grid-cols-3 gap-1 rounded-lg border bg-muted/60 p-1" role="tablist" aria-label="Filtrer par statut">
         {statusOptions.map((option) => (
           <button
             key={option.id}
@@ -80,8 +77,10 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
             role="tab"
             aria-selected={statusFilter === option.id}
             className={cn(
-              "flex min-h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              statusFilter === option.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              "flex min-h-10 items-center justify-center rounded-md px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              statusFilter === option.id
+                ? "bg-card text-primary ring-1 ring-primary/30 shadow-sm"
+                : "text-muted-foreground hover:bg-card/70 hover:text-foreground",
             )}
             onClick={() => setStatusFilter(option.id)}
           >
