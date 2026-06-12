@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 
 import { PwaStatus } from "@/components/PwaStatus"
 import { Toaster } from "@/components/ui/sonner"
+import { BadgeUnlockCelebration } from "@/components/BadgeUnlockCelebration"
 import { FamilySetup } from "@/components/FamilySetup"
 import { BottomNav, DesktopNav } from "@/components/Navigation"
 import { PageLoading } from "@/components/primitives"
@@ -35,7 +36,11 @@ function App() {
   const store = useBabyStore()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
   const [theme, setTheme] = useTheme()
-  const badgeUnlockDates = useBadgeUnlockDates(store.tests, store.syncStatus)
+  const {
+    celebrationBadge,
+    dismissBadgeCelebration,
+    unlockDates: badgeUnlockDates,
+  } = useBadgeUnlockDates(store.tests, store.syncStatus)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
 
   if (!store.familySession) {
@@ -100,6 +105,7 @@ function App() {
           </Routes>
         </main>
         <BottomNav />
+        <BadgeUnlockCelebration badge={celebrationBadge} onDismiss={dismissBadgeCelebration} />
         <Toaster />
       </div>
   )

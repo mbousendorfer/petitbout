@@ -1,7 +1,12 @@
-import { useState, useEffect, useRef } from "react"
-import { toast } from "sonner"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { foods } from "@/data/foods"
-import { calculateBadges, readBadgeUnlockDates, writeBadgeUnlockDates, type BadgeUnlockDates } from "@/lib/gamification"
+import {
+  calculateBadges,
+  readBadgeUnlockDates,
+  writeBadgeUnlockDates,
+  type BadgeUnlockDates,
+  type DiscoveryBadge,
+} from "@/lib/gamification"
 import { useBabyStore } from "@/lib/storage"
 
 export function useBadgeUnlockDates(
@@ -9,6 +14,7 @@ export function useBadgeUnlockDates(
   syncStatus: ReturnType<typeof useBabyStore>["syncStatus"],
 ) {
   const [unlockDates, setUnlockDates] = useState<BadgeUnlockDates>(() => readBadgeUnlockDates())
+  const [celebrationQueue, setCelebrationQueue] = useState<DiscoveryBadge[]>([])
   const hasCheckedExistingBadges = useRef(false)
 
   useEffect(() => {
@@ -32,13 +38,19 @@ export function useBadgeUnlockDates(
     writeBadgeUnlockDates(nextUnlockDates)
 
     if (hasCheckedExistingBadges.current) {
-      newlyUnlocked.slice(0, 3).forEach((badge) => {
-        toast.success(`Badge débloqué : ${badge.title}`)
-      })
+      setCelebrationQueue((currentQueue) => [...currentQueue, ...newlyUnlocked.slice(0, 3)])
     }
 
     hasCheckedExistingBadges.current = true
   }, [syncStatus, tests, unlockDates])
 
-  return unlockDates
+  const dismissBadgeCelebration = useCallback(function dismissBadgeCelebration() {
+    setCelebrationQueue((currentQueue) => currentQueue.slice(1))
+  }, [])
+
+  return {
+    celebrationBadge: celebrationQueue[0] ?? null,
+    dismissBadgeCelebration,
+    unlockDates,
+  }
 }

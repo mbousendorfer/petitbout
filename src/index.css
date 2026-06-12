@@ -242,6 +242,41 @@
     }
   }
 
+  @keyframes badge-celebration-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes badge-confetti-fall {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, -0.75rem, 0) rotate(var(--confetti-rotate));
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(0, 6.5rem, 0) rotate(calc(var(--confetti-rotate) + 160deg));
+    }
+  }
+
+  .badge-celebration-card {
+    animation: badge-celebration-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .badge-confetti-piece {
+    left: var(--confetti-left);
+    top: var(--confetti-top);
+    animation: badge-confetti-fall 1250ms ease-out var(--confetti-delay) both;
+  }
+
   .stagger-list > .stagger-list-item {
     animation: list-item-in 220ms ease-out both;
   }
