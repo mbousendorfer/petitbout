@@ -5,6 +5,7 @@ import {
   Copy,
   Download,
   LogOut,
+  MessageSquare,
   Monitor,
   Moon,
   Sun,
@@ -157,6 +158,8 @@ export function SettingsPage({
 
         <InstallHelpSection />
 
+        <FeedbackSection />
+
         <SettingsSection description="Garde une copie, restaure le suivi ou prépare un rendez-vous." title="Sauvegarde">
           <Button type="button" variant="outline" className="h-12 justify-start rounded-lg px-4 text-base" onClick={exportBackup}>
             <Download data-icon="inline-start" aria-hidden="true" />
@@ -200,6 +203,22 @@ export function SettingsPage({
         </section>
       </div>
     </>
+  )
+}
+
+function FeedbackSection() {
+  return (
+    <SettingsSection
+      description="Partage ce qui bloque, ce qui aide ou ce qui rendrait Petitbout plus utile au quotidien."
+      title="Feedback"
+    >
+      <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
+        <NavLink to="/feedback">
+          <MessageSquare data-icon="inline-start" aria-hidden="true" />
+          Envoyer un retour
+        </NavLink>
+      </Button>
+    </SettingsSection>
   )
 }
 

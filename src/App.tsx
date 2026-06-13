@@ -35,6 +35,10 @@ const SettingsPage = lazy(() =>
   import("@/pages/SettingsPage").then((module) => ({ default: module.SettingsPage })),
 )
 
+const FeedbackPage = lazy(() =>
+  import("@/pages/FeedbackPage").then((module) => ({ default: module.FeedbackPage })),
+)
+
 function App() {
   const store = useBabyStore()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
@@ -101,6 +105,14 @@ function App() {
               element={
                 <Suspense fallback={<PageLoading label="Réglages" />}>
                   <SettingsPage store={store} theme={theme} setTheme={setTheme} />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/feedback"
+              element={
+                <Suspense fallback={<PageLoading label="Feedback" />}>
+                  <FeedbackPage />
                 </Suspense>
               }
             />

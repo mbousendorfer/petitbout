@@ -76,6 +76,7 @@ L'app utilise Supabase comme stockage partagé quand il est configuré et garde 
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-public-anon-key
+VITE_FEEDBACK_EMAIL=feedback@example.com
 ```
 
 5. Redémarrer `npm run dev`.
@@ -83,6 +84,22 @@ VITE_SUPABASE_ANON_KEY=your-public-anon-key
 Le code famille n'est pas envoyé en clair : l'app envoie uniquement son hash SHA-256. Ce code reste toutefois un secret partagé : toute personne qui le connaît peut accéder au même suivi. Utilisez un code long, non devinable, et ne le partagez qu’avec les personnes qui doivent gérer le carnet.
 
 Le schéma Supabase garde les tables derrière RLS sans policy publique et expose uniquement des fonctions RPC limitées. Ces RPC valident les hashes famille, réactions, dates et tailles de champs avant écriture.
+
+## Plausible
+
+L'app peut charger Plausible si un domaine de tracking est configuré. Le suivi reste volontairement basique : pages vues uniquement, sans données de profil, sans code famille et sans événement métier.
+
+Comme l'app utilise des routes avec hash (`/#/foods`, `/#/journal`, etc.), utilisez le script Plausible hash-based :
+
+```bash
+VITE_PLAUSIBLE_DOMAIN=app.example.com
+VITE_PLAUSIBLE_SCRIPT_URL=https://plausible.example.com/js/script.hash.js
+VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
+```
+
+- `VITE_PLAUSIBLE_DOMAIN` doit correspondre au domaine déclaré dans Plausible.
+- `VITE_PLAUSIBLE_SCRIPT_URL` pointe vers votre instance Plausible. Si la variable est vide, l'app utilise le script cloud Plausible par défaut.
+- `VITE_PLAUSIBLE_API_URL` est optionnelle, mais utile avec une instance self-hosted ou un proxy.
 
 ## Checklist de validation
 
@@ -117,8 +134,12 @@ Variables disponibles :
 - `PETITBOUT_PORT` : port exposé côté machine hôte, par défaut `8080`
 - `VITE_SUPABASE_URL` : URL publique du projet Supabase, lue au démarrage du conteneur
 - `VITE_SUPABASE_ANON_KEY` : clé publique `anon` Supabase, lue au démarrage du conteneur
+- `VITE_FEEDBACK_EMAIL` : adresse destinataire du formulaire de feedback
+- `VITE_PLAUSIBLE_DOMAIN` : domaine déclaré dans Plausible
+- `VITE_PLAUSIBLE_SCRIPT_URL` : URL du script hash-based Plausible
+- `VITE_PLAUSIBLE_API_URL` : endpoint d'événement Plausible, optionnel
 
-Les variables `VITE_SUPABASE_*` ne sont pas figées dans l'image Docker. Au démarrage, le conteneur génère `/petitbout/env-config.js` depuis l'environnement Docker, ce qui permet de réutiliser la même image avec plusieurs projets Supabase.
+Les variables `VITE_SUPABASE_*`, `VITE_FEEDBACK_EMAIL` et `VITE_PLAUSIBLE_*` ne sont pas figées dans l'image Docker. Au démarrage, le conteneur génère `/petitbout/env-config.js` depuis l'environnement Docker, ce qui permet de réutiliser la même image avec plusieurs projets Supabase ou domaines de tracking.
 
 Build local :
 
@@ -147,6 +168,10 @@ PETITBOUT_HOST=127.0.0.1
 PETITBOUT_PORT=8080
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-public-anon-key
+VITE_FEEDBACK_EMAIL=feedback@example.com
+VITE_PLAUSIBLE_DOMAIN=app.example.com
+VITE_PLAUSIBLE_SCRIPT_URL=https://plausible.example.com/js/script.hash.js
+VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
 ```
 
 Puis :
@@ -178,6 +203,8 @@ Le workflow GitHub Actions construit et publie l'image sur GitHub Container Regi
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_FEEDBACK_EMAIL`
+- Variables GitHub optionnelles : `VITE_PLAUSIBLE_DOMAIN`, `VITE_PLAUSIBLE_SCRIPT_URL`, `VITE_PLAUSIBLE_API_URL`
 - `VPS_HOST`
 - `VPS_USER`
 - `VPS_SSH_KEY`
