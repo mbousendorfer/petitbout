@@ -4,7 +4,6 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { PwaStatus } from "@/components/PwaStatus"
 import { Toaster } from "@/components/ui/sonner"
 import { BadgeUnlockCelebration } from "@/components/BadgeUnlockCelebration"
-import { FamilySetup } from "@/components/FamilySetup"
 import { BottomNav, DesktopNav } from "@/components/Navigation"
 import { PageLoading } from "@/components/primitives"
 import { HomePage } from "@/pages/HomePage"
@@ -43,6 +42,14 @@ const DataPrivacyPage = lazy(() =>
   import("@/pages/DataPrivacyPage").then((module) => ({ default: module.DataPrivacyPage })),
 )
 
+const PrivacyPage = lazy(() =>
+  import("@/pages/PrivacyPage").then((module) => ({ default: module.PrivacyPage })),
+)
+
+const FamilySpacePage = lazy(() =>
+  import("@/pages/FamilySpacePage").then((module) => ({ default: module.FamilySpacePage })),
+)
+
 function App() {
   const store = useBabyStore()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
@@ -53,17 +60,6 @@ function App() {
     unlockDates: badgeUnlockDates,
   } = useBadgeUnlockDates(store.tests, store.syncStatus)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
-
-  if (!store.familySession) {
-    return (
-      <div className="safe-shell soft-surface">
-        <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-5 px-4 py-5 sm:px-6">
-          <FamilySetup store={store} />
-        </main>
-        <Toaster />
-      </div>
-    )
-  }
 
   return (
     <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
@@ -125,6 +121,22 @@ function App() {
               element={
                 <Suspense fallback={<PageLoading label="Données" />}>
                   <DataPrivacyPage store={store} />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/privacy"
+              element={
+                <Suspense fallback={<PageLoading label="Confidentialité" />}>
+                  <PrivacyPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/family-space"
+              element={
+                <Suspense fallback={<PageLoading label="Espace famille" />}>
+                  <FamilySpacePage store={store} />
                 </Suspense>
               }
             />

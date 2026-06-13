@@ -2,7 +2,6 @@ import { type ReactNode } from "react"
 import { NavLink } from "react-router-dom"
 import {
   ChevronRight,
-  Copy,
   LogOut,
   MessageSquare,
   Monitor,
@@ -10,9 +9,7 @@ import {
   ShieldCheck,
   Sun,
 } from "lucide-react"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { type ThemeMode } from "@/app/useTheme"
@@ -35,25 +32,15 @@ export function SettingsPage({
   theme: ThemeMode
   setTheme: (theme: ThemeMode) => void
 }) {
-  const familyCodeLabel = store.familySession?.familyCodeLabel ?? ""
   const displayName = store.profile.childName.trim() ? store.profile.childName.trim() : "bébé"
   const bornLabel = birthDateLabel(store.profile.birthDate)
-  const isProfileUnsaved = !store.lastSyncedAt
+  const hasFamilySpace = Boolean(store.familySession)
+  const isProfileUnsaved = hasFamilySpace && !store.lastSyncedAt
   const profileDetails = [
     isProfileUnsaved ? "Profil incomplet" : null,
     `${store.profile.ageMonths} mois`,
     bornLabel ? `né le ${bornLabel}` : null,
   ].filter(Boolean)
-
-  async function copyFamilyCode() {
-    if (!familyCodeLabel) {
-      toast.error("Code famille indisponible sur cet appareil")
-      return
-    }
-
-    await navigator.clipboard.writeText(familyCodeLabel)
-    toast.success("Code famille copié")
-  }
 
   return (
     <>
@@ -76,49 +63,54 @@ export function SettingsPage({
 
       <div className="grid gap-1 lg:grid-cols-2 lg:gap-4">
         <SettingsSection
-          description="Le code famille et le PIN servent à retrouver le même suivi sur plusieurs appareils."
+          description={
+            hasFamilySpace
+              ? "Le partage multi-appareil est activé sur cet appareil."
+              : "Active-le seulement si tu veux retrouver le carnet sur plusieurs appareils."
+          }
           title="Espace famille"
         >
-          <label className="grid gap-1.5 text-sm font-medium">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">Code famille</span>
-            <div className="flex min-w-0 items-stretch gap-2">
-              <Input
-                readOnly
-                aria-label="Code famille"
-                className="h-11 min-w-0 flex-1 bg-background/70 font-medium"
-                placeholder="Code indisponible"
-                value={familyCodeLabel}
-              />
+          <div className="rounded-xl border bg-card/85 p-4 shadow-sm">
+            <div className="flex gap-3">
+              <span
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-xl",
+                  hasFamilySpace ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                )}
+              >
+                <ShieldCheck className="size-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold">
+                  {hasFamilySpace ? "Partage multi-appareil actif" : "Partage multi-appareil inactif"}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {hasFamilySpace
+                    ? "Le carnet est synchronisé avec le serveur PetitBout pour rester disponible sur les appareils connectés."
+                    : "Sans activation, le suivi reste sur cet appareil. Le partage nécessite la synchro PetitBout."}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Button asChild className="h-12 justify-start rounded-lg px-4 text-base">
+              <NavLink to="/family-space">
+                <ShieldCheck data-icon="inline-start" aria-hidden="true" />
+                Gérer l’espace famille
+              </NavLink>
+            </Button>
+            {hasFamilySpace && (
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 shrink-0 px-3"
-                onClick={copyFamilyCode}
-                disabled={!familyCodeLabel}
+                className="h-12 justify-start rounded-lg px-4 text-base text-muted-foreground"
+                onClick={() => store.leaveFamilySpaceOnDevice()}
               >
-                <Copy data-icon="inline-start" aria-hidden="true" />
-                Copier
+                <LogOut data-icon="inline-start" aria-hidden="true" />
+                Se déconnecter de cet appareil
               </Button>
-            </div>
-            {!familyCodeLabel && (
-              <span className="text-xs text-muted-foreground">
-                Le code original n’est pas disponible sur cet appareil.
-              </span>
             )}
-            {store.familySession?.hasProfilePin && (
-              <span className="text-xs text-muted-foreground">
-                Le PIN du profil bébé n’est pas affiché. Transmets-le séparément aux proches autorisés.
-              </span>
-            )}
-          </label>
-          <p className="rounded-lg border bg-card/85 p-3 text-sm leading-6 text-muted-foreground shadow-sm">
-            Pour partager le suivi avec un autre appareil, les données doivent être synchronisées sur le serveur PetitBout.
-            Si la synchro n’est pas configurée ou pas disponible, le suivi reste uniquement sur cet appareil.{" "}
-            <NavLink to="/data-privacy" className="font-semibold text-primary underline-offset-4 hover:underline">
-              Voir sauvegarde et données
-            </NavLink>
-            .
-          </p>
+          </div>
         </SettingsSection>
 
         <SettingsSection description="Le thème reste propre à cet appareil." title="Apparence">
@@ -134,13 +126,6 @@ export function SettingsPage({
         <DataManagementSection />
 
         <FeedbackSection />
-
-        <section className="flex justify-center border-t border-border/60 py-6 lg:col-span-2">
-          <Button type="button" variant="ghost" className="h-11 px-6 text-muted-foreground" onClick={() => store.disconnectFamily()}>
-            <LogOut data-icon="inline-start" aria-hidden="true" />
-            Se déconnecter
-          </Button>
-        </section>
       </div>
     </>
   )
@@ -165,13 +150,19 @@ function FeedbackSection() {
 function DataManagementSection() {
   return (
     <SettingsSection
-      description="Synchro, sauvegardes, suppressions et confidentialité au même endroit."
+      description="Garde une copie, restaure le suivi ou consulte ce qui est synchronisé."
       title="Sauvegarde et données"
     >
       <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
         <NavLink to="/data-privacy">
           <ShieldCheck data-icon="inline-start" aria-hidden="true" />
           Sauvegarde et données
+        </NavLink>
+      </Button>
+      <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
+        <NavLink to="/privacy">
+          <ShieldCheck data-icon="inline-start" aria-hidden="true" />
+          Confidentialité
         </NavLink>
       </Button>
     </SettingsSection>
@@ -197,6 +188,9 @@ export function InstallHelpSection() {
           <li>Touche le bouton Partager (icône en forme de flèche).</li>
           <li>Choisis « Sur l’écran d’accueil » puis Ajouter.</li>
         </ol>
+        <p className="mt-3 rounded-md bg-primary/10 px-3 py-2 text-sm font-semibold text-primary">
+          App Store App coming soon.
+        </p>
       </div>
       <div className="rounded-lg border bg-card/85 p-3 text-sm leading-6 shadow-sm">
         <div className="flex items-center gap-3">
