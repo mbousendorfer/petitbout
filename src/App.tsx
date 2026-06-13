@@ -39,6 +39,10 @@ const FeedbackPage = lazy(() =>
   import("@/pages/FeedbackPage").then((module) => ({ default: module.FeedbackPage })),
 )
 
+const DataPrivacyPage = lazy(() =>
+  import("@/pages/DataPrivacyPage").then((module) => ({ default: module.DataPrivacyPage })),
+)
+
 function App() {
   const store = useBabyStore()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
@@ -113,6 +117,14 @@ function App() {
               element={
                 <Suspense fallback={<PageLoading label="Feedback" />}>
                   <FeedbackPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/data-privacy"
+              element={
+                <Suspense fallback={<PageLoading label="Confidentialité" />}>
+                  <DataPrivacyPage />
                 </Suspense>
               }
             />

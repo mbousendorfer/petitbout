@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Monitor,
   Moon,
+  ShieldCheck,
   Sun,
   Trash2,
   Upload,
@@ -158,6 +159,8 @@ export function SettingsPage({
 
         <InstallHelpSection />
 
+        <DataPrivacySection />
+
         <FeedbackSection />
 
         <SettingsSection description="Garde une copie, restaure le suivi ou prépare un rendez-vous." title="Sauvegarde">
@@ -216,6 +219,22 @@ function FeedbackSection() {
         <NavLink to="/feedback">
           <MessageSquare data-icon="inline-start" aria-hidden="true" />
           Envoyer un retour
+        </NavLink>
+      </Button>
+    </SettingsSection>
+  )
+}
+
+function DataPrivacySection() {
+  return (
+    <SettingsSection
+      description="Vois clairement ce qui est suivi, ce qui est synchronisé et ce qui ne l’est pas."
+      title="Confidentialité"
+    >
+      <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
+        <NavLink to="/data-privacy">
+          <ShieldCheck data-icon="inline-start" aria-hidden="true" />
+          Confidentialité des données
         </NavLink>
       </Button>
     </SettingsSection>
