@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { NavLink, useNavigate } from "react-router-dom"
-import { ChevronLeft, Copy, KeyRound, Link2, LogOut, Server, ShieldCheck, Smartphone } from "lucide-react"
+import { ChevronLeft, Copy, KeyRound, Link2, LogOut, Server, ShieldCheck, Smartphone, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { backupFileName, backupToJson } from "@/lib/backup"
+import { downloadTextFile } from "@/lib/formatting"
 import {
   familyCodeMaxLength,
   familyCodeMinLength,
@@ -163,6 +165,24 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
 
     store.leaveFamilySpaceOnDevice()
     toast.success("Cet appareil est déconnecté de l’espace famille")
+  }
+
+  async function deleteFamilySpace() {
+    const confirmed = window.confirm(
+      "Supprimer tout l’espace famille ? Une sauvegarde de sécurité va d’abord être téléchargée. Cette action supprimera le profil et les essais partagés pour tous les appareils connectés à cet espace.",
+    )
+
+    if (!confirmed) return
+
+    downloadTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+    const didDelete = await store.deleteFamilySpace()
+
+    if (didDelete) {
+      toast.success("Espace famille supprimé")
+      navigate("/settings")
+    } else {
+      toast.error(store.syncError ?? "Impossible de supprimer l’espace famille partagé")
+    }
   }
 
   return (
@@ -329,6 +349,21 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
               >
                 <LogOut data-icon="inline-start" aria-hidden="true" />
                 Se déconnecter de cet appareil
+              </Button>
+            </SettingsSection>
+
+            <SettingsSection
+              description="Supprime le profil et les essais partagés pour tous les appareils connectés à cet espace."
+              title="Zone sensible"
+            >
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 justify-start rounded-lg px-4 text-base text-destructive hover:border-destructive/25 hover:bg-destructive/[0.08] hover:text-destructive"
+                onClick={() => void deleteFamilySpace()}
+              >
+                <Trash2 data-icon="inline-start" aria-hidden="true" />
+                Supprimer l’espace famille
               </Button>
             </SettingsSection>
           </>
