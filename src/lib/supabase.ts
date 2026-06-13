@@ -26,6 +26,9 @@ export async function getSupabase() {
 }
 
 export type BabyProfileRow = {
+  avatar_emoji: string | null
+  birth_date: string | null
+  child_name: string | null
   family_code_hash: string
   age_months: number
   updated_at: string

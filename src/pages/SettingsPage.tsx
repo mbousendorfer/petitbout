@@ -2,6 +2,7 @@ import { useRef, type ReactNode } from "react"
 import { NavLink } from "react-router-dom"
 import {
   ChevronRight,
+  CircleCheck,
   Copy,
   Download,
   LogOut,
@@ -29,6 +30,21 @@ function birthDateLabel(birthDate: string) {
   const date = new Date(`${birthDate}T00:00:00`)
   if (Number.isNaN(date.getTime())) return null
   return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
+}
+
+function lastSyncLabel(lastSyncedAt: string | null) {
+  if (!lastSyncedAt) return "Jamais synchronisé"
+
+  const date = new Date(lastSyncedAt)
+  if (Number.isNaN(date.getTime())) return "Jamais synchronisé"
+
+  return date.toLocaleString("fr-FR", {
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
 }
 
 export function SettingsPage({
@@ -147,6 +163,15 @@ export function SettingsPage({
               </span>
             )}
           </label>
+          <div className="flex items-center gap-3 rounded-lg border bg-card/85 p-3 text-sm leading-5 shadow-sm">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <CircleCheck className="size-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-semibold">Dernière synchro réalisée</p>
+              <p className="text-muted-foreground">{lastSyncLabel(store.lastSyncedAt)}</p>
+            </div>
+          </div>
         </SettingsSection>
 
         <SettingsSection description="Le thème reste propre à cet appareil." title="Apparence">

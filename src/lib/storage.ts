@@ -41,6 +41,7 @@ export type BabyBackup = {
 }
 
 type SyncStatus = "idle" | "loading" | "syncing" | "error" | "offline" | "not-configured"
+type SupabaseClientInstance = NonNullable<Awaited<ReturnType<typeof getSupabase>>>
 
 export const familyCodeMinLength = 8
 export const familyCodeMaxLength = 80
@@ -59,6 +60,7 @@ const legacyStorageKey = `${appStorageNamespace}-state-v1`
 const previousStorageKeys = [`${previousStorageNamespace}-state-v2`, `${previousStorageNamespace}-state-v1`]
 const familySessionKey = `${appStorageNamespace}-family-session-v1`
 const previousFamilySessionKey = `${previousStorageNamespace}-family-session-v1`
+const lastSyncedAtKey = `${appStorageNamespace}-last-synced-at-v1`
 
 const initialState: StoredState = {
   profile: { ageMonths: 4, avatarEmoji: defaultAvatarEmoji, birthDate: "", childName: "" },
@@ -243,6 +245,14 @@ function readFamilySession() {
   }
 }
 
+function readLastSyncedAt() {
+  const stored = readLocalStorage(lastSyncedAtKey)
+  if (!stored) return null
+
+  const date = new Date(stored)
+  return Number.isNaN(date.getTime()) ? null : stored
+}
+
 export function normalizeFamilyCode(code: string) {
   return sanitizeText(code, familyCodeMaxLength).toLowerCase()
 }
@@ -289,7 +299,6 @@ export function parseRemoteState(data: unknown, fallbackState: StoredState = ini
   return normalizeStoredState({
     profile: {
       ageMonths: clampNumber(value.profile?.ageMonths, minAgeMonths, maxAgeMonths, fallbackState.profile.ageMonths),
-      // L'avatar n'est pas synchronisé via Supabase : on conserve la valeur locale.
       avatarEmoji: remoteTextOrFallback(value.profile?.avatarEmoji, fallbackState.profile.avatarEmoji),
       birthDate: remoteTextOrFallback(value.profile?.birthDate, fallbackState.profile.birthDate),
       childName: remoteTextOrFallback(value.profile?.childName, fallbackState.profile.childName),
@@ -328,6 +337,35 @@ export function parseBackupPayload(payload: unknown) {
   }
 }
 
+async function upsertRemoteProfile(
+  client: SupabaseClientInstance,
+  familyCodeHash: string,
+  profile: BabyProfile,
+) {
+  const payload = {
+    p_age_months: profile.ageMonths,
+    p_birth_date: profile.birthDate || null,
+    p_child_name: profile.childName || null,
+    p_family_code_hash: familyCodeHash,
+  }
+
+  const { error } = await client.rpc("upsert_baby_profile", {
+    ...payload,
+    p_avatar_emoji: profile.avatarEmoji || defaultAvatarEmoji,
+  })
+
+  if (!error) return { error: null }
+
+  const canRetryWithoutAvatar =
+    error.message.includes("p_avatar_emoji") ||
+    error.message.includes("Could not find the function")
+
+  if (!canRetryWithoutAvatar) return { error }
+
+  const { error: legacyError } = await client.rpc("upsert_baby_profile", payload)
+  return { error: legacyError }
+}
+
 export function useBabyStore() {
   const initialFamilySession = useMemo(() => readFamilySession(), [])
   const [state, setState] = useState<StoredState>(() => readStoredState())
@@ -336,6 +374,11 @@ export function useBabyStore() {
     isSupabaseConfigured ? (initialFamilySession ? "loading" : "idle") : "not-configured",
   )
   const [syncError, setSyncError] = useState<string | null>(null)
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => readLastSyncedAt())
+
+  function markSyncSucceeded() {
+    setLastSyncedAt(new Date().toISOString())
+  }
 
   useEffect(() => {
     writeLocalStorage(storageKey, JSON.stringify(state))
@@ -349,6 +392,15 @@ export function useBabyStore() {
 
     writeLocalStorage(familySessionKey, JSON.stringify(familySession))
   }, [familySession])
+
+  useEffect(() => {
+    if (lastSyncedAt) {
+      writeLocalStorage(lastSyncedAtKey, lastSyncedAt)
+      return
+    }
+
+    removeLocalStorage(lastSyncedAtKey)
+  }, [lastSyncedAt])
 
   useEffect(() => {
     if (!isSupabaseConfigured || !familySession) return
@@ -376,6 +428,7 @@ export function useBabyStore() {
       }
 
       setState((current) => parseRemoteState(data, current))
+      markSyncSucceeded()
       setSyncStatus("idle")
     }
 
@@ -422,7 +475,21 @@ export function useBabyStore() {
       return true
     }
 
+    setSyncStatus("syncing")
+    setSyncError(null)
+
+    const client = await getSupabase()
+    if (!client) return false
+
+    const { error } = await upsertRemoteProfile(client, familyCodeHash, state.profile)
+    if (error) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(error.message)
+      return false
+    }
+
     setFamilySession(nextSession)
+    markSyncSucceeded()
     return true
   }
 
@@ -430,6 +497,7 @@ export function useBabyStore() {
     setFamilySession(null)
     setState(initialState)
     setSyncError(null)
+    setLastSyncedAt(null)
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
   }
 
@@ -451,6 +519,7 @@ export function useBabyStore() {
     }
 
     setState((current) => parseRemoteState(data, current))
+    markSyncSucceeded()
     setSyncStatus("idle")
     setSyncError(null)
   }
@@ -481,12 +550,7 @@ export function useBabyStore() {
     const client = await getSupabase()
     if (!client) return true
 
-    const { error } = await client.rpc("upsert_baby_profile", {
-      p_age_months: profile.ageMonths,
-      p_birth_date: profile.birthDate || null,
-      p_child_name: profile.childName || null,
-      p_family_code_hash: familySession.familyCodeHash,
-    })
+    const { error } = await upsertRemoteProfile(client, familySession.familyCodeHash, profile)
 
     if (error) {
       setState(previousState)
@@ -497,6 +561,7 @@ export function useBabyStore() {
 
     setSyncStatus("idle")
     setSyncError(null)
+    markSyncSucceeded()
     return true
   }
 
@@ -546,8 +611,17 @@ export function useBabyStore() {
       return false
     }
 
+    const { error: profileError } = await upsertRemoteProfile(client, familySession.familyCodeHash, state.profile)
+    if (profileError) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(profileError.message)
+      markSyncSucceeded()
+      return true
+    }
+
     setSyncStatus("idle")
     setSyncError(null)
+    markSyncSucceeded()
     return true
   }
 
@@ -592,8 +666,17 @@ export function useBabyStore() {
       return false
     }
 
+    const { error: profileError } = await upsertRemoteProfile(client, familySession.familyCodeHash, state.profile)
+    if (profileError) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(profileError.message)
+      markSyncSucceeded()
+      return true
+    }
+
     setSyncStatus("idle")
     setSyncError(null)
+    markSyncSucceeded()
     return true
   }
 
@@ -623,8 +706,17 @@ export function useBabyStore() {
       return false
     }
 
+    const { error: profileError } = await upsertRemoteProfile(client, familySession.familyCodeHash, state.profile)
+    if (profileError) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(profileError.message)
+      markSyncSucceeded()
+      return true
+    }
+
     setSyncStatus("idle")
     setSyncError(null)
+    markSyncSucceeded()
     return true
   }
 
@@ -643,6 +735,7 @@ export function useBabyStore() {
     setState(nextBackup.state)
     setFamilySession(nextBackup.familySession)
     setSyncError(null)
+    setLastSyncedAt(null)
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
   }
 
@@ -650,6 +743,7 @@ export function useBabyStore() {
     setState(initialState)
     setFamilySession(null)
     setSyncError(null)
+    setLastSyncedAt(null)
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
   }
 
@@ -664,6 +758,7 @@ export function useBabyStore() {
     exportBackup,
     importBackup,
     isConfigured: isSupabaseConfigured,
+    lastSyncedAt,
     latestByFood,
     refresh,
     syncError,

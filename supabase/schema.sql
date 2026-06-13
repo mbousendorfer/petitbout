@@ -2,13 +2,15 @@ create table if not exists public.baby_profiles (
   family_code_hash text primary key,
   child_name text,
   birth_date date,
+  avatar_emoji text,
   age_months integer not null default 4,
   updated_at timestamptz not null default now()
 );
 
 alter table public.baby_profiles
   add column if not exists child_name text,
-  add column if not exists birth_date date;
+  add column if not exists birth_date date,
+  add column if not exists avatar_emoji text;
 
 create table if not exists public.baby_food_tests (
   id uuid primary key,
@@ -71,11 +73,12 @@ as $$
         select jsonb_build_object('ageMonths', age_months)
           || jsonb_build_object('childName', coalesce(child_name, ''))
           || jsonb_build_object('birthDate', coalesce(birth_date::text, ''))
+          || jsonb_build_object('avatarEmoji', coalesce(avatar_emoji, ''))
         from public.baby_profiles
         where public.is_valid_baby_family_hash(p_family_code_hash)
           and family_code_hash = p_family_code_hash
       ),
-      jsonb_build_object('ageMonths', 4, 'childName', '', 'birthDate', '')
+      jsonb_build_object('ageMonths', 4, 'childName', '', 'birthDate', '', 'avatarEmoji', '')
     ),
     'tests',
     coalesce(
@@ -101,12 +104,14 @@ as $$
 $$;
 
 drop function if exists public.upsert_baby_profile(text, integer);
+drop function if exists public.upsert_baby_profile(text, integer, text, date);
 
 create or replace function public.upsert_baby_profile(
   p_family_code_hash text,
   p_age_months integer,
   p_child_name text,
-  p_birth_date date
+  p_birth_date date,
+  p_avatar_emoji text default null
 )
 returns void
 language plpgsql
@@ -126,6 +131,10 @@ begin
     raise exception 'Child name is too long';
   end if;
 
+  if p_avatar_emoji is not null and length(p_avatar_emoji) > 16 then
+    raise exception 'Avatar emoji is too long';
+  end if;
+
   if p_birth_date is not null and (p_birth_date < current_date - interval '4 years' or p_birth_date > current_date) then
     raise exception 'Invalid birth date';
   end if;
@@ -135,6 +144,7 @@ begin
     age_months,
     child_name,
     birth_date,
+    avatar_emoji,
     updated_at
   )
   values (
@@ -142,6 +152,7 @@ begin
     p_age_months,
     nullif(p_child_name, ''),
     p_birth_date,
+    nullif(p_avatar_emoji, ''),
     now()
   )
   on conflict (family_code_hash)
@@ -149,6 +160,7 @@ begin
     age_months = excluded.age_months,
     child_name = excluded.child_name,
     birth_date = excluded.birth_date,
+    avatar_emoji = excluded.avatar_emoji,
     updated_at = now();
 end;
 $$;
@@ -280,7 +292,7 @@ $$;
 revoke execute on function public.is_valid_baby_family_hash(text) from public, anon, authenticated;
 revoke execute on function public.is_valid_baby_reaction(text) from public, anon, authenticated;
 grant execute on function public.get_baby_family_state(text) to anon, authenticated;
-grant execute on function public.upsert_baby_profile(text, integer, text, date) to anon, authenticated;
+grant execute on function public.upsert_baby_profile(text, integer, text, date, text) to anon, authenticated;
 grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text, time) to anon, authenticated;
 grant execute on function public.update_baby_food_test(uuid, text, date, text, text, time) to anon, authenticated;
 grant execute on function public.delete_baby_food_test(uuid, text) to anon, authenticated;
