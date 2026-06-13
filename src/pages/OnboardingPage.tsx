@@ -36,7 +36,7 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
   const normalizedPin = normalizeProfilePin(profilePin)
   const ageMonths = calculateAgeMonths(birthDate)
   const canContinueProfile = Boolean(normalizedName && birthDate && ageMonths !== null)
-  const [step, setStep] = useState<"profile" | "mode">(() => (canContinueProfile ? "mode" : "profile"))
+  const [step, setStep] = useState<"profile" | "mode">("profile")
   const canSubmitFamily =
     normalizedFamilyCode.length >= familyCodeMinLength &&
     normalizedPin.length === profilePinLength &&
