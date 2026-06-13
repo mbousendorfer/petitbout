@@ -165,7 +165,7 @@ Sur le VPS, `compose.prod.yml` utilise une image déjà construite et attend au 
 ```bash
 PETITBOUT_IMAGE=ghcr.io/<owner>/<repo>:latest
 PETITBOUT_HOST=127.0.0.1
-PETITBOUT_PORT=8080
+PETITBOUT_PORT=1337
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-public-anon-key
 VITE_FEEDBACK_EMAIL=feedback@example.com
@@ -180,7 +180,7 @@ Puis :
 docker compose -f compose.prod.yml up -d
 ```
 
-Par défaut, le conteneur est exposé localement sur `127.0.0.1:8080`. Exemple de reverse proxy Nginx côté VPS :
+Avec l'exemple `.env` ci-dessus, le conteneur est exposé localement sur `127.0.0.1:1337`. Exemple de reverse proxy Nginx côté VPS :
 
 ```nginx
 server {
@@ -191,7 +191,7 @@ server {
   }
 
   location /petitbout/ {
-    proxy_pass http://127.0.0.1:8080/petitbout/;
+    proxy_pass http://127.0.0.1:1337/petitbout/;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -199,18 +199,22 @@ server {
 }
 ```
 
-Le workflow GitHub Actions construit et publie l'image sur GitHub Container Registry, puis redémarre le service sur le VPS. Secrets GitHub requis :
+Le workflow GitHub Actions de production construit uniquement l'image Docker et la publie sur GitHub Container Registry. Il se lance sur `main` ou manuellement, puis pousse deux tags :
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_FEEDBACK_EMAIL`
-- Variables GitHub optionnelles : `VITE_PLAUSIBLE_DOMAIN`, `VITE_PLAUSIBLE_SCRIPT_URL`, `VITE_PLAUSIBLE_API_URL`
-- `VPS_HOST`
-- `VPS_USER`
-- `VPS_SSH_KEY`
-- `VPS_APP_DIR`
+- `latest`
+- le SHA court du commit
 
-Si le package GHCR est privé, ajouter aussi :
+Le workflow ne lance plus les checks Node séparés et ne redémarre plus le service sur le VPS. Il n'a pas besoin des secrets applicatifs, Supabase, Plausible ou SSH : la publication GHCR utilise le `GITHUB_TOKEN` fourni par GitHub Actions.
 
-- `GHCR_USER`
-- `GHCR_PAT`
+Après publication d'une nouvelle image, mettre à jour le VPS manuellement depuis le dossier de déploiement :
+
+```bash
+docker compose -f compose.prod.yml pull
+docker compose -f compose.prod.yml up -d
+```
+
+Si le package GHCR est privé, le VPS doit être connecté au registry avant le `pull` :
+
+```bash
+docker login ghcr.io
+```
