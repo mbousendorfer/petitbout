@@ -97,13 +97,16 @@ jobs:
           PETITBOUT_PORT: ${{ vars.PETITBOUT_PORT }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_PLAUSIBLE_DOMAIN: ${{ vars.VITE_PLAUSIBLE_DOMAIN }}
+          VITE_PLAUSIBLE_SCRIPT_URL: ${{ vars.VITE_PLAUSIBLE_SCRIPT_URL }}
+          VITE_PLAUSIBLE_API_URL: ${{ vars.VITE_PLAUSIBLE_API_URL }}
           GHCR_USER: ${{ secrets.GHCR_USER }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: PETITBOUT_IMAGE,PETITBOUT_HOST,PETITBOUT_PORT,VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,GHCR_USER,GHCR_PAT
+          envs: PETITBOUT_IMAGE,PETITBOUT_HOST,PETITBOUT_PORT,VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_PLAUSIBLE_DOMAIN,VITE_PLAUSIBLE_SCRIPT_URL,VITE_PLAUSIBLE_API_URL,GHCR_USER,GHCR_PAT
           script: |
             set -eu
             cd "${{ secrets.VPS_APP_DIR }}"
@@ -116,6 +119,9 @@ jobs:
               printf 'PETITBOUT_PORT=%s\n' "${PETITBOUT_PORT:-8080}"
               printf 'VITE_SUPABASE_URL=%s\n' "${VITE_SUPABASE_URL:-}"
               printf 'VITE_SUPABASE_ANON_KEY=%s\n' "${VITE_SUPABASE_ANON_KEY:-}"
+              printf 'VITE_PLAUSIBLE_DOMAIN=%s\n' "${VITE_PLAUSIBLE_DOMAIN:-}"
+              printf 'VITE_PLAUSIBLE_SCRIPT_URL=%s\n' "${VITE_PLAUSIBLE_SCRIPT_URL:-}"
+              printf 'VITE_PLAUSIBLE_API_URL=%s\n' "${VITE_PLAUSIBLE_API_URL:-}"
             } > .env
             docker compose -f compose.prod.yml pull
             docker compose -f compose.prod.yml up -d --remove-orphans
