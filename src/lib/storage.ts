@@ -63,6 +63,7 @@ const previousStorageKeys = [`${previousStorageNamespace}-state-v2`, `${previous
 const familySessionKey = `${appStorageNamespace}-family-session-v1`
 const previousFamilySessionKey = `${previousStorageNamespace}-family-session-v1`
 const lastSyncedAtKey = `${appStorageNamespace}-last-synced-at-v1`
+const onboardingKey = `${appStorageNamespace}-onboarding-completed-v1`
 
 const initialState: StoredState = {
   profile: { ageMonths: 4, avatarEmoji: defaultAvatarEmoji, birthDate: "", childName: "" },
@@ -261,6 +262,23 @@ function readLastSyncedAt() {
   return Number.isNaN(date.getTime()) ? null : stored
 }
 
+export function inferCompletedOnboarding(state: StoredState, familySession: FamilySession | null) {
+  return Boolean(
+    familySession ||
+      state.tests.length > 0 ||
+      state.profile.childName.trim() ||
+      state.profile.birthDate,
+  )
+}
+
+function readHasCompletedOnboarding(state: StoredState, familySession: FamilySession | null) {
+  const stored = readLocalStorage(onboardingKey)
+  if (stored === "true") return true
+  if (stored === "false") return false
+
+  return inferCompletedOnboarding(state, familySession)
+}
+
 export function normalizeFamilyCode(code: string) {
   return sanitizeText(code, familyCodeMaxLength).toLowerCase()
 }
@@ -380,9 +398,13 @@ async function upsertRemoteProfile(
 }
 
 export function useBabyStore() {
+  const initialStoredState = useMemo(() => readStoredState(), [])
   const initialFamilySession = useMemo(() => readFamilySession(), [])
-  const [state, setState] = useState<StoredState>(() => readStoredState())
+  const [state, setState] = useState<StoredState>(initialStoredState)
   const [familySession, setFamilySession] = useState<FamilySession | null>(initialFamilySession)
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() =>
+    readHasCompletedOnboarding(initialStoredState, initialFamilySession),
+  )
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() =>
     isSupabaseConfigured ? (initialFamilySession ? "loading" : "idle") : "not-configured",
   )
@@ -414,6 +436,10 @@ export function useBabyStore() {
 
     removeLocalStorage(lastSyncedAtKey)
   }, [lastSyncedAt])
+
+  useEffect(() => {
+    writeLocalStorage(onboardingKey, hasCompletedOnboarding ? "true" : "false")
+  }, [hasCompletedOnboarding])
 
   useEffect(() => {
     if (!isSupabaseConfigured || !familySession) return
@@ -471,7 +497,7 @@ export function useBabyStore() {
     return latest
   }, [state.tests])
 
-  async function connectFamily(code: string, pin: string) {
+  async function connectFamily(code: string, pin: string, profileOverride?: BabyProfile) {
     const normalizedCode = normalizeFamilyCode(code)
     if (normalizedCode.length < familyCodeMinLength) {
       setSyncError(`Le code famille doit contenir au moins ${familyCodeMinLength} caractères.`)
@@ -503,7 +529,7 @@ export function useBabyStore() {
     const client = await getSupabase()
     if (!client) return false
 
-    const { error } = await upsertRemoteProfile(client, familyCodeHash, state.profile)
+    const { error } = await upsertRemoteProfile(client, familyCodeHash, profileOverride ?? state.profile)
     if (error) {
       setSyncStatus(navigator.onLine ? "error" : "offline")
       setSyncError(error.message)
@@ -527,7 +553,18 @@ export function useBabyStore() {
     setFamilySession(null)
     setSyncError(null)
     setLastSyncedAt(null)
+    setHasCompletedOnboarding(false)
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
+  }
+
+  async function completeLocalOnboarding(profile: Partial<BabyProfile>) {
+    const didSave = await updateProfile(profile)
+    setHasCompletedOnboarding(true)
+    return didSave
+  }
+
+  function finishOnboarding() {
+    setHasCompletedOnboarding(true)
   }
 
   async function refresh() {
@@ -830,6 +867,7 @@ export function useBabyStore() {
     const nextBackup = parseBackupPayload(payload)
     setState(nextBackup.state)
     setFamilySession(nextBackup.familySession)
+    setHasCompletedOnboarding(true)
     setSyncError(null)
     setLastSyncedAt(null)
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
@@ -838,6 +876,7 @@ export function useBabyStore() {
   function clearDeviceData() {
     setState(initialState)
     setFamilySession(null)
+    setHasCompletedOnboarding(false)
     setSyncError(null)
     setLastSyncedAt(null)
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
@@ -882,12 +921,15 @@ export function useBabyStore() {
     ...state,
     addTest,
     clearDeviceData,
+    completeLocalOnboarding,
     connectFamily,
     deleteTest,
     deleteFamilySpace,
     disconnectFamily,
     familySession,
+    finishOnboarding,
     exportBackup,
+    hasCompletedOnboarding,
     importBackup,
     isConfigured: isSupabaseConfigured,
     lastSyncedAt,

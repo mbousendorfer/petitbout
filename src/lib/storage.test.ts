@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   childNameMaxLength,
+  inferCompletedOnboarding,
   normalizeProfilePin,
   noteMaxLength,
   parseBackupPayload,
@@ -224,5 +225,38 @@ describe("parseBackupPayload", () => {
 
   it("normalizes profile PINs to the first four digits", () => {
     expect(normalizeProfilePin(" 12 3a4-5 ")).toBe("1234")
+  })
+})
+
+describe("inferCompletedOnboarding", () => {
+  const emptyState = {
+    profile: { ageMonths: 4, avatarEmoji: "👶", birthDate: "", childName: "" },
+    tests: [],
+  }
+
+  it("keeps a brand new local install in onboarding", () => {
+    expect(inferCompletedOnboarding(emptyState, null)).toBe(false)
+  })
+
+  it("does not re-block existing local profiles", () => {
+    expect(
+      inferCompletedOnboarding(
+        {
+          ...emptyState,
+          profile: { ...emptyState.profile, birthDate: "2026-01-10", childName: "Lina" },
+        },
+        null,
+      ),
+    ).toBe(true)
+  })
+
+  it("does not re-block existing family sessions", () => {
+    expect(
+      inferCompletedOnboarding(emptyState, {
+        familyCodeHash: "a".repeat(64),
+        familyCodeLabel: "famille-lina",
+        hasProfilePin: true,
+      }),
+    ).toBe(true)
   })
 })

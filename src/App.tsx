@@ -8,6 +8,7 @@ import { BottomNav, DesktopNav } from "@/components/Navigation"
 import { PageLoading } from "@/components/primitives"
 import { HomePage } from "@/pages/HomePage"
 import { FoodsPage } from "@/pages/FoodsPage"
+import { OnboardingPage } from "@/pages/OnboardingPage"
 import { useTheme } from "@/app/useTheme"
 import { useBadgeUnlockDates } from "@/app/useBadgeUnlockDates"
 import { foods } from "@/data/foods"
@@ -60,6 +61,18 @@ function App() {
     unlockDates: badgeUnlockDates,
   } = useBadgeUnlockDates(store.tests, store.syncStatus)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
+
+  if (!store.hasCompletedOnboarding) {
+    return (
+      <div className="safe-shell soft-surface">
+        <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-5 px-4 py-5 sm:px-6">
+          <PwaStatus />
+          <OnboardingPage store={store} />
+        </main>
+        <Toaster />
+      </div>
+    )
+  }
 
   return (
     <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
