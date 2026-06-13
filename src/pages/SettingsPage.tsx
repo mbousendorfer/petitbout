@@ -1,5 +1,5 @@
 import { type ReactNode } from "react"
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import {
   ChevronRight,
   LogOut,
@@ -32,6 +32,7 @@ export function SettingsPage({
   theme: ThemeMode
   setTheme: (theme: ThemeMode) => void
 }) {
+  const navigate = useNavigate()
   const displayName = store.profile.childName.trim() ? store.profile.childName.trim() : "bébé"
   const bornLabel = birthDateLabel(store.profile.birthDate)
   const hasFamilySpace = Boolean(store.familySession)
@@ -41,6 +42,17 @@ export function SettingsPage({
     `${store.profile.ageMonths} mois`,
     bornLabel ? `né le ${bornLabel}` : null,
   ].filter(Boolean)
+
+  function leaveFamilySpace() {
+    const confirmed = window.confirm(
+      "Se déconnecter de l’espace famille sur cet appareil ? Le carnet local reste disponible, mais il ne sera plus synchronisé.",
+    )
+
+    if (!confirmed) return
+
+    store.leaveFamilySpaceOnDevice()
+    navigate("/family-space")
+  }
 
   return (
     <>
@@ -104,7 +116,7 @@ export function SettingsPage({
                 type="button"
                 variant="outline"
                 className="h-12 justify-start rounded-lg px-4 text-base text-muted-foreground"
-                onClick={() => store.leaveFamilySpaceOnDevice()}
+                onClick={leaveFamilySpace}
               >
                 <LogOut data-icon="inline-start" aria-hidden="true" />
                 Se déconnecter de cet appareil
