@@ -3,12 +3,12 @@ const runtimeConfig = typeof window !== "undefined" ? window.__PETITBOUT_CONFIG_
 const plausibleDomain =
   runtimeConfig?.VITE_PLAUSIBLE_DOMAIN ||
   (import.meta.env.VITE_PLAUSIBLE_DOMAIN as string | undefined) ||
-  ""
+  "app.petitbout.app"
 
 const plausibleScriptUrl =
   runtimeConfig?.VITE_PLAUSIBLE_SCRIPT_URL ||
   (import.meta.env.VITE_PLAUSIBLE_SCRIPT_URL as string | undefined) ||
-  "https://plausible.io/js/script.hash.js"
+  "https://analytics.edenpulse.com/js/script.js"
 
 const plausibleApiUrl =
   runtimeConfig?.VITE_PLAUSIBLE_API_URL ||
@@ -20,7 +20,10 @@ export function initAnalytics() {
     return
   }
 
-  if (document.querySelector("script[data-petitbout-analytics='plausible']")) {
+  if (
+    document.querySelector("script[data-petitbout-analytics='plausible']") ||
+    document.querySelector(`script[data-domain='${plausibleDomain}'][src='${plausibleScriptUrl}']`)
+  ) {
     return
   }
 
