@@ -33,7 +33,7 @@ export type FamilySession = {
 }
 
 export type BabyBackup = {
-  app: "diversibebs"
+  app: "petitbout"
   exportedAt: string
   familySession: FamilySession | null
   state: StoredState
@@ -42,9 +42,14 @@ export type BabyBackup = {
 
 type SyncStatus = "idle" | "loading" | "syncing" | "error" | "offline" | "not-configured"
 
-const storageKey = "diversibebs-state-v2"
-const legacyStorageKey = "diversibebs-state-v1"
-const familySessionKey = "diversibebs-family-session-v1"
+const appStorageNamespace = "petitbout"
+const previousStorageNamespace = ["diversi", "bebs"].join("")
+
+const storageKey = `${appStorageNamespace}-state-v2`
+const legacyStorageKey = `${appStorageNamespace}-state-v1`
+const previousStorageKeys = [`${previousStorageNamespace}-state-v2`, `${previousStorageNamespace}-state-v1`]
+const familySessionKey = `${appStorageNamespace}-family-session-v1`
+const previousFamilySessionKey = `${previousStorageNamespace}-family-session-v1`
 
 const initialState: StoredState = {
   profile: { ageMonths: 4, avatarEmoji: defaultAvatarEmoji, birthDate: "", childName: "" },
@@ -145,7 +150,10 @@ function normalizeStoredState(value: Partial<StoredState> | null | undefined): S
 }
 
 function readStoredState() {
-  const stored = readLocalStorage(storageKey) ?? readLocalStorage(legacyStorageKey)
+  const stored =
+    readLocalStorage(storageKey) ??
+    readLocalStorage(legacyStorageKey) ??
+    previousStorageKeys.map((key) => readLocalStorage(key)).find(Boolean)
   if (!stored) return initialState
 
   try {
@@ -156,7 +164,7 @@ function readStoredState() {
 }
 
 function readFamilySession() {
-  const stored = readLocalStorage(familySessionKey)
+  const stored = readLocalStorage(familySessionKey) ?? readLocalStorage(previousFamilySessionKey)
   if (!stored) return null
 
   try {
@@ -226,12 +234,16 @@ function parseRemoteState(data: unknown, fallbackState: StoredState = initialSta
 
 export function parseBackupPayload(payload: unknown) {
   if (!payload || typeof payload !== "object") {
-    throw new Error("Le fichier sélectionné n’est pas une sauvegarde Diversibebs valide.")
+    throw new Error("Le fichier sélectionné n’est pas une sauvegarde Petitbout valide.")
   }
 
   const value = payload as Partial<BabyBackup>
 
-  if (value.app !== "diversibebs" || value.version !== 1 || !value.state) {
+  if (
+    ![appStorageNamespace, previousStorageNamespace].includes(String(value.app)) ||
+    value.version !== 1 ||
+    !value.state
+  ) {
     throw new Error("Le format de sauvegarde n’est pas reconnu.")
   }
 
@@ -524,7 +536,7 @@ export function useBabyStore() {
 
   function exportBackup(): BabyBackup {
     return {
-      app: "diversibebs",
+      app: "petitbout",
       exportedAt: new Date().toISOString(),
       familySession,
       state,

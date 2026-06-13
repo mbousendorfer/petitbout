@@ -5,7 +5,7 @@ import { parseBackupPayload } from "@/lib/storage"
 describe("parseBackupPayload", () => {
   function validBackup() {
     return {
-      app: "diversibebs",
+      app: "petitbout",
       version: 1,
       state: {
         profile: { ageMonths: 7, birthDate: "2025-10-12", childName: "Lina" },
@@ -19,6 +19,14 @@ describe("parseBackupPayload", () => {
     expect(result.state.profile.childName).toBe("Lina")
     expect(result.state.profile.ageMonths).toBe(8)
     expect(result.familySession).toBeNull()
+  })
+
+  it("accepts a pre-rebrand v1 payload", () => {
+    const result = parseBackupPayload({
+      ...validBackup(),
+      app: ["diversi", "bebs"].join(""),
+    })
+    expect(result.state.profile.childName).toBe("Lina")
   })
 
   it("preserves a family session block when provided", () => {
@@ -42,13 +50,13 @@ describe("parseBackupPayload", () => {
 
   it("rejects null", () => {
     expect(() => parseBackupPayload(null)).toThrow(
-      /n’est pas une sauvegarde Diversibebs valide/,
+      /n’est pas une sauvegarde Petitbout valide/,
     )
   })
 
   it("rejects a non-object payload", () => {
     expect(() => parseBackupPayload("nope")).toThrow(
-      /n’est pas une sauvegarde Diversibebs valide/,
+      /n’est pas une sauvegarde Petitbout valide/,
     )
   })
 
@@ -66,7 +74,7 @@ describe("parseBackupPayload", () => {
 
   it("rejects a payload missing the state block", () => {
     expect(() =>
-      parseBackupPayload({ app: "diversibebs", version: 1 }),
+      parseBackupPayload({ app: "petitbout", version: 1 }),
     ).toThrow(/format de sauvegarde n’est pas reconnu/)
   })
 

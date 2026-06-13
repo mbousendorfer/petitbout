@@ -1,4 +1,4 @@
-# Rebrand Diversibebs
+# Rebrand Petitbout
 
 ## Audit UI/UX initial
 

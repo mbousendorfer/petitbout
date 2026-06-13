@@ -9,11 +9,11 @@ function csvCell(value: string | number | boolean) {
 }
 
 export function backupFileName(date = new Date()) {
-  return `diversibebs-sauvegarde-${date.toISOString().slice(0, 10)}.json`
+  return `petitbout-sauvegarde-${date.toISOString().slice(0, 10)}.json`
 }
 
 export function journalCsvFileName(date = new Date()) {
-  return `diversibebs-journal-${date.toISOString().slice(0, 10)}.csv`
+  return `petitbout-journal-${date.toISOString().slice(0, 10)}.csv`
 }
 
 export function backupToJson(backup: BabyBackup) {

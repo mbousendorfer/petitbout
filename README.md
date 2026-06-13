@@ -1,4 +1,4 @@
-# Diversibebs
+# Petitbout
 
 Web app mobile-first de suivi de diversification alimentaire pour bébé.
 
@@ -25,18 +25,18 @@ Le build génère aussi le service worker PWA via `vite-plugin-pwa`.
 Le repo est prévu pour être servi depuis :
 
 ```txt
-https://<user>.github.io/diversibebs/
+https://<user>.github.io/petitbout/
 ```
 
 La configuration importante est dans `vite.config.ts` :
 
 ```ts
-base: "/diversibebs/"
+base: "/petitbout/"
 ```
 
 Si le dépôt change de nom, adaptez `base` au nouveau sous-chemin, par exemple `"/mon-repo/"`.
 
-Le manifest utilise des chemins relatifs (`start_url: "."`, `scope: "."`) pour rester compatible avec ce sous-chemin. Le service worker utilise le fallback SPA `/diversibebs/index.html`.
+Le manifest utilise des chemins relatifs (`start_url: "."`, `scope: "."`) pour rester compatible avec ce sous-chemin. Le service worker utilise le fallback SPA `/petitbout/index.html`.
 
 ## PWA
 

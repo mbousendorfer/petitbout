@@ -207,7 +207,7 @@ export function SettingsPage({
 export function InstallHelpSection() {
   return (
     <SettingsSection
-      description="Installe Diversibebs sur l’écran d’accueil pour y revenir d’un geste, hors connexion."
+      description="Installe Petitbout sur l’écran d’accueil pour y revenir d’un geste, hors connexion."
       title="Installation"
     >
       <div className="rounded-lg border bg-card/85 p-3 text-sm leading-6 shadow-sm">
@@ -237,7 +237,7 @@ export function InstallHelpSection() {
         </ol>
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        Une fois installée, Diversibebs s’ouvre comme une app, garde le suivi récent disponible hors connexion et propose les raccourcis Semaine et Aliments.
+        Une fois installée, Petitbout s’ouvre comme une app, garde le suivi récent disponible hors connexion et propose les raccourcis Semaine et Aliments.
       </p>
     </SettingsSection>
   )

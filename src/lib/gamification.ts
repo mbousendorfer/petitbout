@@ -58,7 +58,7 @@ export type GamificationContext = {
   hasTextureNote: boolean
 }
 
-const badgeUnlockStorageKey = "diversibebs-badge-unlocks-v1"
+const badgeUnlockStorageKey = "petitbout-badge-unlocks-v1"
 
 // Définitions reprises de BadgeUnlockService.swift.
 export const badgeDefinitions: BadgeDefinition[] = [

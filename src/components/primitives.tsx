@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 const disclaimer =
-  "Diversibebs ne remplace pas l'avis d'un professionnel de santé. En cas de doute, de réaction ou de situation particulière, demande conseil."
+  "Petitbout ne remplace pas l'avis d'un professionnel de santé. En cas de doute, de réaction ou de situation particulière, demande conseil."
 export function PageLoading({ label }: { label: string }) {
   return (
     <>

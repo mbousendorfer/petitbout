@@ -4,11 +4,11 @@
 
 @layer base {
   /* ============================================================
-     Diversibebs — "Argile" design system (v2).
+     Petitbout — "Argile" design system (v2).
      Warm, premium, food-forward. A soft OAT paper world led by a
      muted ARGILE (terracotta) primary, sage as the vegetable accent,
      and editorial muted category tints. Light + dark are equals.
-     Token values ported from the Diversibebs iOS UI Kit
+     Token values ported from the Petitbout iOS UI Kit
      (--diversi-* hex converted to HSL for the Tailwind token system).
      ============================================================ */
   :root {

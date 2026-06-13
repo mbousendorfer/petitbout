@@ -23,19 +23,19 @@ export function PwaStatus() {
     }
 
     function handleOfflineReady() {
-      toast.success("Diversibebs est prêt hors ligne")
+      toast.success("Petitbout est prêt hors ligne")
     }
 
     window.addEventListener("online", handleOnline)
     window.addEventListener("offline", handleOffline)
-    window.addEventListener("diversibebs:pwa-update", handleUpdate)
-    window.addEventListener("diversibebs:pwa-offline-ready", handleOfflineReady)
+    window.addEventListener("petitbout:pwa-update", handleUpdate)
+    window.addEventListener("petitbout:pwa-offline-ready", handleOfflineReady)
 
     return () => {
       window.removeEventListener("online", handleOnline)
       window.removeEventListener("offline", handleOffline)
-      window.removeEventListener("diversibebs:pwa-update", handleUpdate)
-      window.removeEventListener("diversibebs:pwa-offline-ready", handleOfflineReady)
+      window.removeEventListener("petitbout:pwa-update", handleUpdate)
+      window.removeEventListener("petitbout:pwa-offline-ready", handleOfflineReady)
     }
   }, [])
 

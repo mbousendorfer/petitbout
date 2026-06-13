@@ -18,7 +18,7 @@ export function DesktopNav() {
         className="paper-surface soft-ring flex h-full flex-col rounded-2xl p-3"
       >
         <div className="mb-5 px-3 pt-2">
-          <p className="text-lg font-semibold tracking-normal">Diversibebs</p>
+          <p className="text-lg font-semibold tracking-normal">Petitbout</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">Suivi doux de diversification</p>
         </div>
         <div className="grid gap-1">

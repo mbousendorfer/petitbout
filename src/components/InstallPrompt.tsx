@@ -73,7 +73,7 @@ export function InstallPrompt() {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-medium">{installed ? "Diversibebs est installée" : "Installer Diversibebs"}</p>
+          <p className="font-medium">{installed ? "Petitbout est installée" : "Installer Petitbout"}</p>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
             {installed
               ? "L’app est déjà disponible depuis l’écran d’accueil de cet appareil."

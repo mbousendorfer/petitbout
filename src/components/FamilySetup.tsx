@@ -34,7 +34,7 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
           </span>
           <div>
             <h1 className="font-rounded text-[2.4rem] font-extrabold leading-none tracking-normal">
-              Bienvenue dans Diversibebs
+              Bienvenue dans Petitbout
             </h1>
             <p className="mt-3 text-lg leading-7 text-muted-foreground">
               Un carnet tout simple pour suivre les aliments de bébé, à ton rythme.

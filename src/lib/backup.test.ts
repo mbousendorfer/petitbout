@@ -21,17 +21,17 @@ function test(overrides: Partial<FoodTest> = {}): FoodTest {
 }
 
 describe("backupFileName", () => {
-  it("formats a date as diversibebs-sauvegarde-YYYY-MM-DD.json", () => {
+  it("formats a date as petitbout-sauvegarde-YYYY-MM-DD.json", () => {
     expect(backupFileName(new Date("2026-05-18T08:00:00Z"))).toBe(
-      "diversibebs-sauvegarde-2026-05-18.json",
+      "petitbout-sauvegarde-2026-05-18.json",
     )
   })
 })
 
 describe("journalCsvFileName", () => {
-  it("formats a date as diversibebs-journal-YYYY-MM-DD.csv", () => {
+  it("formats a date as petitbout-journal-YYYY-MM-DD.csv", () => {
     expect(journalCsvFileName(new Date("2026-05-18T08:00:00Z"))).toBe(
-      "diversibebs-journal-2026-05-18.csv",
+      "petitbout-journal-2026-05-18.csv",
     )
   })
 })
@@ -39,7 +39,7 @@ describe("journalCsvFileName", () => {
 describe("backupToJson", () => {
   it("pretty-prints with a two-space indent", () => {
     const json = backupToJson({
-      app: "diversibebs",
+      app: "petitbout",
       version: 1,
       exportedAt: "2026-05-18T08:00:00.000Z",
       state: {
@@ -48,7 +48,7 @@ describe("backupToJson", () => {
       },
       familySession: null,
     })
-    expect(json).toContain('"app": "diversibebs"')
+    expect(json).toContain('"app": "petitbout"')
     expect(json).toMatch(/\n {2}"version": 1/)
   })
 })

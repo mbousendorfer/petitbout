@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 
 export type ThemeMode = "light" | "system" | "dark"
-export const themeStorageKey = "diversibebs-theme-v1"
+export const themeStorageKey = "petitbout-theme-v1"
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeMode>(() => {
     try {
