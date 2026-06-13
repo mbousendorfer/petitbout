@@ -12,6 +12,9 @@ alter table public.baby_profiles
   add column if not exists birth_date date,
   add column if not exists avatar_emoji text;
 
+alter table public.baby_profiles
+  drop column if exists family_display_name;
+
 create table if not exists public.baby_food_tests (
   id uuid primary key,
   family_code_hash text not null,
@@ -105,6 +108,8 @@ $$;
 
 drop function if exists public.upsert_baby_profile(text, integer);
 drop function if exists public.upsert_baby_profile(text, integer, text, date);
+drop function if exists public.upsert_baby_profile(text, integer, text, date, text);
+drop function if exists public.upsert_baby_profile(text, integer, text, date, text, text);
 
 create or replace function public.upsert_baby_profile(
   p_family_code_hash text,
@@ -310,6 +315,64 @@ begin
 end;
 $$;
 
+drop function if exists public.update_baby_family_display_name(text, text);
+
+create or replace function public.migrate_baby_family_access(
+  p_old_family_code_hash text,
+  p_new_family_code_hash text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_valid_baby_family_hash(p_old_family_code_hash) then
+    raise exception 'Invalid old family code hash';
+  end if;
+
+  if not public.is_valid_baby_family_hash(p_new_family_code_hash) then
+    raise exception 'Invalid new family code hash';
+  end if;
+
+  if p_old_family_code_hash = p_new_family_code_hash then
+    raise exception 'Family hashes must be different';
+  end if;
+
+  insert into public.baby_profiles (
+    family_code_hash,
+    age_months,
+    child_name,
+    birth_date,
+    avatar_emoji,
+    updated_at
+  )
+  select
+    p_new_family_code_hash,
+    age_months,
+    child_name,
+    birth_date,
+    avatar_emoji,
+    now()
+  from public.baby_profiles
+  where family_code_hash = p_old_family_code_hash
+  on conflict (family_code_hash)
+  do update set
+    age_months = excluded.age_months,
+    child_name = excluded.child_name,
+    birth_date = excluded.birth_date,
+    avatar_emoji = excluded.avatar_emoji,
+    updated_at = now();
+
+  update public.baby_food_tests
+  set family_code_hash = p_new_family_code_hash
+  where family_code_hash = p_old_family_code_hash;
+
+  delete from public.baby_profiles
+  where family_code_hash = p_old_family_code_hash;
+end;
+$$;
+
 revoke execute on function public.is_valid_baby_family_hash(text) from public, anon, authenticated;
 revoke execute on function public.is_valid_baby_reaction(text) from public, anon, authenticated;
 grant execute on function public.get_baby_family_state(text) to anon, authenticated;
@@ -318,3 +381,4 @@ grant execute on function public.add_baby_food_test(uuid, text, text, date, text
 grant execute on function public.update_baby_food_test(uuid, text, date, text, text, time) to anon, authenticated;
 grant execute on function public.delete_baby_food_test(uuid, text) to anon, authenticated;
 grant execute on function public.delete_baby_family_state(text) to anon, authenticated;
+grant execute on function public.migrate_baby_family_access(text, text) to anon, authenticated;

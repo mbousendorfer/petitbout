@@ -485,13 +485,16 @@ export function useBabyStore() {
     }
 
     const familyCodeHash = await hashFamilyAccess(normalizedCode, normalizedPin)
-    const nextSession = { familyCodeHash, familyCodeLabel: normalizedCode, hasProfilePin: true }
+    const nextSession = {
+      familyCodeHash,
+      familyCodeLabel: normalizedCode,
+      hasProfilePin: true,
+    }
 
     if (!isSupabaseConfigured) {
       setSyncStatus("not-configured")
       setSyncError("Supabase n’est pas encore configuré.")
-      setFamilySession(nextSession)
-      return true
+      return false
     }
 
     setSyncStatus("syncing")
@@ -515,6 +518,13 @@ export function useBabyStore() {
   function disconnectFamily() {
     setFamilySession(null)
     setState(initialState)
+    setSyncError(null)
+    setLastSyncedAt(null)
+    setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
+  }
+
+  function leaveFamilySpaceOnDevice() {
+    setFamilySession(null)
     setSyncError(null)
     setLastSyncedAt(null)
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
@@ -597,6 +607,62 @@ export function useBabyStore() {
 
   async function updateAge(ageMonths: number) {
     await updateProfile({ ageMonths, birthDate: "" })
+  }
+
+  async function updateFamilyPin(pin: string) {
+    if (!familySession?.familyCodeLabel) {
+      setSyncError("Code de connexion indisponible sur cet appareil.")
+      return false
+    }
+
+    const normalizedPin = normalizeProfilePin(pin)
+    if (normalizedPin.length !== profilePinLength) {
+      setSyncError(`Le PIN du profil bébé doit contenir ${profilePinLength} chiffres.`)
+      return false
+    }
+
+    if (!isSupabaseConfigured) {
+      setSyncStatus("not-configured")
+      setSyncError("Supabase n’est pas encore configuré.")
+      return false
+    }
+
+    const nextFamilyCodeHash = await hashFamilyAccess(familySession.familyCodeLabel, normalizedPin)
+    if (nextFamilyCodeHash === familySession.familyCodeHash) {
+      setSyncError("Choisis un nouveau PIN différent du PIN actuel.")
+      return false
+    }
+
+    setSyncStatus("syncing")
+    setSyncError(null)
+
+    const client = await getSupabase()
+    if (!client) {
+      setSyncStatus("not-configured")
+      setSyncError("Supabase n’est pas encore configuré.")
+      return false
+    }
+
+    const { error } = await client.rpc("migrate_baby_family_access", {
+      p_new_family_code_hash: nextFamilyCodeHash,
+      p_old_family_code_hash: familySession.familyCodeHash,
+    })
+
+    if (error) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(error.message)
+      return false
+    }
+
+    setFamilySession((current) =>
+      current
+        ? { ...current, familyCodeHash: nextFamilyCodeHash, hasProfilePin: true }
+        : current,
+    )
+    setSyncStatus("idle")
+    setSyncError(null)
+    markSyncSucceeded()
+    return true
   }
 
   async function addTest(test: Omit<FoodTest, "id">) {
@@ -825,12 +891,14 @@ export function useBabyStore() {
     importBackup,
     isConfigured: isSupabaseConfigured,
     lastSyncedAt,
+    leaveFamilySpaceOnDevice,
     latestByFood,
     refresh,
     syncError,
     syncStatus,
     testedFoodIds,
     updateAge,
+    updateFamilyPin,
     updateProfile,
     updateTest,
   }
