@@ -123,8 +123,8 @@ function App() {
             <Route
               path="/data-privacy"
               element={
-                <Suspense fallback={<PageLoading label="Confidentialité" />}>
-                  <DataPrivacyPage />
+                <Suspense fallback={<PageLoading label="Données" />}>
+                  <DataPrivacyPage store={store} />
                 </Suspense>
               }
             />

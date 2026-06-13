@@ -289,6 +289,27 @@ begin
 end;
 $$;
 
+create or replace function public.delete_baby_family_state(
+  p_family_code_hash text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_valid_baby_family_hash(p_family_code_hash) then
+    raise exception 'Invalid family code hash';
+  end if;
+
+  delete from public.baby_food_tests
+  where family_code_hash = p_family_code_hash;
+
+  delete from public.baby_profiles
+  where family_code_hash = p_family_code_hash;
+end;
+$$;
+
 revoke execute on function public.is_valid_baby_family_hash(text) from public, anon, authenticated;
 revoke execute on function public.is_valid_baby_reaction(text) from public, anon, authenticated;
 grant execute on function public.get_baby_family_state(text) to anon, authenticated;
@@ -296,3 +317,4 @@ grant execute on function public.upsert_baby_profile(text, integer, text, date, 
 grant execute on function public.add_baby_food_test(uuid, text, text, date, text, text, time) to anon, authenticated;
 grant execute on function public.update_baby_food_test(uuid, text, date, text, text, time) to anon, authenticated;
 grant execute on function public.delete_baby_food_test(uuid, text) to anon, authenticated;
+grant execute on function public.delete_baby_family_state(text) to anon, authenticated;

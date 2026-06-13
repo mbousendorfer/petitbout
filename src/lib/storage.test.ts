@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   childNameMaxLength,
+  normalizeProfilePin,
   noteMaxLength,
   parseBackupPayload,
   parseRemoteState,
@@ -39,11 +40,12 @@ describe("parseBackupPayload", () => {
     const familyCodeHash = "a".repeat(64)
     const result = parseBackupPayload({
       ...validBackup(),
-      familySession: { familyCodeHash, familyCodeLabel: "  puree-carotte  " },
+      familySession: { familyCodeHash, familyCodeLabel: "  puree-carotte  ", hasProfilePin: true },
     })
     expect(result.familySession).toEqual({
       familyCodeHash,
       familyCodeLabel: "puree-carotte",
+      hasProfilePin: true,
     })
   })
 
@@ -218,5 +220,9 @@ describe("parseBackupPayload", () => {
       mealTime: "",
       reaction: "Allergie",
     })
+  })
+
+  it("normalizes profile PINs to the first four digits", () => {
+    expect(normalizeProfilePin(" 12 3a4-5 ")).toBe("1234")
   })
 })

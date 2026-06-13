@@ -3,11 +3,19 @@ import { Carrot, Lock, Sparkles, Users } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { familyCodeMaxLength, familyCodeMinLength, normalizeFamilyCode, useBabyStore } from "@/lib/storage"
+import {
+  familyCodeMaxLength,
+  familyCodeMinLength,
+  normalizeFamilyCode,
+  normalizeProfilePin,
+  profilePinLength,
+  useBabyStore,
+} from "@/lib/storage"
 import { HeroPanel } from "@/components/primitives"
 
 export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
   const [familyCode, setFamilyCode] = useState("")
+  const [profilePin, setProfilePin] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function submitFamilyCode(event: React.FormEvent<HTMLFormElement>) {
@@ -19,8 +27,14 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
       return
     }
 
+    const nextProfilePin = normalizeProfilePin(profilePin)
+    if (nextProfilePin.length !== profilePinLength) {
+      toast.error(`Choisis un PIN de ${profilePinLength} chiffres`)
+      return
+    }
+
     setIsSubmitting(true)
-    const didConnect = await store.connectFamily(nextFamilyCode)
+    const didConnect = await store.connectFamily(nextFamilyCode, nextProfilePin)
     setIsSubmitting(false)
 
     if (didConnect) {
@@ -55,7 +69,7 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
         </p>
         <p className="flex items-center gap-2">
           <Users className="size-4 text-primary" aria-hidden="true" />
-          Utilise le même code sur tes appareils.
+          Utilise le même code et le même PIN sur tes appareils.
         </p>
         <p className="flex items-center gap-2">
           <Sparkles className="size-4 text-primary" aria-hidden="true" />
@@ -67,7 +81,7 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
         <div className="mb-4">
           <h2 className="text-xl font-bold tracking-normal">Code famille</h2>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Ouvre ton espace partagé pour retrouver le même suivi.
+            Ouvre ton espace partagé avec le code famille et le PIN du profil bébé.
           </p>
         </div>
         <form className="flex flex-col gap-4" onSubmit={submitFamilyCode}>
@@ -83,7 +97,26 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
               onChange={(event) => setFamilyCode(event.target.value)}
             />
           </label>
-          <Button type="submit" className="h-12" disabled={isSubmitting || !familyCode.trim()}>
+          <label className="flex flex-col gap-2 text-sm font-medium">
+            <span className="text-xs font-bold uppercase text-muted-foreground">PIN profil bébé</span>
+            <Input
+              autoComplete="off"
+              className="h-12 bg-background/70 text-lg tracking-normal"
+              inputMode="numeric"
+              maxLength={profilePinLength}
+              minLength={profilePinLength}
+              pattern={`\\d{${profilePinLength}}`}
+              placeholder="Ex. 4821"
+              type="password"
+              value={profilePin}
+              onChange={(event) => setProfilePin(normalizeProfilePin(event.target.value))}
+            />
+          </label>
+          <Button
+            type="submit"
+            className="h-12"
+            disabled={isSubmitting || !familyCode.trim() || normalizeProfilePin(profilePin).length !== profilePinLength}
+          >
             {isSubmitting ? "Ouverture..." : "Ouvrir mon espace famille"}
           </Button>
         </form>
@@ -93,7 +126,7 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
           </p>
         )}
         <p className="mt-4 text-xs leading-5 text-muted-foreground">
-          Toute personne ayant ce code peut ouvrir le même suivi : garde-le comme un secret partagé.
+          Toute personne ayant le code famille et le PIN peut ouvrir le même suivi : garde-les comme des secrets partagés.
         </p>
       </section>
     </>

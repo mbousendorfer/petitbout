@@ -30,6 +30,7 @@ export type StoredState = {
 export type FamilySession = {
   familyCodeHash: string
   familyCodeLabel?: string
+  hasProfilePin?: boolean
 }
 
 export type BabyBackup = {
@@ -45,6 +46,7 @@ type SupabaseClientInstance = NonNullable<Awaited<ReturnType<typeof getSupabase>
 
 export const familyCodeMinLength = 8
 export const familyCodeMaxLength = 80
+export const profilePinLength = 4
 export const childNameMaxLength = 40
 export const foodIdMaxLength = 80
 export const noteMaxLength = 800
@@ -133,6 +135,11 @@ function sanitizeFamilyCodeLabel(value: unknown) {
   return sanitizeText(value, familyCodeMaxLength)
 }
 
+function sanitizeProfilePin(value: unknown) {
+  if (typeof value !== "string") return ""
+  return value.replace(/\D/g, "").slice(0, profilePinLength)
+}
+
 function normalizeFamilySession(value: unknown): FamilySession | null {
   if (!value || typeof value !== "object") return null
 
@@ -142,6 +149,7 @@ function normalizeFamilySession(value: unknown): FamilySession | null {
   return {
     familyCodeHash: session.familyCodeHash,
     familyCodeLabel: sanitizeFamilyCodeLabel(session.familyCodeLabel),
+    hasProfilePin: Boolean(session.hasProfilePin),
   }
 }
 
@@ -257,9 +265,14 @@ export function normalizeFamilyCode(code: string) {
   return sanitizeText(code, familyCodeMaxLength).toLowerCase()
 }
 
-async function hashFamilyCode(code: string) {
+export function normalizeProfilePin(pin: string) {
+  return sanitizeProfilePin(pin)
+}
+
+async function hashFamilyAccess(code: string, pin: string) {
   const normalizedCode = normalizeFamilyCode(code)
-  const encoded = new TextEncoder().encode(normalizedCode)
+  const normalizedPin = normalizeProfilePin(pin)
+  const encoded = new TextEncoder().encode(`${normalizedCode}\u001f${normalizedPin}`)
   const digest = await crypto.subtle.digest("SHA-256", encoded)
   return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, "0"))
@@ -458,15 +471,21 @@ export function useBabyStore() {
     return latest
   }, [state.tests])
 
-  async function connectFamily(code: string) {
+  async function connectFamily(code: string, pin: string) {
     const normalizedCode = normalizeFamilyCode(code)
     if (normalizedCode.length < familyCodeMinLength) {
       setSyncError(`Le code famille doit contenir au moins ${familyCodeMinLength} caractères.`)
       return false
     }
 
-    const familyCodeHash = await hashFamilyCode(normalizedCode)
-    const nextSession = { familyCodeHash, familyCodeLabel: normalizedCode }
+    const normalizedPin = normalizeProfilePin(pin)
+    if (normalizedPin.length !== profilePinLength) {
+      setSyncError(`Le PIN du profil bébé doit contenir ${profilePinLength} chiffres.`)
+      return false
+    }
+
+    const familyCodeHash = await hashFamilyAccess(normalizedCode, normalizedPin)
+    const nextSession = { familyCodeHash, familyCodeLabel: normalizedCode, hasProfilePin: true }
 
     if (!isSupabaseConfigured) {
       setSyncStatus("not-configured")
@@ -537,23 +556,34 @@ export function useBabyStore() {
       birthDate,
       childName: sanitizeText(mergedProfile.childName, childNameMaxLength),
     }
-    const previousState = state
 
     setState((current) => ({
       ...current,
       profile,
     }))
 
-    if (!isSupabaseConfigured || !familySession) return true
+    if (!familySession) return true
+
+    if (!isSupabaseConfigured) {
+      setSyncStatus("not-configured")
+      setSyncError("Supabase n’est pas encore configuré.")
+      setLastSyncedAt(null)
+      return false
+    }
 
     setSyncStatus("syncing")
+    setSyncError(null)
     const client = await getSupabase()
-    if (!client) return true
+    if (!client) {
+      setSyncStatus("not-configured")
+      setSyncError("Supabase n’est pas encore configuré.")
+      setLastSyncedAt(null)
+      return false
+    }
 
     const { error } = await upsertRemoteProfile(client, familySession.familyCodeHash, profile)
 
     if (error) {
-      setState(previousState)
       setSyncStatus(navigator.onLine ? "error" : "offline")
       setSyncError(error.message)
       return false
@@ -747,12 +777,48 @@ export function useBabyStore() {
     setSyncStatus(isSupabaseConfigured ? "idle" : "not-configured")
   }
 
+  async function deleteFamilySpace() {
+    if (!familySession) {
+      clearDeviceData()
+      return true
+    }
+
+    if (!isSupabaseConfigured) {
+      clearDeviceData()
+      return true
+    }
+
+    setSyncStatus("syncing")
+    setSyncError(null)
+
+    const client = await getSupabase()
+    if (!client) {
+      setSyncStatus("not-configured")
+      setSyncError("Supabase n’est pas encore configuré.")
+      return false
+    }
+
+    const { error } = await client.rpc("delete_baby_family_state", {
+      p_family_code_hash: familySession.familyCodeHash,
+    })
+
+    if (error) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(error.message)
+      return false
+    }
+
+    clearDeviceData()
+    return true
+  }
+
   return {
     ...state,
     addTest,
     clearDeviceData,
     connectFamily,
     deleteTest,
+    deleteFamilySpace,
     disconnectFamily,
     familySession,
     exportBackup,

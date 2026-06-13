@@ -1,26 +1,20 @@
-import { useRef, type ReactNode } from "react"
+import { type ReactNode } from "react"
 import { NavLink } from "react-router-dom"
 import {
   ChevronRight,
-  CircleCheck,
   Copy,
-  Download,
   LogOut,
   MessageSquare,
   Monitor,
   Moon,
   ShieldCheck,
   Sun,
-  Trash2,
-  Upload,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { backupFileName, backupToJson } from "@/lib/backup"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
-import { downloadTextFile } from "@/lib/formatting"
 import { type ThemeMode } from "@/app/useTheme"
 import { Header } from "@/components/primitives"
 import { BabyAvatar } from "@/components/BabyAvatar"
@@ -32,21 +26,6 @@ function birthDateLabel(birthDate: string) {
   return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
 }
 
-function lastSyncLabel(lastSyncedAt: string | null) {
-  if (!lastSyncedAt) return "Jamais synchronisé"
-
-  const date = new Date(lastSyncedAt)
-  if (Number.isNaN(date.getTime())) return "Jamais synchronisé"
-
-  return date.toLocaleString("fr-FR", {
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
-    year: "numeric",
-  })
-}
-
 export function SettingsPage({
   store,
   theme,
@@ -56,10 +35,15 @@ export function SettingsPage({
   theme: ThemeMode
   setTheme: (theme: ThemeMode) => void
 }) {
-  const importInputRef = useRef<HTMLInputElement>(null)
   const familyCodeLabel = store.familySession?.familyCodeLabel ?? ""
   const displayName = store.profile.childName.trim() ? store.profile.childName.trim() : "bébé"
   const bornLabel = birthDateLabel(store.profile.birthDate)
+  const isProfileUnsaved = !store.lastSyncedAt
+  const profileDetails = [
+    isProfileUnsaved ? "Profil incomplet" : null,
+    `${store.profile.ageMonths} mois`,
+    bornLabel ? `né le ${bornLabel}` : null,
+  ].filter(Boolean)
 
   async function copyFamilyCode() {
     if (!familyCodeLabel) {
@@ -71,47 +55,6 @@ export function SettingsPage({
     toast.success("Code famille copié")
   }
 
-  function exportBackup() {
-    const backup = store.exportBackup()
-    downloadTextFile(backupToJson(backup), backupFileName(), "application/json")
-    toast.success("Sauvegarde exportée")
-  }
-
-  async function importBackup(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    try {
-      const text = await file.text()
-      const parsed = JSON.parse(text)
-      const confirmed = window.confirm(
-        "Importer cette sauvegarde remplacera le suivi sur cet appareil. Une sauvegarde de sécurité va d’abord être téléchargée. Continuer ?",
-      )
-
-      if (!confirmed) return
-
-      downloadTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
-      store.importBackup(parsed)
-      toast.success("Sauvegarde importée")
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Impossible d’importer cette sauvegarde")
-    } finally {
-      event.target.value = ""
-    }
-  }
-
-  function clearDeviceData() {
-    const confirmed = window.confirm(
-      "Supprimer le suivi de cet appareil ? Les données partagées ne sont pas supprimées pour les autres appareils.",
-    )
-
-    if (!confirmed) return
-
-    downloadTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
-    store.clearDeviceData()
-    toast.success("Données supprimées de cet appareil")
-  }
-
   return (
     <>
       <Header eyebrow="Préférences" title="Réglages" />
@@ -119,13 +62,13 @@ export function SettingsPage({
       <NavLink
         to="/profile"
         className="paper-surface soft-ring flex items-center gap-3 rounded-hero p-4 transition-colors hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        aria-label={`Modifier le profil de ${displayName}`}
+        aria-label={`Modifier le profil de ${displayName}${isProfileUnsaved ? ", profil incomplet" : ""}`}
       >
         <BabyAvatar emoji={store.profile.avatarEmoji} size={56} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-bold tracking-[-0.01em]">{displayName}</p>
           <p className="truncate text-sm text-muted-foreground">
-            {store.profile.ageMonths} mois{bornLabel ? ` · né le ${bornLabel}` : ""}
+            {profileDetails.join(" · ")}
           </p>
         </div>
         <ChevronRight className="size-5 shrink-0 text-muted-foreground/65" aria-hidden="true" />
@@ -133,7 +76,7 @@ export function SettingsPage({
 
       <div className="grid gap-1 lg:grid-cols-2 lg:gap-4">
         <SettingsSection
-          description="Code partagé entre tes appareils pour retrouver le même suivi."
+          description="Le code famille et le PIN servent à retrouver le même suivi sur plusieurs appareils."
           title="Espace famille"
         >
           <label className="grid gap-1.5 text-sm font-medium">
@@ -162,16 +105,20 @@ export function SettingsPage({
                 Le code original n’est pas disponible sur cet appareil.
               </span>
             )}
+            {store.familySession?.hasProfilePin && (
+              <span className="text-xs text-muted-foreground">
+                Le PIN du profil bébé n’est pas affiché. Transmets-le séparément aux proches autorisés.
+              </span>
+            )}
           </label>
-          <div className="flex items-center gap-3 rounded-lg border bg-card/85 p-3 text-sm leading-5 shadow-sm">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <CircleCheck className="size-5" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <p className="font-semibold">Dernière synchro réalisée</p>
-              <p className="text-muted-foreground">{lastSyncLabel(store.lastSyncedAt)}</p>
-            </div>
-          </div>
+          <p className="rounded-lg border bg-card/85 p-3 text-sm leading-6 text-muted-foreground shadow-sm">
+            Pour partager le suivi avec un autre appareil, les données doivent être synchronisées sur le serveur PetitBout.
+            Si la synchro n’est pas configurée ou pas disponible, le suivi reste uniquement sur cet appareil.{" "}
+            <NavLink to="/data-privacy" className="font-semibold text-primary underline-offset-4 hover:underline">
+              Voir sauvegarde et données
+            </NavLink>
+            .
+          </p>
         </SettingsSection>
 
         <SettingsSection description="Le thème reste propre à cet appareil." title="Apparence">
@@ -184,44 +131,9 @@ export function SettingsPage({
 
         <InstallHelpSection />
 
-        <DataPrivacySection />
+        <DataManagementSection />
 
         <FeedbackSection />
-
-        <SettingsSection description="Garde une copie, restaure le suivi ou prépare un rendez-vous." title="Sauvegarde">
-          <Button type="button" variant="outline" className="h-12 justify-start rounded-lg px-4 text-base" onClick={exportBackup}>
-            <Download data-icon="inline-start" aria-hidden="true" />
-            Exporter les données
-          </Button>
-          <input
-            ref={importInputRef}
-            className="sr-only"
-            type="file"
-            accept="application/json"
-            onChange={(event) => void importBackup(event)}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 justify-start rounded-lg px-4 text-base"
-            onClick={() => importInputRef.current?.click()}
-          >
-            <Upload data-icon="inline-start" aria-hidden="true" />
-            Importer une sauvegarde
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 justify-start rounded-lg px-4 text-base text-destructive hover:border-destructive/25 hover:bg-destructive/[0.08] hover:text-destructive"
-            onClick={clearDeviceData}
-          >
-            <Trash2 data-icon="inline-start" aria-hidden="true" />
-            Supprimer les données
-          </Button>
-          <p className="text-xs leading-5 text-muted-foreground">
-            L’import demande confirmation et télécharge une sauvegarde de sécurité avant remplacement.
-          </p>
-        </SettingsSection>
 
         <section className="flex justify-center border-t border-border/60 py-6 lg:col-span-2">
           <Button type="button" variant="ghost" className="h-11 px-6 text-muted-foreground" onClick={() => store.disconnectFamily()}>
@@ -250,16 +162,16 @@ function FeedbackSection() {
   )
 }
 
-function DataPrivacySection() {
+function DataManagementSection() {
   return (
     <SettingsSection
-      description="Vois clairement ce qui est suivi, ce qui est synchronisé et ce qui ne l’est pas."
-      title="Confidentialité"
+      description="Synchro, sauvegardes, suppressions et confidentialité au même endroit."
+      title="Sauvegarde et données"
     >
       <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
         <NavLink to="/data-privacy">
           <ShieldCheck data-icon="inline-start" aria-hidden="true" />
-          Confidentialité des données
+          Sauvegarde et données
         </NavLink>
       </Button>
     </SettingsSection>
