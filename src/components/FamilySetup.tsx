@@ -3,7 +3,7 @@ import { Carrot, Lock, Sparkles, Users } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useBabyStore } from "@/lib/storage"
+import { familyCodeMaxLength, familyCodeMinLength, normalizeFamilyCode, useBabyStore } from "@/lib/storage"
 import { HeroPanel } from "@/components/primitives"
 
 export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> }) {
@@ -12,10 +12,15 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
 
   async function submitFamilyCode(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!familyCode.trim()) return
+    const nextFamilyCode = normalizeFamilyCode(familyCode)
+    if (!nextFamilyCode) return
+    if (nextFamilyCode.length < familyCodeMinLength) {
+      toast.error(`Choisis un code d’au moins ${familyCodeMinLength} caractères`)
+      return
+    }
 
     setIsSubmitting(true)
-    const didConnect = await store.connectFamily(familyCode)
+    const didConnect = await store.connectFamily(nextFamilyCode)
     setIsSubmitting(false)
 
     if (didConnect) {
@@ -71,6 +76,8 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
             <Input
               autoComplete="off"
               className="h-12 bg-background/70"
+              maxLength={familyCodeMaxLength}
+              minLength={familyCodeMinLength}
               placeholder="Ex. puree-carotte-2026"
               value={familyCode}
               onChange={(event) => setFamilyCode(event.target.value)}
@@ -86,7 +93,7 @@ export function FamilySetup({ store }: { store: ReturnType<typeof useBabyStore> 
           </p>
         )}
         <p className="mt-4 text-xs leading-5 text-muted-foreground">
-          Toute personne ayant ce code peut ouvrir le même suivi.
+          Toute personne ayant ce code peut ouvrir le même suivi : garde-le comme un secret partagé.
         </p>
       </section>
     </>

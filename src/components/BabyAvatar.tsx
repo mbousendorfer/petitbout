@@ -26,7 +26,7 @@ export function BabyAvatar({
 }
 
 // Emojis proposés, repris verbatim de BabyAvatarCatalog (BabyAvatar.swift:34).
-export const babyAvatarSections: Array<{ title: string; emojis: string[] }> = [
+const babyAvatarSections: Array<{ title: string; emojis: string[] }> = [
   {
     title: "Bébé",
     emojis: [

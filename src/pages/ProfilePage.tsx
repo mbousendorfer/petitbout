@@ -4,7 +4,7 @@ import { Check, ChevronLeft } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { calculateAgeMonths, useBabyStore } from "@/lib/storage"
+import { calculateAgeMonths, childNameMaxLength, useBabyStore } from "@/lib/storage"
 import { BabyAvatar, BabyAvatarPicker } from "@/components/BabyAvatar"
 import { SettingsSection } from "@/pages/SettingsPage"
 
@@ -78,6 +78,7 @@ export function ProfilePage({ store }: { store: ReturnType<typeof useBabyStore> 
             <span className="text-xs font-semibold uppercase text-muted-foreground">Prénom</span>
             <Input
               className="h-11 bg-background/70"
+              maxLength={childNameMaxLength}
               placeholder="Ex. Alba"
               value={childName}
               onChange={(event) => setChildName(event.target.value)}

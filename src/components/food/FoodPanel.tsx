@@ -9,7 +9,7 @@ import { type Food } from "@/data/foods"
 import { guidanceStageFor } from "@/data/guidance"
 import { foodSourceReferences } from "@/data/sources"
 import { ageSummary, monthNames } from "@/lib/food-utils"
-import { reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
+import { noteMaxLength, reactionDetailMaxLength, reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, type MealTimePresetId } from "@/lib/formatting"
 import { FoodHeroCard } from "@/components/food/FoodHeroCard"
@@ -97,17 +97,24 @@ export function FoodTestDrawer({
     }
 
     setIsSaving(true)
+    let didSave: boolean
     try {
       if (selectedTest) {
-        await store.updateTest(selectedTest.id, nextTest)
-        toast.success(`Prise de ${food.name} mise à jour`)
+        didSave = await store.updateTest(selectedTest.id, nextTest)
       } else {
-        await store.addTest(nextTest)
-        toast.success(`Nouvelle prise de ${food.name} ajoutée`)
+        didSave = await store.addTest(nextTest)
+      }
+
+      if (didSave) {
+        toast.success(selectedTest ? `Prise de ${food.name} mise à jour` : `Nouvelle prise de ${food.name} ajoutée`)
+      } else {
+        toast.error("La synchronisation a échoué. La modification n’a pas été enregistrée.")
       }
     } finally {
       setIsSaving(false)
     }
+
+    if (!didSave) return
 
     onOpenChange(false)
   }
@@ -248,6 +255,7 @@ export function FoodTestDrawer({
 
                 <div className="flex flex-col gap-3 rounded-xl border bg-card/80 p-4 shadow-sm">
                   <Textarea
+                    maxLength={noteMaxLength}
                     placeholder="Notes, texture, quantité..."
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
@@ -316,6 +324,7 @@ export function FoodTestDrawer({
                       {reaction === "Autre" && (
                         <Input
                           className="h-10 bg-background/70"
+                          maxLength={reactionDetailMaxLength}
                           placeholder="Précise en quelques mots"
                           value={reactionDetail}
                           onChange={(event) => setReactionDetail(event.target.value)}

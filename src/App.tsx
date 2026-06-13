@@ -9,7 +9,6 @@ import { BottomNav, DesktopNav } from "@/components/Navigation"
 import { PageLoading } from "@/components/primitives"
 import { HomePage } from "@/pages/HomePage"
 import { FoodsPage } from "@/pages/FoodsPage"
-import { SettingsPage } from "@/pages/SettingsPage"
 import { useTheme } from "@/app/useTheme"
 import { useBadgeUnlockDates } from "@/app/useBadgeUnlockDates"
 import { foods } from "@/data/foods"
@@ -30,6 +29,10 @@ const JournalPage = lazy(() =>
 
 const ProfilePage = lazy(() =>
   import("@/pages/ProfilePage").then((module) => ({ default: module.ProfilePage })),
+)
+
+const SettingsPage = lazy(() =>
+  import("@/pages/SettingsPage").then((module) => ({ default: module.SettingsPage })),
 )
 
 function App() {
@@ -93,7 +96,14 @@ function App() {
                 </Suspense>
               }
             />
-            <Route path="/settings" element={<SettingsPage store={store} theme={theme} setTheme={setTheme} />} />
+            <Route
+              path="/settings"
+              element={
+                <Suspense fallback={<PageLoading label="Réglages" />}>
+                  <SettingsPage store={store} theme={theme} setTheme={setTheme} />
+                </Suspense>
+              }
+            />
             <Route
               path="/profile"
               element={

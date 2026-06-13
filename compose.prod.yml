@@ -1,0 +1,16 @@
+services:
+  petitbout:
+    image: ${PETITBOUT_IMAGE:?Set PETITBOUT_IMAGE in the server .env file}
+    container_name: ${PETITBOUT_CONTAINER_NAME:-petitbout}
+    restart: unless-stopped
+    environment:
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-}
+    ports:
+      - "${PETITBOUT_HOST:-127.0.0.1}:${PETITBOUT_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/petitbout/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s

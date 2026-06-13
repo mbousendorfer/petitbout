@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Build and deploy Docker image
 
 on:
   push:
@@ -7,47 +7,116 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  packages: write
 
 concurrency:
-  group: pages
+  group: production
   cancel-in-progress: false
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
       - name: Install dependencies
         run: npm ci
+
       - name: Lint
         run: npm run lint
+
       - name: Test
         run: npm test
+
       - name: Build
         run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          path: dist
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: production
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-push
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy Docker Compose file to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: compose.prod.yml
+          target: ${{ secrets.VPS_APP_DIR }}
+
+      - name: Pull and restart on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          PETITBOUT_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          PETITBOUT_HOST: ${{ vars.PETITBOUT_HOST }}
+          PETITBOUT_PORT: ${{ vars.PETITBOUT_PORT }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: PETITBOUT_IMAGE,PETITBOUT_HOST,PETITBOUT_PORT,VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,GHCR_USER,GHCR_PAT
+          script: |
+            set -eu
+            cd "${{ secrets.VPS_APP_DIR }}"
+            if [ -n "${GHCR_PAT:-}" ] && [ -n "${GHCR_USER:-}" ]; then
+              echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            fi
+            {
+              printf 'PETITBOUT_IMAGE=%s\n' "$PETITBOUT_IMAGE"
+              printf 'PETITBOUT_HOST=%s\n' "${PETITBOUT_HOST:-127.0.0.1}"
+              printf 'PETITBOUT_PORT=%s\n' "${PETITBOUT_PORT:-8080}"
+              printf 'VITE_SUPABASE_URL=%s\n' "${VITE_SUPABASE_URL:-}"
+              printf 'VITE_SUPABASE_ANON_KEY=%s\n' "${VITE_SUPABASE_ANON_KEY:-}"
+            } > .env
+            docker compose -f compose.prod.yml pull
+            docker compose -f compose.prod.yml up -d --remove-orphans
+            docker image prune -f

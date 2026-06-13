@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useReducer } from "react"
 import { foods } from "@/data/foods"
 import {
   calculateBadges,
@@ -13,7 +13,11 @@ export function useBadgeUnlockDates(
   tests: ReturnType<typeof useBabyStore>["tests"],
   syncStatus: ReturnType<typeof useBabyStore>["syncStatus"],
 ) {
-  const [unlockDates, setUnlockDates] = useState<BadgeUnlockDates>(() => readBadgeUnlockDates())
+  const [unlockDates, setUnlockDates] = useReducer(
+    (_current: BadgeUnlockDates, next: BadgeUnlockDates) => next,
+    undefined,
+    readBadgeUnlockDates,
+  )
   const [celebrationQueue, setCelebrationQueue] = useState<DiscoveryBadge[]>([])
   const hasCheckedExistingBadges = useRef(false)
 

@@ -37,9 +37,13 @@ export function JournalPage({ store }: { store: ReturnType<typeof useBabyStore> 
       return
     }
 
-    await store.deleteTest(test.id)
-    toast.success(`${foodName} retiré du carnet`)
-    setConfirmingRemovalId(null)
+    const didDelete = await store.deleteTest(test.id)
+    if (didDelete) {
+      toast.success(`${foodName} retiré du carnet`)
+      setConfirmingRemovalId(null)
+    } else {
+      toast.error("La suppression n’a pas pu être synchronisée.")
+    }
   }
 
   if (entries.length === 0) {

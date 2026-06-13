@@ -42,6 +42,15 @@ export type BabyBackup = {
 
 type SyncStatus = "idle" | "loading" | "syncing" | "error" | "offline" | "not-configured"
 
+export const familyCodeMinLength = 8
+export const familyCodeMaxLength = 80
+export const childNameMaxLength = 40
+export const foodIdMaxLength = 80
+export const noteMaxLength = 800
+export const reactionDetailMaxLength = 120
+export const minAgeMonths = 0
+export const maxAgeMonths = 36
+
 const appStorageNamespace = "petitbout"
 const previousStorageNamespace = ["diversi", "bebs"].join("")
 
@@ -74,6 +83,64 @@ const legacyReactionMap: Record<string, Reaction> = {
   rougeur: "Allergie",
   vomissement: "Vomi",
   autre: "Autre",
+}
+
+function clampNumber(value: unknown, min: number, max: number, fallback: number) {
+  const number = typeof value === "number" && Number.isFinite(value) ? value : fallback
+  return Math.min(max, Math.max(min, Math.trunc(number)))
+}
+
+export function sanitizeText(value: unknown, maxLength: number) {
+  if (typeof value !== "string") return ""
+  return value.replace(/\s+/g, " ").trim().slice(0, maxLength)
+}
+
+function sanitizeFreeText(value: unknown, maxLength: number) {
+  if (typeof value !== "string") return ""
+  return value.trim().slice(0, maxLength)
+}
+
+function isValidDateString(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+
+  const date = new Date(`${value}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return false
+
+  const [year, month, day] = value.split("-").map(Number)
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+}
+
+function sanitizeDateString(value: unknown): string {
+  return isValidDateString(value) ? value : ""
+}
+
+function sanitizeMealTime(value: unknown): string {
+  if (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value)) return ""
+
+  const [hour, minute] = value.split(":").map(Number)
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return ""
+
+  return value
+}
+
+function isValidFamilyCodeHash(value: unknown): value is string {
+  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value)
+}
+
+function sanitizeFamilyCodeLabel(value: unknown) {
+  return sanitizeText(value, familyCodeMaxLength)
+}
+
+function normalizeFamilySession(value: unknown): FamilySession | null {
+  if (!value || typeof value !== "object") return null
+
+  const session = value as Partial<FamilySession>
+  if (!isValidFamilyCodeHash(session.familyCodeHash)) return null
+
+  return {
+    familyCodeHash: session.familyCodeHash,
+    familyCodeLabel: sanitizeFamilyCodeLabel(session.familyCodeLabel),
+  }
 }
 
 export function calculateAgeMonths(birthDate: string) {
@@ -125,26 +192,28 @@ function coerceReaction(value: unknown): Reaction {
 
 function normalizeStoredState(value: Partial<StoredState> | null | undefined): StoredState {
   const profile = { ...initialState.profile, ...(value?.profile ?? {}) }
-  const computedAgeMonths = calculateAgeMonths(profile.birthDate)
+  const birthDate = sanitizeDateString(profile.birthDate)
+  const computedAgeMonths = calculateAgeMonths(birthDate)
 
   return {
     profile: {
-      ageMonths: computedAgeMonths ?? profile.ageMonths,
+      ageMonths: clampNumber(computedAgeMonths ?? profile.ageMonths, minAgeMonths, maxAgeMonths, initialState.profile.ageMonths),
       avatarEmoji: profile.avatarEmoji?.trim() ? profile.avatarEmoji : defaultAvatarEmoji,
-      birthDate: profile.birthDate ?? "",
-      childName: profile.childName ?? "",
+      birthDate,
+      childName: sanitizeText(profile.childName, childNameMaxLength),
     },
     tests: sortTests(
       (value?.tests ?? [])
-        .filter((test): test is FoodTest => Boolean(test.id && test.foodId && test.date))
+        .filter((test): test is FoodTest => Boolean(test.id && test.foodId && isValidDateString(test.date)))
         .map((test) => ({
-          id: test.id,
-          foodId: test.foodId,
-          date: test.date,
-          mealTime: typeof test.mealTime === "string" ? test.mealTime : "",
+          id: sanitizeText(test.id, 80),
+          foodId: sanitizeText(test.foodId, foodIdMaxLength),
+          date: sanitizeDateString(test.date),
+          mealTime: sanitizeMealTime(test.mealTime),
           reaction: coerceReaction(test.reaction),
-          note: test.note ?? "",
-        })),
+          note: sanitizeFreeText(test.note, noteMaxLength),
+        }))
+        .filter((test) => Boolean(test.id && test.foodId && test.date)),
     ),
   }
 }
@@ -168,14 +237,18 @@ function readFamilySession() {
   if (!stored) return null
 
   try {
-    return JSON.parse(stored) as FamilySession
+    return normalizeFamilySession(JSON.parse(stored))
   } catch {
     return null
   }
 }
 
+export function normalizeFamilyCode(code: string) {
+  return sanitizeText(code, familyCodeMaxLength).toLowerCase()
+}
+
 async function hashFamilyCode(code: string) {
-  const normalizedCode = code.trim().toLowerCase()
+  const normalizedCode = normalizeFamilyCode(code)
   const encoded = new TextEncoder().encode(normalizedCode)
   const digest = await crypto.subtle.digest("SHA-256", encoded)
   return Array.from(new Uint8Array(digest))
@@ -198,7 +271,7 @@ function remoteTextOrFallback(value: string | null | undefined, fallback: string
   return value
 }
 
-function parseRemoteState(data: unknown, fallbackState: StoredState = initialState): StoredState {
+export function parseRemoteState(data: unknown, fallbackState: StoredState = initialState): StoredState {
   if (!data || typeof data !== "object") return fallbackState
 
   const value = data as {
@@ -215,13 +288,13 @@ function parseRemoteState(data: unknown, fallbackState: StoredState = initialSta
 
   return normalizeStoredState({
     profile: {
-      ageMonths: value.profile?.ageMonths ?? fallbackState.profile.ageMonths,
+      ageMonths: clampNumber(value.profile?.ageMonths, minAgeMonths, maxAgeMonths, fallbackState.profile.ageMonths),
       // L'avatar n'est pas synchronisé via Supabase : on conserve la valeur locale.
       avatarEmoji: remoteTextOrFallback(value.profile?.avatarEmoji, fallbackState.profile.avatarEmoji),
       birthDate: remoteTextOrFallback(value.profile?.birthDate, fallbackState.profile.birthDate),
       childName: remoteTextOrFallback(value.profile?.childName, fallbackState.profile.childName),
     },
-    tests: (value.tests ?? []).map((test) => ({
+    tests: (value.tests ?? []).slice(0, 1000).map((test) => ({
       id: test.id ?? "",
       foodId: test.foodId ?? "",
       date: test.date ?? "",
@@ -247,15 +320,7 @@ export function parseBackupPayload(payload: unknown) {
     throw new Error("Le format de sauvegarde n’est pas reconnu.")
   }
 
-  const familySession =
-    value.familySession &&
-    typeof value.familySession === "object" &&
-    typeof value.familySession.familyCodeHash === "string"
-      ? {
-          familyCodeHash: value.familySession.familyCodeHash,
-          familyCodeLabel: value.familySession.familyCodeLabel,
-        }
-      : null
+  const familySession = normalizeFamilySession(value.familySession)
 
   return {
     familySession,
@@ -341,8 +406,14 @@ export function useBabyStore() {
   }, [state.tests])
 
   async function connectFamily(code: string) {
-    const familyCodeHash = await hashFamilyCode(code)
-    const nextSession = { familyCodeHash, familyCodeLabel: code.trim() }
+    const normalizedCode = normalizeFamilyCode(code)
+    if (normalizedCode.length < familyCodeMinLength) {
+      setSyncError(`Le code famille doit contenir au moins ${familyCodeMinLength} caractères.`)
+      return false
+    }
+
+    const familyCodeHash = await hashFamilyCode(normalizedCode)
+    const nextSession = { familyCodeHash, familyCodeLabel: normalizedCode }
 
     if (!isSupabaseConfigured) {
       setSyncStatus("not-configured")
@@ -389,11 +460,15 @@ export function useBabyStore() {
       ...state.profile,
       ...nextProfile,
     }
-    const computedAgeMonths = calculateAgeMonths(mergedProfile.birthDate)
+    const birthDate = sanitizeDateString(mergedProfile.birthDate)
+    const computedAgeMonths = calculateAgeMonths(birthDate)
     const profile = {
       ...mergedProfile,
-      ageMonths: computedAgeMonths ?? mergedProfile.ageMonths,
+      ageMonths: clampNumber(computedAgeMonths ?? mergedProfile.ageMonths, minAgeMonths, maxAgeMonths, initialState.profile.ageMonths),
+      birthDate,
+      childName: sanitizeText(mergedProfile.childName, childNameMaxLength),
     }
+    const previousState = state
 
     setState((current) => ({
       ...current,
@@ -414,6 +489,7 @@ export function useBabyStore() {
     })
 
     if (error) {
+      setState(previousState)
       setSyncStatus(navigator.onLine ? "error" : "offline")
       setSyncError(error.message)
       return false
@@ -429,18 +505,23 @@ export function useBabyStore() {
   }
 
   async function addTest(test: Omit<FoodTest, "id">) {
-    const nextTest = { ...test, id: crypto.randomUUID() }
+    const nextTest = normalizeStoredState({
+      ...state,
+      tests: [{ ...test, id: crypto.randomUUID() }],
+    }).tests[0]
+    if (!nextTest) return false
+    const previousState = state
 
     setState((current) => ({
       ...current,
       tests: sortTests([nextTest, ...current.tests]),
     }))
 
-    if (!isSupabaseConfigured || !familySession) return
+    if (!isSupabaseConfigured || !familySession) return true
 
     setSyncStatus("syncing")
     const client = await getSupabase()
-    if (!client) return
+    if (!client) return true
 
     const addPayload = {
       p_date: nextTest.date,
@@ -459,28 +540,35 @@ export function useBabyStore() {
     }
 
     if (error) {
+      setState(previousState)
       setSyncStatus(navigator.onLine ? "error" : "offline")
       setSyncError(error.message)
-      return
+      return false
     }
 
     setSyncStatus("idle")
     setSyncError(null)
+    return true
   }
 
   async function updateTest(testId: string, nextTest: Omit<FoodTest, "id">) {
-    const testWithId = { ...nextTest, id: testId }
+    const testWithId = normalizeStoredState({
+      ...state,
+      tests: [{ ...nextTest, id: testId }],
+    }).tests[0]
+    if (!testWithId) return false
+    const previousState = state
 
     setState((current) => ({
       ...current,
       tests: sortTests(current.tests.map((test) => (test.id === testId ? testWithId : test))),
     }))
 
-    if (!isSupabaseConfigured || !familySession) return
+    if (!isSupabaseConfigured || !familySession) return true
 
     setSyncStatus("syncing")
     const client = await getSupabase()
-    if (!client) return
+    if (!client) return true
 
     const updatePayload = {
       p_date: testWithId.date,
@@ -498,26 +586,30 @@ export function useBabyStore() {
     }
 
     if (error) {
+      setState(previousState)
       setSyncStatus(navigator.onLine ? "error" : "offline")
       setSyncError(error.message)
-      return
+      return false
     }
 
     setSyncStatus("idle")
     setSyncError(null)
+    return true
   }
 
   async function deleteTest(testId: string) {
+    const previousState = state
+
     setState((current) => ({
       ...current,
       tests: current.tests.filter((test) => test.id !== testId),
     }))
 
-    if (!isSupabaseConfigured || !familySession) return
+    if (!isSupabaseConfigured || !familySession) return true
 
     setSyncStatus("syncing")
     const client = await getSupabase()
-    if (!client) return
+    if (!client) return true
 
     const { error } = await client.rpc("delete_baby_food_test", {
       p_family_code_hash: familySession.familyCodeHash,
@@ -525,13 +617,15 @@ export function useBabyStore() {
     })
 
     if (error) {
+      setState(previousState)
       setSyncStatus(navigator.onLine ? "error" : "offline")
       setSyncError(error.message)
-      return
+      return false
     }
 
     setSyncStatus("idle")
     setSyncError(null)
+    return true
   }
 
   function exportBackup(): BabyBackup {

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { parseBackupPayload } from "@/lib/storage"
+import {
+  childNameMaxLength,
+  noteMaxLength,
+  parseBackupPayload,
+  parseRemoteState,
+  reactionDetailMaxLength,
+} from "@/lib/storage"
 
 describe("parseBackupPayload", () => {
   function validBackup() {
@@ -30,12 +36,13 @@ describe("parseBackupPayload", () => {
   })
 
   it("preserves a family session block when provided", () => {
+    const familyCodeHash = "a".repeat(64)
     const result = parseBackupPayload({
       ...validBackup(),
-      familySession: { familyCodeHash: "abc123", familyCodeLabel: "puree-carotte" },
+      familySession: { familyCodeHash, familyCodeLabel: "  puree-carotte  " },
     })
     expect(result.familySession).toEqual({
-      familyCodeHash: "abc123",
+      familyCodeHash,
       familyCodeLabel: "puree-carotte",
     })
   })
@@ -145,5 +152,71 @@ describe("parseBackupPayload", () => {
       },
     })
     expect(result.state.tests).toEqual([])
+  })
+
+  it("bounds imported profile and note fields", () => {
+    const result = parseBackupPayload({
+      ...validBackup(),
+      state: {
+        profile: {
+          ageMonths: 999,
+          birthDate: "not-a-date",
+          childName: "A".repeat(childNameMaxLength + 10),
+        },
+        tests: [
+          {
+            id: "t-1",
+            foodId: "carotte",
+            date: "2026-05-01",
+            reaction: "Autre",
+            note: "x".repeat(noteMaxLength + reactionDetailMaxLength),
+          },
+        ],
+      },
+    })
+
+    expect(result.state.profile.ageMonths).toBe(36)
+    expect(result.state.profile.birthDate).toBe("")
+    expect(result.state.profile.childName).toHaveLength(childNameMaxLength)
+    expect(result.state.tests[0].note).toHaveLength(noteMaxLength)
+  })
+
+  it("normalizes remote state before it reaches local storage", () => {
+    const result = parseRemoteState(
+      {
+        profile: {
+          ageMonths: -3,
+          birthDate: "2026-02-30",
+          childName: "  Sam  ",
+        },
+        tests: [
+          {
+            id: "remote-1",
+            foodId: "banane",
+            date: "2026-05-03",
+            mealTime: "99:99",
+            reaction: "rougeur",
+            note: "ok",
+          },
+          {
+            id: "remote-2",
+            foodId: "poire",
+            date: "invalid",
+            reaction: "Aucune",
+          },
+        ],
+      },
+      parseBackupPayload(validBackup()).state,
+    )
+
+    expect(result.profile.ageMonths).toBe(0)
+    expect(result.profile.birthDate).toBe("")
+    expect(result.profile.childName).toBe("Sam")
+    expect(result.tests).toHaveLength(1)
+    expect(result.tests[0]).toMatchObject({
+      foodId: "banane",
+      mealTime: "",
+      reaction: "Allergie",
+    })
   })
 })
