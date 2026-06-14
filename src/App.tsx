@@ -75,7 +75,8 @@ function App() {
   }
 
   return (
-    <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
+    <>
+      <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
         <DesktopNav />
         <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-5 sm:px-6 lg:mx-0 lg:max-w-6xl lg:px-0 lg:py-8">
           <PwaStatus />
@@ -163,10 +164,11 @@ function App() {
             />
           </Routes>
         </main>
-        <BottomNav />
-        <BadgeUnlockCelebration badge={celebrationBadge} onDismiss={dismissBadgeCelebration} />
-        <Toaster />
       </div>
+      <BottomNav />
+      <BadgeUnlockCelebration badge={celebrationBadge} onDismiss={dismissBadgeCelebration} />
+      <Toaster />
+    </>
   )
 }
 

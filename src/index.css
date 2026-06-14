@@ -110,6 +110,7 @@
 
   html {
     background: hsl(var(--background));
+    height: 100%;
     min-height: 100%;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -117,9 +118,14 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    height: 100%;
     min-height: 100%;
     overscroll-behavior-y: none;
     font-family: var(--font-text);
+  }
+
+  #root {
+    min-height: 100%;
   }
 
   ::selection {
@@ -303,6 +309,17 @@
     padding-bottom: calc(max(env(safe-area-inset-bottom), 0.5rem) + 4rem);
   }
 
+  .mobile-bottom-nav {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
   @media (min-width: 1024px) {
     .safe-shell {
       padding-top: 0;
@@ -344,6 +361,13 @@
       hsl(var(--canvas-tint))
     );
     background-attachment: fixed;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    .soft-surface,
+    .dark .soft-surface {
+      background-attachment: scroll;
+    }
   }
 
   .paper-surface {

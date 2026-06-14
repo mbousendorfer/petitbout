@@ -48,7 +48,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-2xl border-t bg-background/95 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1.5 shadow-nav backdrop-blur lg:hidden"
+      className="mobile-bottom-nav mx-auto w-full max-w-2xl border-t bg-background px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1.5 shadow-nav lg:hidden"
     >
       <div className="grid grid-cols-5 gap-1">
         {navigationItems.map((item) => (
@@ -71,4 +71,3 @@ export function BottomNav() {
     </nav>
   )
 }
-
