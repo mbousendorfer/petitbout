@@ -1,62 +1,62 @@
 import { useNavigate } from "react-router-dom"
-import { ChevronLeft, Database, Eye, LockKeyhole, ShieldCheck } from "lucide-react"
+import { BarChart3, ChevronLeft, Database, LockKeyhole, ShieldCheck, Smartphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SettingsSection } from "@/pages/SettingsPage"
 
-const trackedItems = [
+const localItems = [
   {
-    title: "Pages vues",
+    title: "Sans espace famille",
     description:
-      "Si Plausible est configuré, Petitbout compte les pages ouvertes pour comprendre les écrans vraiment utiles.",
+      "Le carnet reste sur l’appareil. Il peut fonctionner hors ligne et n’est pas envoyé au serveur PetitBout.",
   },
   {
-    title: "Aucun événement métier",
+    title: "Sauvegardes",
     description:
-      "Les aliments consultés, les réactions, le profil de bébé, le code famille et le PIN ne sont pas envoyés à l’outil d’analyse.",
-  },
-  {
-    title: "Pas de publicité",
-    description:
-      "Le suivi d’usage ne sert pas à faire du ciblage publicitaire et n’ajoute pas de profil marketing dans Petitbout.",
+      "Quand tu télécharges une sauvegarde, le fichier est créé sur ton appareil. PetitBout ne le reçoit pas.",
   },
 ]
 
-const databaseItems = [
+const familyItems = [
   {
-    title: "Espace famille",
-    rows: [
-      "Hash SHA-256 calculé à partir du code famille et du PIN, jamais le code ou le PIN en clair",
-      "Date de dernière mise à jour du profil",
-    ],
-  },
-  {
-    title: "Profil de bébé",
-    rows: [
-      "Prénom renseigné dans le profil",
-      "Date de naissance, si elle est renseignée",
-      "Âge en mois, utilisé pour adapter les repères",
-      "Avatar choisi pour bébé",
-    ],
+    title: "Profil bébé",
+    description:
+      "Prénom, date de naissance, âge calculé et avatar sont synchronisés pour retrouver le même carnet ailleurs.",
   },
   {
     title: "Essais alimentaires",
-    rows: [
-      "Identifiant technique unique de l’essai",
-      "Hash SHA-256 du code famille associé",
-      "Identifiant de l’aliment",
-      "Date et heure optionnelle du repas",
-      "Réaction choisie",
-      "Note libre, si elle est renseignée",
-      "Date de création de l’essai",
-    ],
+    description:
+      "Aliment, date, heure si renseignée, réaction et note libre sont partagés avec les appareils connectés au même espace famille.",
+  },
+  {
+    title: "Code famille et PIN",
+    description:
+      "Le serveur garde une empreinte technique du code et du PIN pour reconnaître l’espace, pas le code ni le PIN lisibles.",
+  },
+]
+
+const analyticsItems = [
+  {
+    title: "Pages consultées",
+    description:
+      "L’outil de mesure d’audience peut compter les écrans ouverts pour comprendre ce qui sert vraiment.",
+  },
+  {
+    title: "Informations techniques limitées",
+    description:
+      "Comme la plupart des outils d’audience, il peut recevoir des informations de visite comme la page, le navigateur ou le type d’appareil.",
+  },
+  {
+    title: "Pas le contenu du carnet",
+    description:
+      "Le profil de bébé, les aliments, les réactions, les notes, le code famille et le PIN ne sont pas envoyés à l’outil d’audience.",
   },
 ]
 
 const notStoredItems = [
-  "Le code famille en clair",
-  "Le PIN du profil bébé",
-  "Une adresse email de compte utilisateur",
-  "Une donnée de paiement ou de publicité",
+  "Aucune adresse email de compte",
+  "Aucune donnée de paiement",
+  "Aucun profil publicitaire",
+  "Aucune vente de données",
 ]
 
 export function PrivacyPage() {
@@ -85,7 +85,7 @@ export function PrivacyPage() {
 
       <div className="grid gap-1">
         <SettingsSection
-          description="Petitbout garde uniquement ce qui est nécessaire au carnet alimentaire et au partage familial."
+          description="Petitbout garde le carnet au minimum nécessaire. Le partage reste un choix."
           title="En bref"
         >
           <div className="rounded-lg border bg-card/85 p-4 shadow-sm">
@@ -94,10 +94,10 @@ export function PrivacyPage() {
                 <ShieldCheck className="size-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                <p className="font-semibold">Pas de surprise cachée dans le suivi</p>
+                <p className="font-semibold">Local par défaut, partagé seulement si tu l’actives</p>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Les données de santé du quotidien restent limitées au carnet de bébé. L’analyse d’usage, quand elle
-                  est activée, se limite aux pages vues et ne contient pas le contenu du carnet.
+                  Sans espace famille, le carnet reste sur cet appareil. Avec l’espace famille, les données utiles au
+                  carnet sont synchronisées avec le serveur PetitBout pour les retrouver sur plusieurs appareils.
                 </p>
               </div>
             </div>
@@ -105,12 +105,12 @@ export function PrivacyPage() {
         </SettingsSection>
 
         <SettingsSection
-          description="Le suivi d’usage sert seulement à repérer les écrans consultés, pas à lire le carnet."
-          title="Ce qui est tracké"
+          description="Ce mode ne demande pas de serveur PetitBout."
+          title="Ce qui reste sur l’appareil"
         >
           <div className="grid gap-3">
-            {trackedItems.map((item) => (
-              <PrivacyCard key={item.title} icon={Eye} title={item.title}>
+            {localItems.map((item) => (
+              <PrivacyCard key={item.title} icon={Smartphone} title={item.title}>
                 {item.description}
               </PrivacyCard>
             ))}
@@ -118,41 +118,41 @@ export function PrivacyPage() {
         </SettingsSection>
 
         <SettingsSection
-          description="Ces informations sont synchronisées avec Supabase quand l’espace famille est connecté et que le stockage partagé est configuré."
-          title="Ce qui est enregistré en base de données"
+          description="Uniquement quand tu crées ou rejoins un espace famille."
+          title="Ce qui est synchronisé"
         >
           <div className="grid gap-3">
-            {databaseItems.map((group) => (
-              <div key={group.title} className="rounded-lg border bg-card/85 p-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                    <Database className="size-5" aria-hidden="true" />
-                  </span>
-                  <h2 className="font-semibold">{group.title}</h2>
-                </div>
-                <ul className="mt-3 grid gap-2 text-sm leading-6 text-muted-foreground">
-                  {group.rows.map((row) => (
-                    <li key={row} className="flex gap-2">
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
-                      <span>{row}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {familyItems.map((item) => (
+              <PrivacyCard key={item.title} icon={Database} title={item.title}>
+                {item.description}
+              </PrivacyCard>
             ))}
           </div>
         </SettingsSection>
 
         <SettingsSection
-          description="Ces informations ne sont pas stockées dans les tables partagées de Petitbout."
-          title="Ce qui n’est pas enregistré"
+          description="Cela aide à améliorer l’app, sans lire le carnet."
+          title="Mesure d’audience"
+        >
+          <div className="grid gap-3">
+            {analyticsItems.map((item) => (
+              <PrivacyCard key={item.title} icon={BarChart3} title={item.title}>
+                {item.description}
+              </PrivacyCard>
+            ))}
+          </div>
+        </SettingsSection>
+
+        <SettingsSection
+          description="Ces éléments ne font pas partie de Petitbout."
+          title="Ce qui n’est pas collecté"
         >
           <div className="rounded-lg border bg-card/85 p-4 shadow-sm">
             <div className="flex items-center gap-3">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-tested/10 text-status-tested">
                 <LockKeyhole className="size-5" aria-hidden="true" />
               </span>
-              <p className="font-semibold">Les données sensibles restent réduites au strict nécessaire</p>
+              <p className="font-semibold">Pas de compte marketing autour du carnet</p>
             </div>
             <ul className="mt-3 grid gap-2 text-sm leading-6 text-muted-foreground">
               {notStoredItems.map((item) => (
@@ -175,7 +175,7 @@ function PrivacyCard({
   title,
 }: {
   children: string
-  icon: typeof Eye
+  icon: typeof Smartphone
   title: string
 }) {
   return (
