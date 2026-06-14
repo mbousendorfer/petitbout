@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button"
 import { backupFileName, backupToJson } from "@/lib/backup"
 import { saveTextFile } from "@/lib/formatting"
 import { useBabyStore } from "@/lib/storage"
+import { appVersion } from "@/lib/buildInfo"
+import { refreshPwaCaches } from "@/lib/pwa"
 import { cn } from "@/lib/utils"
 import { type ThemeMode } from "@/app/useTheme"
 import { Header } from "@/components/primitives"
@@ -167,6 +169,16 @@ export function SettingsPage({
 
         <SessionSection onSignOut={() => void signOutApp()} />
       </div>
+      <p className="mt-6 pb-2 text-center text-[10px] leading-none text-muted-foreground/45">
+        <button
+          type="button"
+          className="rounded-sm transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          aria-label={`Mettre à jour Petitbout et rafraîchir les caches. Build ${appVersion}`}
+          onClick={() => void refreshPwaCaches()}
+        >
+          build {appVersion}
+        </button>
+      </p>
     </>
   )
 }

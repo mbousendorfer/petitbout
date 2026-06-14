@@ -13,6 +13,8 @@ interface Window {
 }
 
 interface ImportMetaEnv {
+  readonly VITE_APP_BUILD_ID?: string
+  readonly VITE_APP_VERSION?: string
   readonly VITE_FEEDBACK_EMAIL?: string
   readonly VITE_PLAUSIBLE_DOMAIN?: string
   readonly VITE_PLAUSIBLE_SCRIPT_URL?: string
