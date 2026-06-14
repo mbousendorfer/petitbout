@@ -206,7 +206,7 @@ function tagsForFood(food: Pick<Food, "isAllergen" | "level" | "restrictionNotes
   return tags
 }
 
-function makeFood(row: CatalogRow): Food | null {
+export function makeFood(row: CatalogRow): Food | null {
   const name = row.name?.trim()
   if (!name) return null
 
@@ -266,3 +266,38 @@ export const foods: Food[] = parseCsv(catalogCsv)
   .map(makeFood)
   .filter((food): food is Food => Boolean(food))
   .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }))
+
+/**
+ * Raw catalog editing surface for the admin mode. The food sheets shown in the
+ * app are derived from these rows, so the editor works at the CSV-row level and
+ * regenerates `FoodCatalog.csv` faithfully via {@link serializeCatalog}.
+ */
+export type CatalogRecord = Record<string, string>
+
+function parseHeaderColumns(content: string): string[] {
+  const firstLine = content.split(/\r?\n/).find((line) => line.trim())
+  return firstLine ? firstLine.split(";").map((header) => header.trim()) : []
+}
+
+export const catalogColumns = parseHeaderColumns(catalogCsv)
+
+export const rawCatalogRows: CatalogRecord[] = parseCsv(catalogCsv).map((row) => {
+  const record = row as Record<string, string | undefined>
+  return Object.fromEntries(catalogColumns.map((column) => [column, record[column] ?? ""])) as CatalogRecord
+})
+
+function sanitizeCatalogValue(value: string) {
+  // The parser splits on `;` and newlines without escaping, so neither can
+  // appear inside a value without corrupting the column layout.
+  return value.replace(/[\r\n;]+/g, " ").trim()
+}
+
+export function serializeCatalog(rows: CatalogRecord[]): string {
+  const header = catalogColumns.join(";")
+  const lines = rows.map((row) => catalogColumns.map((column) => sanitizeCatalogValue(row[column] ?? "")).join(";"))
+  return `${[header, ...lines].join("\n")}\n`
+}
+
+export function foodFromRecord(record: CatalogRecord): Food | null {
+  return makeFood(record as CatalogRow)
+}

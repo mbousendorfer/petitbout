@@ -19,4 +19,6 @@ interface ImportMetaEnv {
   readonly VITE_PLAUSIBLE_DOMAIN?: string
   readonly VITE_PLAUSIBLE_SCRIPT_URL?: string
   readonly VITE_PLAUSIBLE_API_URL?: string
+  readonly VITE_ADMIN_SECRET_HASH?: string
+  readonly VITE_ADMIN_PIN_HASH?: string
 }

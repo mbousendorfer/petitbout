@@ -51,6 +51,10 @@ const FamilySpacePage = lazy(() =>
   import("@/pages/FamilySpacePage").then((module) => ({ default: module.FamilySpacePage })),
 )
 
+const AdminFoodsPage = lazy(() =>
+  import("@/pages/AdminFoodsPage").then((module) => ({ default: module.AdminFoodsPage })),
+)
+
 function App() {
   const store = useBabyStore()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
@@ -159,6 +163,14 @@ function App() {
               element={
                 <Suspense fallback={<PageLoading label="Profil de bébé" />}>
                   <ProfilePage store={store} />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <Suspense fallback={<PageLoading label="Admin" />}>
+                  <AdminFoodsPage />
                 </Suspense>
               }
             />

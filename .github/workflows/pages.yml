@@ -47,6 +47,8 @@ jobs:
           VITE_PLAUSIBLE_DOMAIN: ${{ vars.VITE_PLAUSIBLE_DOMAIN }}
           VITE_PLAUSIBLE_SCRIPT_URL: ${{ vars.VITE_PLAUSIBLE_SCRIPT_URL }}
           VITE_PLAUSIBLE_API_URL: ${{ vars.VITE_PLAUSIBLE_API_URL }}
+          VITE_ADMIN_SECRET_HASH: ${{ vars.VITE_ADMIN_SECRET_HASH }}
+          VITE_ADMIN_PIN_HASH: ${{ vars.VITE_ADMIN_PIN_HASH }}
 
       - name: Prepare Pages artifact
         run: touch dist/.nojekyll
