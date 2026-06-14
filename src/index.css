@@ -52,7 +52,6 @@
     --cat-fat: 68 26% 46%; /* Matières grasses — olive */
     --canvas-tint: 37 43% 90%; /* faint warm wash for page gradient */
     --shadow-color: 33 12% 15%;
-    --fixed-bottom-offset: 0px;
     --bottom-nav-reserved: 5.75rem;
     --radius: 1.125rem; /* 18px — softer Argile corners */
     /* Typography (DiversiType): rounded display vs. text body. SF Pro is the
@@ -308,13 +307,13 @@
   .safe-shell {
     min-height: 100dvh;
     padding-top: env(safe-area-inset-top);
-    padding-bottom: calc(var(--bottom-nav-reserved) + max(env(safe-area-inset-bottom), 0.75rem) + var(--fixed-bottom-offset));
+    padding-bottom: calc(var(--bottom-nav-reserved) + max(env(safe-area-inset-bottom), 0.75rem));
   }
 
   .mobile-bottom-nav {
     position: fixed;
     inset-inline: 0;
-    bottom: calc(-1 * var(--fixed-bottom-offset));
+    bottom: 0;
     z-index: 40;
     min-height: var(--bottom-nav-reserved);
     backface-visibility: hidden;
