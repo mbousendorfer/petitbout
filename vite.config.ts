@@ -20,9 +20,11 @@ export default defineConfig({
       manifest: false,
       registerType: "autoUpdate",
       workbox: {
+        clientsClaim: true,
         cleanupOutdatedCaches: true,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
         navigateFallback: "/petitbout/index.html",
+        skipWaiting: true,
       },
     }),
   ],
