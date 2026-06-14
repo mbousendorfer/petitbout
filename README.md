@@ -7,7 +7,7 @@ L’app est une PWA installable, compatible GitHub Pages, utilisable hors ligne 
 ## Développement
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -58,7 +58,7 @@ Installation :
 
 ## Données et sauvegardes
 
-Les données sont conservées localement dans `localStorage` et peuvent être exportées depuis `Réglages > Sauvegarde locale`.
+Les données sont conservées localement dans `localStorage` et peuvent être exportées depuis `Réglages > Sauvegarde et données`.
 
 L’export produit un fichier JSON versionné. L’import demande confirmation avant de remplacer les données locales de l’appareil.
 
@@ -87,23 +87,29 @@ Le schéma Supabase garde les tables derrière RLS sans policy publique et expos
 
 ## Plausible
 
-L'app peut charger Plausible si un domaine de tracking est configuré. Le suivi reste volontairement basique : pages vues uniquement, sans données de profil, sans code famille et sans événement métier.
+L'app charge explicitement Plausible pour `app.petitbout.app` via :
 
-Comme l'app utilise des routes avec hash (`/#/foods`, `/#/journal`, etc.), utilisez le script Plausible hash-based :
+```html
+<script defer data-domain="app.petitbout.app" src="https://analytics.edenpulse.com/js/script.js"></script>
+```
+
+Le suivi reste volontairement basique : pages vues uniquement, sans données de profil, sans code famille et sans événement métier.
+
+En Docker, ces valeurs peuvent être remplacées au démarrage via `env-config.js` :
 
 ```bash
-VITE_PLAUSIBLE_DOMAIN=app.example.com
-VITE_PLAUSIBLE_SCRIPT_URL=https://plausible.example.com/js/script.hash.js
+VITE_PLAUSIBLE_DOMAIN=app.petitbout.app
+VITE_PLAUSIBLE_SCRIPT_URL=https://analytics.edenpulse.com/js/script.js
 VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
 ```
 
 - `VITE_PLAUSIBLE_DOMAIN` doit correspondre au domaine déclaré dans Plausible.
-- `VITE_PLAUSIBLE_SCRIPT_URL` pointe vers votre instance Plausible. Si la variable est vide, l'app utilise le script cloud Plausible par défaut.
+- `VITE_PLAUSIBLE_SCRIPT_URL` pointe vers votre instance Plausible. Si la variable est vide, l'app utilise `https://analytics.edenpulse.com/js/script.js`.
 - `VITE_PLAUSIBLE_API_URL` est optionnelle, mais utile avec une instance self-hosted ou un proxy.
 
 ## Checklist de validation
 
-- `npm install`
+- `npm ci`
 - `npm run dev`
 - `npm run build`
 - `npm run preview`
@@ -136,7 +142,7 @@ Variables disponibles :
 - `VITE_SUPABASE_ANON_KEY` : clé publique `anon` Supabase, lue au démarrage du conteneur
 - `VITE_FEEDBACK_EMAIL` : adresse destinataire du formulaire de feedback
 - `VITE_PLAUSIBLE_DOMAIN` : domaine déclaré dans Plausible
-- `VITE_PLAUSIBLE_SCRIPT_URL` : URL du script hash-based Plausible
+- `VITE_PLAUSIBLE_SCRIPT_URL` : URL du script Plausible
 - `VITE_PLAUSIBLE_API_URL` : endpoint d'événement Plausible, optionnel
 
 Les variables `VITE_SUPABASE_*`, `VITE_FEEDBACK_EMAIL` et `VITE_PLAUSIBLE_*` ne sont pas figées dans l'image Docker. Au démarrage, le conteneur génère `/petitbout/env-config.js` depuis l'environnement Docker, ce qui permet de réutiliser la même image avec plusieurs projets Supabase ou domaines de tracking.
@@ -170,7 +176,7 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-public-anon-key
 VITE_FEEDBACK_EMAIL=feedback@example.com
 VITE_PLAUSIBLE_DOMAIN=app.example.com
-VITE_PLAUSIBLE_SCRIPT_URL=https://plausible.example.com/js/script.hash.js
+VITE_PLAUSIBLE_SCRIPT_URL=https://analytics.edenpulse.com/js/script.js
 VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
 ```
 
@@ -199,12 +205,12 @@ server {
 }
 ```
 
-Le workflow GitHub Actions de production construit uniquement l'image Docker et la publie sur GitHub Container Registry. Il se lance sur `main` ou manuellement, puis pousse deux tags :
+Le workflow GitHub Actions de production lance `npm ci`, `npm run lint` et `npm test`, puis construit l'image Docker et la publie sur GitHub Container Registry. Il se lance sur `main` ou manuellement, puis pousse deux tags :
 
 - `latest`
 - le SHA court du commit
 
-Le workflow ne lance plus les checks Node séparés et ne redémarre plus le service sur le VPS. Il n'a pas besoin des secrets applicatifs, Supabase, Plausible ou SSH : la publication GHCR utilise le `GITHUB_TOKEN` fourni par GitHub Actions.
+Le workflow ne redémarre plus le service sur le VPS. Il n'a pas besoin des secrets applicatifs, Supabase, Plausible ou SSH : la publication GHCR utilise le `GITHUB_TOKEN` fourni par GitHub Actions.
 
 Après publication d'une nouvelle image, mettre à jour le VPS manuellement depuis le dossier de déploiement :
 
