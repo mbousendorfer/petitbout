@@ -74,8 +74,11 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
 
       if (!confirmed) return
 
-      const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
-      if (!didSave) return
+      const shouldBackup = window.confirm("Veux-tu télécharger une sauvegarde avant de remplacer le carnet ?")
+      if (shouldBackup) {
+        const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+        if (!didSave) return
+      }
       store.importBackup(parsed)
       toast.success("Sauvegarde importée")
     } catch (error) {
@@ -92,14 +95,19 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
 
     if (!confirmed) return
 
-    try {
-      const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
-      if (!didSave) return
-      store.clearDeviceData()
-      toast.success("Données supprimées de cet appareil")
-    } catch {
-      toast.error("Impossible de préparer la sauvegarde")
+    const shouldBackup = window.confirm("Veux-tu télécharger une sauvegarde avant de supprimer les données ?")
+    if (shouldBackup) {
+      try {
+        const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+        if (!didSave) return
+      } catch {
+        toast.error("Impossible de préparer la sauvegarde")
+        return
+      }
     }
+
+    store.clearDeviceData()
+    toast.success("Données supprimées de cet appareil")
   }
 
   async function deleteFamilySpace() {
@@ -109,15 +117,16 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
 
     if (!confirmed) return
 
-    let didSave: boolean
-    try {
-      didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
-    } catch {
-      toast.error("Impossible de préparer la sauvegarde")
-      return
+    const shouldBackup = window.confirm("Veux-tu télécharger une sauvegarde avant de supprimer l’espace famille ?")
+    if (shouldBackup) {
+      try {
+        const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+        if (!didSave) return
+      } catch {
+        toast.error("Impossible de préparer la sauvegarde")
+        return
+      }
     }
-
-    if (!didSave) return
 
     const didDelete = await store.deleteFamilySpace()
 

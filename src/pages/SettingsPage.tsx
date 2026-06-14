@@ -9,7 +9,10 @@ import {
   ShieldCheck,
   Sun,
 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { backupFileName, backupToJson } from "@/lib/backup"
+import { saveTextFile } from "@/lib/formatting"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { type ThemeMode } from "@/app/useTheme"
@@ -52,6 +55,29 @@ export function SettingsPage({
 
     store.leaveFamilySpaceOnDevice()
     navigate("/family-space")
+  }
+
+  async function signOutApp() {
+    const confirmed = window.confirm(
+      "Se déconnecter de Petitbout sur cet appareil ? Toutes les données locales seront supprimées et tu reviendras à l’écran de démarrage.",
+    )
+
+    if (!confirmed) return
+
+    const shouldBackup = window.confirm("Veux-tu télécharger une sauvegarde avant de te déconnecter ?")
+    if (shouldBackup) {
+      try {
+        const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+        if (!didSave) return
+      } catch {
+        toast.error("Impossible de préparer la sauvegarde")
+        return
+      }
+    }
+
+    store.clearDeviceData()
+    toast.success("Déconnecté de Petitbout")
+    navigate("/")
   }
 
   return (
@@ -138,8 +164,29 @@ export function SettingsPage({
         <DataManagementSection />
 
         <FeedbackSection />
+
+        <SessionSection onSignOut={() => void signOutApp()} />
       </div>
     </>
+  )
+}
+
+function SessionSection({ onSignOut }: { onSignOut: () => void }) {
+  return (
+    <SettingsSection
+      description="Efface ce carnet de cet appareil et revient au choix rejoindre ou créer."
+      title="Session"
+    >
+      <Button
+        type="button"
+        variant="outline"
+        className="h-12 justify-start rounded-lg px-4 text-base text-destructive hover:border-destructive/25 hover:bg-destructive/[0.08] hover:text-destructive"
+        onClick={onSignOut}
+      >
+        <LogOut data-icon="inline-start" aria-hidden="true" />
+        Se déconnecter de l’application
+      </Button>
+    </SettingsSection>
   )
 }
 
