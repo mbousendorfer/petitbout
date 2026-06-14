@@ -1,6 +1,6 @@
 import { useId } from "react"
 import { NavLink, useNavigate } from "react-router-dom"
-import { ChevronLeft, CircleCheck, Download, ShieldCheck, Trash2, Upload } from "lucide-react"
+import { ChevronLeft, CircleCheck, Download, FileUp, ShieldCheck, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { backupFileName, backupToJson } from "@/lib/backup"
@@ -31,7 +31,7 @@ function syncStatusCopy(store: ReturnType<typeof useBabyStore>) {
   if (store.syncStatus === "not-configured") {
     return {
       title: "Synchro indisponible",
-      detail: "Stockage partagé non configuré sur cette installation",
+      detail: "Le carnet reste local sur cet appareil.",
     }
   }
 
@@ -151,19 +151,24 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
 
       <div className="grid gap-1">
         <SettingsSection
-          description="Synchronise, exporte, importe ou supprime le suivi depuis un seul endroit."
+          description="Garde une copie du carnet ou restaure une sauvegarde."
           title="Sauvegarde"
         >
           <SyncStatusCard detail={syncCopy.detail} title={syncCopy.title} />
           <Button
             type="button"
-            variant="outline"
-            className="h-12 justify-start rounded-lg px-4 text-base"
+            className="h-12 rounded-xl text-base"
             onClick={() => void exportBackup()}
           >
             <Download data-icon="inline-start" aria-hidden="true" />
-            Exporter les données
+            Télécharger une sauvegarde
           </Button>
+          <p className="text-xs leading-5 text-muted-foreground">
+            Recommandé avant de changer de téléphone ou de supprimer des données.
+          </p>
+        </SettingsSection>
+
+        <SettingsSection description="Utilise un fichier PetitBout déjà exporté." title="Restaurer">
           <input
             id={importInputId}
             className="sr-only"
@@ -173,10 +178,16 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
           />
           <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
             <label htmlFor={importInputId}>
-              <Upload data-icon="inline-start" aria-hidden="true" />
+              <FileUp data-icon="inline-start" aria-hidden="true" />
               Importer une sauvegarde
             </label>
           </Button>
+          <p className="text-xs leading-5 text-muted-foreground">
+            Le carnet actuel est sauvegardé avant d’être remplacé.
+          </p>
+        </SettingsSection>
+
+        <SettingsSection description="Actions définitives, avec confirmation." title="Supprimer">
           <Button
             type="button"
             variant="outline"
@@ -196,7 +207,7 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
             Supprimer l’espace famille
           </Button>
           <p className="text-xs leading-5 text-muted-foreground">
-            L’import et les suppressions demandent confirmation et téléchargent une sauvegarde de sécurité avant remplacement.
+            Une sauvegarde est proposée avant chaque suppression.
           </p>
         </SettingsSection>
 
@@ -218,8 +229,8 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
 
 function SyncStatusCard({ detail, title }: { detail: string; title: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card/85 p-3 text-sm leading-5 shadow-sm">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+    <div className="flex items-center gap-3 rounded-[1.2rem] border bg-card/85 p-3 text-sm leading-5 shadow-sm">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <CircleCheck className="size-5" aria-hidden="true" />
       </span>
       <div className="min-w-0">
