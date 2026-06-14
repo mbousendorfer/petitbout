@@ -17,13 +17,14 @@ function readGitValue(command: string) {
   }
 }
 
-const buildIdSource =
-  process.env.VITE_APP_BUILD_ID ||
-  process.env.VERCEL_GIT_COMMIT_SHA ||
-  process.env.GITHUB_SHA ||
-  readGitValue("git rev-parse --short=12 HEAD") ||
+// Incrementing build number: the count of commits reachable from HEAD, so it
+// grows by one with each commit. CI must check out full history (fetch-depth: 0);
+// inside Docker the .git folder is excluded, so the number is passed as a build
+// arg via VITE_APP_BUILD_NUMBER.
+const appBuildId =
+  process.env.VITE_APP_BUILD_NUMBER ||
+  readGitValue("git rev-list --count HEAD") ||
   `local-${Date.now()}`
-const appBuildId = buildIdSource.slice(0, 12)
 const appVersion = `${packageJson.version}+${appBuildId}`
 
 export default defineConfig({

@@ -7,6 +7,9 @@ RUN npm ci
 
 COPY . .
 
+ARG VITE_APP_BUILD_NUMBER
+ENV VITE_APP_BUILD_NUMBER=$VITE_APP_BUILD_NUMBER
+
 RUN npm run build
 
 FROM nginx:1.27-alpine
