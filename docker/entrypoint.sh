@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-CONFIG_FILE=/usr/share/nginx/html/petitbout/env-config.js
+CONFIG_FILE=/usr/share/nginx/html/env-config.js
 
 json_escape() {
   printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'

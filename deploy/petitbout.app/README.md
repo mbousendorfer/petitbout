@@ -37,7 +37,7 @@ L'application ecoute en local sur :
 Le reverse proxy doit pointer vers :
 
 ```txt
-http://127.0.0.1:1337/petitbout/
+http://127.0.0.1:1337/
 ```
 
 Si le package GitHub Container Registry est prive, se connecter une fois au registry depuis le VPS avant `docker compose pull` :

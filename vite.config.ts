@@ -4,7 +4,7 @@ import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
 export default defineConfig({
-  base: "/petitbout/",
+  base: "/",
   plugins: [
     react(),
     VitePWA({
@@ -20,10 +20,21 @@ export default defineConfig({
       manifest: false,
       registerType: "autoUpdate",
       workbox: {
+        cacheId: "petitbout",
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
-        navigateFallback: "/petitbout/index.html",
+        navigateFallback: null,
+        runtimeCaching: [
+          {
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "petitbout-navigation",
+              networkTimeoutSeconds: 3,
+            },
+            urlPattern: ({ request }) => request.mode === "navigate",
+          },
+        ],
         skipWaiting: true,
       },
     }),

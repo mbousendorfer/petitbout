@@ -2,7 +2,7 @@
 
 Web app mobile-first de suivi de diversification alimentaire pour bébé.
 
-L’app est une PWA installable, compatible GitHub Pages, utilisable hors ligne après une première visite, avec cache local `localStorage`, export/import JSON et synchronisation Supabase déjà prévue par le projet.
+L’app est une PWA installable, servie en production à la racine de `app.petitbout.app`, utilisable hors ligne après une première visite, avec cache local `localStorage`, export/import JSON et synchronisation Supabase déjà prévue par le projet.
 
 ## Développement
 
@@ -20,23 +20,21 @@ npm run preview
 
 Le build génère aussi le service worker PWA via `vite-plugin-pwa`.
 
-## GitHub Pages
+## URL de production
 
-Le repo est prévu pour être servi depuis :
+Le build est prévu pour être servi à la racine du domaine :
 
 ```txt
-https://<user>.github.io/petitbout/
+https://app.petitbout.app/
 ```
 
 La configuration importante est dans `vite.config.ts` :
 
 ```ts
-base: "/petitbout/"
+base: "/"
 ```
 
-Si le dépôt change de nom, adaptez `base` au nouveau sous-chemin, par exemple `"/mon-repo/"`.
-
-Le manifest utilise des chemins relatifs (`start_url: "."`, `scope: "."`) pour rester compatible avec ce sous-chemin. Le service worker utilise le fallback SPA `/petitbout/index.html`.
+Le manifest utilise des chemins relatifs (`start_url: "."`, `scope: "."`) pour rester cohérent avec le domaine courant. Le service worker est enregistré à la racine de l’app.
 
 ## PWA
 
@@ -124,7 +122,7 @@ VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
 
 ## Déploiement Docker sur VPS
 
-L'app peut aussi être déployée comme image Docker. L'image construit l'app Vite, puis la sert avec Nginx sous le chemin `/petitbout/`, cohérent avec `base: "/petitbout/"` dans `vite.config.ts`.
+L'app peut aussi être déployée comme image Docker. L'image construit l'app Vite, puis la sert avec Nginx à la racine du conteneur.
 
 Avec Docker Compose en local, créer un fichier `.env.docker` à partir de `.env.docker.example`, puis lancer :
 
@@ -145,7 +143,7 @@ Variables disponibles :
 - `VITE_PLAUSIBLE_SCRIPT_URL` : URL du script Plausible
 - `VITE_PLAUSIBLE_API_URL` : endpoint d'événement Plausible, optionnel
 
-Les variables `VITE_SUPABASE_*`, `VITE_FEEDBACK_EMAIL` et `VITE_PLAUSIBLE_*` ne sont pas figées dans l'image Docker. Au démarrage, le conteneur génère `/petitbout/env-config.js` depuis l'environnement Docker, ce qui permet de réutiliser la même image avec plusieurs projets Supabase ou domaines de tracking.
+Les variables `VITE_SUPABASE_*`, `VITE_FEEDBACK_EMAIL` et `VITE_PLAUSIBLE_*` ne sont pas figées dans l'image Docker. Au démarrage, le conteneur génère `/env-config.js` depuis l'environnement Docker, ce qui permet de réutiliser la même image avec plusieurs projets Supabase ou domaines de tracking.
 
 Build local :
 
@@ -163,7 +161,7 @@ docker run --rm -p 8080:80 petitbout
 Puis ouvrir :
 
 ```txt
-http://localhost:8080/petitbout/
+http://localhost:8080/
 ```
 
 Sur le VPS, `compose.prod.yml` utilise une image déjà construite et attend au minimum `PETITBOUT_IMAGE` dans le fichier `.env` du dossier de déploiement :
@@ -192,12 +190,8 @@ Avec l'exemple `.env` ci-dessus, le conteneur est exposé localement sur `127.0.
 server {
   server_name ton-domaine.com;
 
-  location = / {
-    return 302 /petitbout/;
-  }
-
-  location /petitbout/ {
-    proxy_pass http://127.0.0.1:1337/petitbout/;
+  location / {
+    proxy_pass http://127.0.0.1:1337/;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
