@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Baby, Check, Link2, Lock, ShieldCheck, Smartphone, Users } from "lucide-react"
+import { Baby, Check, Link2, ShieldCheck, Smartphone, Users } from "lucide-react"
 import { toast } from "sonner"
 import { BabyAvatar, BabyAvatarPicker } from "@/components/BabyAvatar"
 import { Button } from "@/components/ui/button"
@@ -111,15 +111,15 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
   return (
     <>
       <HeroPanel icon={Baby} className="p-5">
-        <div className="flex flex-col gap-4">
-          <BabyAvatar emoji={avatarEmoji} size={64} />
-          <div>
+        <div className="flex items-center gap-4">
+          <BabyAvatar emoji={avatarEmoji} size={58} />
+          <div className="min-w-0">
             <p className="eyebrow">Bienvenue</p>
-            <h1 className="font-rounded text-[2.35rem] font-extrabold leading-none tracking-normal">
+            <h1 className="font-rounded text-[2.1rem] font-extrabold leading-none tracking-normal">
               Petitbout
             </h1>
-            <p className="mt-3 text-base leading-7 text-muted-foreground">
-              Commence par créer le carnet de bébé. Tu peux le garder local sur ce téléphone ou activer l’espace famille pour le synchroniser.
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Un carnet pour bébé, local ou partagé.
             </p>
           </div>
         </div>
@@ -169,44 +169,42 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
         </section>
       ) : (
         <section className="paper-surface soft-ring rounded-hero p-5">
-          <div className="mb-4">
-            <p className="eyebrow">Étape 2</p>
-            <h2 className="text-xl font-bold tracking-normal">Mode de suivi</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Tu pourras changer d’avis plus tard depuis les réglages.
-            </p>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="eyebrow">Étape 2</p>
+              <h2 className="text-xl font-bold tracking-normal">Où garder le carnet ?</h2>
+            </div>
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">
+              modifiable
+            </span>
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <ModeButton
               active={mode === "local"}
               icon={Smartphone}
-              title="Espace local"
-              description="Le carnet reste sur ce téléphone, sans synchro serveur."
+              title="Local"
+              description="Sur ce téléphone"
               onClick={() => setMode("local")}
             />
             <ModeButton
               active={mode === "family"}
               icon={Users}
-              title="Espace famille"
-              description="Synchronise le carnet avec le serveur PetitBout pour le retrouver sur plusieurs appareils."
+              title="Famille"
+              description="Multi-appareil"
               onClick={() => setMode("family")}
             />
           </div>
 
           {mode === "local" ? (
             <div className="mt-4 grid gap-3">
-              <div className="flex gap-3 rounded-lg border bg-card/85 p-4 text-sm leading-6 shadow-sm">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Lock className="size-5" aria-hidden="true" />
-                </span>
-                <p className="text-muted-foreground">
-                  Les données restent sur cet appareil. L’espace famille pourra être activé plus tard.
-                </p>
-              </div>
-              <Button type="button" className="h-12" onClick={() => void startLocal()} disabled={isSubmitting}>
+              <SummaryStrip
+                title="Privé par défaut"
+                detail="Aucune synchro. Tu pourras partager plus tard."
+              />
+              <Button type="button" className="h-12 rounded-xl" onClick={() => void startLocal()} disabled={isSubmitting}>
                 <Smartphone data-icon="inline-start" aria-hidden="true" />
-                {isSubmitting ? "Création..." : "Créer un espace local"}
+                {isSubmitting ? "Création..." : "Commencer en local"}
               </Button>
             </div>
           ) : (
@@ -238,9 +236,9 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
                   onChange={(event) => setProfilePin(normalizeProfilePin(event.target.value))}
                 />
               </label>
-              <Button type="submit" className="h-12" disabled={isSubmitting || !canSubmitFamily}>
+              <Button type="submit" className="h-12 rounded-xl" disabled={isSubmitting || !canSubmitFamily}>
                 <Link2 data-icon="inline-start" aria-hidden="true" />
-                {isSubmitting ? "Activation..." : "Créer ou rejoindre l’espace famille"}
+                {isSubmitting ? "Activation..." : "Activer l’espace famille"}
               </Button>
               {!store.isConfigured && (
                 <p className="rounded-lg border bg-muted/65 p-3 text-sm leading-5 text-muted-foreground">
@@ -281,8 +279,8 @@ function ModeButton({
     <button
       type="button"
       className={cn(
-        "flex min-h-24 w-full gap-3 rounded-xl border bg-card/85 p-4 text-left shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        active ? "border-primary/45 bg-primary/[0.08]" : "hover:border-primary/25",
+        "flex min-h-32 w-full flex-col justify-between rounded-2xl border bg-card/85 p-4 text-left shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        active ? "border-primary/45 bg-primary/[0.08] shadow-card" : "hover:bg-card",
       )}
       aria-pressed={active}
       onClick={onClick}
@@ -295,13 +293,22 @@ function ModeButton({
       >
         <Icon className="size-5" aria-hidden="true" />
       </span>
-      <span className="min-w-0">
-        <span className="flex items-center gap-2 font-semibold">
+      <span className="min-w-0 pt-3">
+        <span className="flex items-center gap-1.5 font-semibold">
           {title}
           {active && <ShieldCheck className="size-4 text-primary" aria-hidden="true" />}
         </span>
-        <span className="mt-1 block text-sm leading-6 text-muted-foreground">{description}</span>
+        <span className="mt-1 block text-sm leading-5 text-muted-foreground">{description}</span>
       </span>
     </button>
+  )
+}
+
+function SummaryStrip({ detail, title }: { detail: string; title: string }) {
+  return (
+    <div className="rounded-xl border bg-primary/[0.06] px-4 py-3">
+      <p className="text-sm font-semibold">{title}</p>
+      <p className="mt-0.5 text-sm leading-5 text-muted-foreground">{detail}</p>
+    </div>
   )
 }
