@@ -2,6 +2,7 @@ import { type ReactNode } from "react"
 import { NavLink, useNavigate } from "react-router-dom"
 import {
   ChevronRight,
+  Download,
   LogOut,
   MessageSquare,
   Monitor,
@@ -15,7 +16,7 @@ import { backupFileName, backupToJson } from "@/lib/backup"
 import { saveTextFile } from "@/lib/formatting"
 import { useBabyStore } from "@/lib/storage"
 import { appVersion } from "@/lib/buildInfo"
-import { refreshPwaCaches } from "@/lib/pwa"
+import { refreshPwaCaches, usePwaInstallPrompt } from "@/lib/pwa"
 import { cn } from "@/lib/utils"
 import { type ThemeMode } from "@/app/useTheme"
 import { Header } from "@/components/primitives"
@@ -242,6 +243,17 @@ function DataManagementSection() {
 
 
 export function InstallHelpSection() {
+  const { canInstall, install, isStandalone } = usePwaInstallPrompt()
+
+  if (isStandalone) return null
+
+  async function handleInstall() {
+    const didInstall = await install()
+    if (didInstall) {
+      toast.success("Petitbout est installé")
+    }
+  }
+
   return (
     <SettingsSection
       description="Installe Petitbout sur l’écran d’accueil pour y revenir d’un geste, hors connexion."
@@ -275,6 +287,12 @@ export function InstallHelpSection() {
           <li>Touche le menu (trois points) en haut à droite.</li>
           <li>Choisis « Installer l’application » ou « Ajouter à l’écran d’accueil ».</li>
         </ol>
+        {canInstall && (
+          <Button type="button" className="mt-3 w-full justify-center" onClick={() => void handleInstall()}>
+            <Download data-icon="inline-start" aria-hidden="true" />
+            Installer Petitbout
+          </Button>
+        )}
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
         Une fois installée, Petitbout s’ouvre comme une app, garde le suivi récent disponible hors connexion et propose les raccourcis Semaine et Aliments.

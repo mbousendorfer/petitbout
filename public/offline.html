@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f3ec" />
+    <title>Petitbout hors ligne</title>
+    <style>
+      :root {
+        color: #2f2924;
+        background: #f7f3ec;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        box-sizing: border-box;
+        display: grid;
+        min-height: 100svh;
+        place-items: center;
+        padding: 24px;
+      }
+
+      section {
+        max-width: 420px;
+        border: 1px solid rgba(72, 59, 46, 0.14);
+        border-radius: 20px;
+        background: rgba(255, 252, 247, 0.9);
+        box-shadow: 0 18px 50px rgba(60, 45, 32, 0.12);
+        padding: 24px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        line-height: 1.2;
+      }
+
+      p {
+        margin: 12px 0 0;
+        color: #695f55;
+        line-height: 1.55;
+      }
+
+      a,
+      button {
+        align-items: center;
+        border-radius: 12px;
+        border: 0;
+        cursor: pointer;
+        display: inline-flex;
+        font: inherit;
+        font-weight: 700;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        text-decoration: none;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .primary {
+        background: #ce6f4d;
+        color: #fffaf4;
+      }
+
+      .secondary {
+        background: #eee4d8;
+        color: #3b3128;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color: #f8f1e7;
+          background: #1a1714;
+        }
+
+        section {
+          border-color: rgba(255, 255, 255, 0.12);
+          background: rgba(38, 32, 27, 0.92);
+          box-shadow: none;
+        }
+
+        p {
+          color: #cfc3b5;
+        }
+
+        .secondary {
+          background: #342c25;
+          color: #f8f1e7;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section aria-labelledby="offline-title">
+        <h1 id="offline-title">Petitbout est hors ligne</h1>
+        <p>
+          Cette page n'est pas encore disponible sur cet appareil. Reviens a l'accueil pour ouvrir les donnees deja
+          chargees, ou reessaie quand la connexion revient.
+        </p>
+        <div class="actions">
+          <a class="primary" href="./#/">Retour a l'accueil</a>
+          <button class="secondary" type="button" onclick="window.location.reload()">Reessayer</button>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
