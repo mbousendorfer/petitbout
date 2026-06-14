@@ -36,31 +36,31 @@ function familyStatusCopy(store: ReturnType<typeof useBabyStore>) {
   if (!store.familySession) {
     return {
       accent: "muted" as const,
-      detail: "Le carnet reste uniquement sur cet appareil tant que le partage n’est pas activé.",
-      title: "Partage multi-appareil inactif",
+      detail: "Le carnet reste local.",
+      title: "Espace famille inactif",
     }
   }
 
   if (store.syncStatus === "syncing" || store.syncStatus === "loading") {
     return {
       accent: "primary" as const,
-      detail: "PetitBout met à jour le carnet partagé.",
-      title: "Synchronisation en cours",
+      detail: "Mise à jour du carnet.",
+      title: "Synchro en cours",
     }
   }
 
   if (store.syncStatus === "not-configured") {
     return {
       accent: "warning" as const,
-      detail: "Le serveur PetitBout n’est pas configuré sur cette installation.",
-      title: "Synchro indisponible",
+      detail: "Le carnet reste local ici.",
+      title: "Serveur indisponible",
     }
   }
 
   if (store.syncStatus === "offline") {
     return {
       accent: "warning" as const,
-      detail: "La prochaine mise à jour partira quand la connexion reviendra.",
+      detail: "Synchro en attente.",
       title: "Hors connexion",
     }
   }
@@ -69,14 +69,14 @@ function familyStatusCopy(store: ReturnType<typeof useBabyStore>) {
     return {
       accent: "warning" as const,
       detail: store.syncError ?? "La dernière tentative de synchro n’a pas abouti.",
-      title: "Synchro à vérifier",
+      title: "À vérifier",
     }
   }
 
   return {
     accent: "primary" as const,
-    detail: `Dernière synchro: ${lastSyncLabel(store.lastSyncedAt)}.`,
-    title: "Partage multi-appareil actif",
+    detail: `Synchro: ${lastSyncLabel(store.lastSyncedAt)}.`,
+    title: "Espace famille actif",
   }
 }
 
@@ -207,33 +207,30 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
       </header>
 
       <div className="grid gap-1">
-        <SettingsSection
-          description="Le partage multi-appareil synchronise le carnet avec le serveur PetitBout. Sans activation, tout reste sur cet appareil."
-          title="Partage multi-appareil"
-        >
+        <SettingsSection description="Code + PIN pour retrouver le carnet sur plusieurs appareils." title="Partage">
           <StatusPanel detail={status.detail} accent={status.accent} title={status.title} />
-          <div className="grid gap-3 rounded-lg border bg-card/85 p-4 text-sm leading-6 shadow-sm">
-            <InfoRow
+          <div className="grid grid-cols-2 gap-2">
+            <SignalTile
               icon={Smartphone}
-              title="Un même carnet sur tes appareils"
-              text="Utilise le même code de connexion et le même PIN pour retrouver le suivi ailleurs."
+              title="Multi-appareil"
+              text={hasFamilySpace ? "Carnet partagé" : "Disponible après activation"}
             />
-            <InfoRow
+            <SignalTile
               icon={Server}
-              title="Synchronisé seulement si tu l’actives"
-              text="Le partage nécessite le serveur PetitBout; sinon le carnet reste local."
+              title={store.isConfigured ? "Serveur prêt" : "Serveur absent"}
+              text={store.isConfigured ? "Synchro PetitBout" : "Suivi local ici"}
             />
-            <NavLink to="/privacy" className="font-semibold text-primary underline-offset-4 hover:underline">
-              Voir la confidentialité des données
-            </NavLink>
           </div>
+          <NavLink
+            to="/privacy"
+            className="inline-flex min-h-11 items-center rounded-lg text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Confidentialité des données
+          </NavLink>
         </SettingsSection>
 
         {!hasFamilySpace ? (
-          <SettingsSection
-            description="Choisis un code facile à transmettre et un PIN de 4 chiffres à partager séparément."
-            title="Activer ou rejoindre"
-          >
+          <SettingsSection description="Même code, même PIN sur chaque appareil." title="Créer ou rejoindre">
             <form className="grid gap-3" onSubmit={(event) => void activateFamilySpace(event)}>
               <label className="grid gap-1.5 text-sm font-medium">
                 <span className="text-xs font-semibold uppercase text-muted-foreground">Code de connexion</span>
@@ -273,19 +270,17 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
                 }
               >
                 <Link2 data-icon="inline-start" aria-hidden="true" />
-                {isSubmitting ? "Activation..." : "Activer le partage multi-appareil"}
+                {isSubmitting ? "Activation..." : "Activer l’espace famille"}
               </Button>
               {!store.isConfigured && (
-                <p className="rounded-lg border bg-muted/65 p-3 text-sm leading-5 text-muted-foreground">
-                  Le serveur PetitBout n’est pas configuré sur cette installation. Le suivi reste local pour le moment.
-                </p>
+                <InlineNotice title="Synchro indisponible" text="Le carnet reste local pour le moment." />
               )}
             </form>
           </SettingsSection>
         ) : (
           <>
             <SettingsSection
-              description="Le code identifie l’espace famille. Le PIN reste secret et doit être transmis séparément."
+              description="Le code se partage. Le PIN reste secret et se transmet à part."
               title="Accès"
             >
               <div className="grid gap-2">
@@ -338,7 +333,7 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
             </SettingsSection>
 
             <SettingsSection
-              description="Cette action ne supprime pas le carnet local. Elle arrête seulement le partage depuis cet appareil."
+              description="Arrête la synchro ici, sans supprimer le carnet local."
               title="Déconnexion"
             >
               <Button
@@ -353,7 +348,7 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
             </SettingsSection>
 
             <SettingsSection
-              description="Supprime le profil et les essais partagés pour tous les appareils connectés à cet espace."
+              description="Supprime le profil et les essais partagés pour tous les appareils."
               title="Zone sensible"
             >
               <Button
@@ -385,16 +380,16 @@ function StatusPanel({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 shadow-sm",
+        "rounded-[1.35rem] border p-4 shadow-sm",
         accent === "primary" && "border-primary/25 bg-primary/[0.08]",
         accent === "warning" && "border-accent/25 bg-accent/[0.08]",
         accent === "muted" && "bg-card/85",
       )}
     >
-      <div className="flex gap-3">
+      <div className="flex items-center gap-3">
         <span
           className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-xl",
+            "flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-sm",
             accent === "primary" && "bg-primary/10 text-primary",
             accent === "warning" && "bg-accent/10 text-accent",
             accent === "muted" && "bg-muted text-muted-foreground",
@@ -402,16 +397,16 @@ function StatusPanel({
         >
           <ShieldCheck className="size-5" aria-hidden="true" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-semibold">{title}</p>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{detail}</p>
+          <p className="mt-0.5 text-sm leading-5 text-muted-foreground">{detail}</p>
         </div>
       </div>
     </div>
   )
 }
 
-function InfoRow({
+function SignalTile({
   icon: Icon,
   text,
   title,
@@ -421,13 +416,25 @@ function InfoRow({
   title: string
 }) {
   return (
-    <div className="flex gap-3">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+    <div className="min-h-[8.25rem] rounded-[1.2rem] border bg-card/85 p-3 shadow-sm">
+      <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <Icon className="size-5" aria-hidden="true" />
+      </span>
+      <p className="mt-3 text-sm font-semibold leading-5 text-foreground">{title}</p>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p>
+    </div>
+  )
+}
+
+function InlineNotice({ text, title }: { text: string; title: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-[1.2rem] border bg-card/85 p-3 text-sm shadow-sm">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+        <Server className="size-5" aria-hidden="true" />
       </span>
       <div className="min-w-0">
         <p className="font-semibold text-foreground">{title}</p>
-        <p className="mt-0.5 text-muted-foreground">{text}</p>
+        <p className="text-muted-foreground">{text}</p>
       </div>
     </div>
   )
