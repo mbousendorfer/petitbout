@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { backupFileName, backupToJson } from "@/lib/backup"
-import { downloadTextFile } from "@/lib/formatting"
+import { saveTextFile } from "@/lib/formatting"
 import {
   familyCodeMaxLength,
   familyCodeMinLength,
@@ -174,7 +174,16 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
 
     if (!confirmed) return
 
-    downloadTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+    let didSave: boolean
+    try {
+      didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+    } catch {
+      toast.error("Impossible de préparer la sauvegarde")
+      return
+    }
+
+    if (!didSave) return
+
     const didDelete = await store.deleteFamilySpace()
 
     if (didDelete) {

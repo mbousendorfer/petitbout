@@ -53,13 +53,46 @@ export function testDateTimeLabel(test: FoodTest) {
   return time ? `${date} · ${time}` : date
 }
 
+export async function saveTextFile(content: string, fileName: string, type: string) {
+  const blob = new Blob([content], { type })
+  const file = new File([blob], fileName, { type })
+  const navigatorWithShare = navigator as Navigator & {
+    canShare?: (data: ShareData) => boolean
+    share?: (data: ShareData) => Promise<void>
+  }
+
+  if (navigatorWithShare.share && navigatorWithShare.canShare?.({ files: [file] })) {
+    try {
+      await navigatorWithShare.share({
+        files: [file],
+        title: fileName,
+      })
+      return true
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return false
+      throw error
+    }
+  }
+
+  downloadBlob(blob, fileName)
+  return true
+}
+
 export function downloadTextFile(content: string, fileName: string, type: string) {
   const blob = new Blob([content], { type })
+  downloadBlob(blob, fileName)
+}
+
+function downloadBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
 
   link.href = url
   link.download = fileName
+  link.rel = "noopener"
+  link.style.display = "none"
+  document.body.append(link)
   link.click()
-  URL.revokeObjectURL(url)
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

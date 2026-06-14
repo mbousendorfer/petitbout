@@ -1,10 +1,10 @@
-import { useRef } from "react"
+import { useId } from "react"
 import { NavLink, useNavigate } from "react-router-dom"
 import { ChevronLeft, CircleCheck, Download, ShieldCheck, Trash2, Upload } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { backupFileName, backupToJson } from "@/lib/backup"
-import { downloadTextFile } from "@/lib/formatting"
+import { saveTextFile } from "@/lib/formatting"
 import { useBabyStore } from "@/lib/storage"
 import { SettingsSection } from "@/pages/SettingsPage"
 
@@ -48,13 +48,17 @@ function syncStatusCopy(store: ReturnType<typeof useBabyStore>) {
 
 export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
   const navigate = useNavigate()
-  const importInputRef = useRef<HTMLInputElement>(null)
+  const importInputId = useId()
   const syncCopy = syncStatusCopy(store)
 
-  function exportBackup() {
-    const backup = store.exportBackup()
-    downloadTextFile(backupToJson(backup), backupFileName(), "application/json")
-    toast.success("Sauvegarde exportée")
+  async function exportBackup() {
+    try {
+      const backup = store.exportBackup()
+      const didSave = await saveTextFile(backupToJson(backup), backupFileName(), "application/json")
+      if (didSave) toast.success("Sauvegarde exportée")
+    } catch {
+      toast.error("Impossible d’exporter la sauvegarde")
+    }
   }
 
   async function importBackup(event: React.ChangeEvent<HTMLInputElement>) {
@@ -70,7 +74,8 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
 
       if (!confirmed) return
 
-      downloadTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+      const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+      if (!didSave) return
       store.importBackup(parsed)
       toast.success("Sauvegarde importée")
     } catch (error) {
@@ -80,16 +85,21 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
     }
   }
 
-  function clearDeviceData() {
+  async function clearDeviceData() {
     const confirmed = window.confirm(
       "Supprimer le suivi de cet appareil ? Les données partagées ne sont pas supprimées pour les autres appareils.",
     )
 
     if (!confirmed) return
 
-    downloadTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
-    store.clearDeviceData()
-    toast.success("Données supprimées de cet appareil")
+    try {
+      const didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+      if (!didSave) return
+      store.clearDeviceData()
+      toast.success("Données supprimées de cet appareil")
+    } catch {
+      toast.error("Impossible de préparer la sauvegarde")
+    }
   }
 
   async function deleteFamilySpace() {
@@ -99,7 +109,16 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
 
     if (!confirmed) return
 
-    downloadTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+    let didSave: boolean
+    try {
+      didSave = await saveTextFile(backupToJson(store.exportBackup()), backupFileName(), "application/json")
+    } catch {
+      toast.error("Impossible de préparer la sauvegarde")
+      return
+    }
+
+    if (!didSave) return
+
     const didDelete = await store.deleteFamilySpace()
 
     if (didDelete) {
@@ -136,31 +155,33 @@ export function DataPrivacyPage({ store }: { store: ReturnType<typeof useBabySto
           title="Sauvegarde"
         >
           <SyncStatusCard detail={syncCopy.detail} title={syncCopy.title} />
-          <Button type="button" variant="outline" className="h-12 justify-start rounded-lg px-4 text-base" onClick={exportBackup}>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 justify-start rounded-lg px-4 text-base"
+            onClick={() => void exportBackup()}
+          >
             <Download data-icon="inline-start" aria-hidden="true" />
             Exporter les données
           </Button>
           <input
-            ref={importInputRef}
+            id={importInputId}
             className="sr-only"
             type="file"
             accept="application/json"
             onChange={(event) => void importBackup(event)}
           />
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 justify-start rounded-lg px-4 text-base"
-            onClick={() => importInputRef.current?.click()}
-          >
-            <Upload data-icon="inline-start" aria-hidden="true" />
-            Importer une sauvegarde
+          <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
+            <label htmlFor={importInputId}>
+              <Upload data-icon="inline-start" aria-hidden="true" />
+              Importer une sauvegarde
+            </label>
           </Button>
           <Button
             type="button"
             variant="outline"
             className="h-12 justify-start rounded-lg px-4 text-base text-destructive hover:border-destructive/25 hover:bg-destructive/[0.08] hover:text-destructive"
-            onClick={clearDeviceData}
+            onClick={() => void clearDeviceData()}
           >
             <Trash2 data-icon="inline-start" aria-hidden="true" />
             Supprimer de cet appareil
