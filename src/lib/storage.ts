@@ -345,6 +345,16 @@ export function parseRemoteState(data: unknown, fallbackState: StoredState = ini
   })
 }
 
+function hasRemoteFamilyContent(state: StoredState) {
+  return Boolean(state.profile.childName.trim() || state.profile.birthDate || state.tests.length > 0)
+}
+
+async function fetchRemoteFamilyState(client: SupabaseClientInstance, familyCodeHash: string) {
+  return client.rpc("get_baby_family_state", {
+    p_family_code_hash: familyCodeHash,
+  })
+}
+
 export function parseBackupPayload(payload: unknown) {
   if (!payload || typeof payload !== "object") {
     throw new Error("Le fichier sélectionné n’est pas une sauvegarde Petitbout valide.")
@@ -538,6 +548,59 @@ export function useBabyStore() {
 
     setFamilySession(nextSession)
     markSyncSucceeded()
+    return true
+  }
+
+  async function joinFamily(code: string, pin: string) {
+    const normalizedCode = normalizeFamilyCode(code)
+    if (normalizedCode.length < familyCodeMinLength) {
+      setSyncError(`Le code famille doit contenir au moins ${familyCodeMinLength} caractères.`)
+      return false
+    }
+
+    const normalizedPin = normalizeProfilePin(pin)
+    if (normalizedPin.length !== profilePinLength) {
+      setSyncError(`Le PIN du profil bébé doit contenir ${profilePinLength} chiffres.`)
+      return false
+    }
+
+    if (!isSupabaseConfigured) {
+      setSyncStatus("not-configured")
+      setSyncError("Supabase n’est pas encore configuré.")
+      return false
+    }
+
+    setSyncStatus("loading")
+    setSyncError(null)
+
+    const familyCodeHash = await hashFamilyAccess(normalizedCode, normalizedPin)
+    const client = await getSupabase()
+    if (!client) return false
+
+    const { data, error } = await fetchRemoteFamilyState(client, familyCodeHash)
+    if (error) {
+      setSyncStatus(navigator.onLine ? "error" : "offline")
+      setSyncError(error.message)
+      return false
+    }
+
+    const remoteState = parseRemoteState(data, initialState)
+    if (!hasRemoteFamilyContent(remoteState)) {
+      setSyncStatus("idle")
+      setSyncError("Aucun espace famille trouvé avec ce code et ce PIN.")
+      return false
+    }
+
+    setState(remoteState)
+    setFamilySession({
+      familyCodeHash,
+      familyCodeLabel: normalizedCode,
+      hasProfilePin: true,
+    })
+    setHasCompletedOnboarding(true)
+    markSyncSucceeded()
+    setSyncStatus("idle")
+    setSyncError(null)
     return true
   }
 
@@ -931,6 +994,7 @@ export function useBabyStore() {
     exportBackup,
     hasCompletedOnboarding,
     importBackup,
+    joinFamily,
     isConfigured: isSupabaseConfigured,
     lastSyncedAt,
     leaveFamilySpaceOnDevice,

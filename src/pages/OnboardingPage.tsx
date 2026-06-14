@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Baby, Check, Link2, ShieldCheck, Smartphone, Users } from "lucide-react"
+import { Baby, Check, Link2, Plus, ShieldCheck, Smartphone, Users } from "lucide-react"
 import { toast } from "sonner"
 import { BabyAvatar, BabyAvatarPicker } from "@/components/BabyAvatar"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils"
 
 type OnboardingMode = "local" | "family"
+type OnboardingStep = "choice" | "join" | "profile" | "mode"
 
 export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStore> }) {
   const navigate = useNavigate()
@@ -36,11 +37,12 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
   const normalizedPin = normalizeProfilePin(profilePin)
   const ageMonths = calculateAgeMonths(birthDate)
   const canContinueProfile = Boolean(normalizedName && birthDate && ageMonths !== null)
-  const [step, setStep] = useState<"profile" | "mode">("profile")
+  const [step, setStep] = useState<OnboardingStep>("choice")
   const canSubmitFamily =
     normalizedFamilyCode.length >= familyCodeMinLength &&
     normalizedPin.length === profilePinLength &&
     store.isConfigured
+  const canJoinFamily = canSubmitFamily
 
   function nextStep(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -108,6 +110,33 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
     }
   }
 
+  async function joinExistingFamily(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (isSubmitting) return
+
+    if (normalizedFamilyCode.length < familyCodeMinLength) {
+      toast.error(`Saisis un code d’au moins ${familyCodeMinLength} caractères`)
+      return
+    }
+
+    if (normalizedPin.length !== profilePinLength) {
+      toast.error(`Saisis un PIN de ${profilePinLength} chiffres`)
+      return
+    }
+
+    setIsSubmitting(true)
+    const didJoin = await store.joinFamily(normalizedFamilyCode, normalizedPin)
+    setIsSubmitting(false)
+
+    if (didJoin) {
+      setProfilePin("")
+      toast.success("Espace famille retrouvé")
+      navigate("/")
+    } else {
+      toast.error(store.syncError ?? "Impossible de rejoindre cet espace famille")
+    }
+  }
+
   return (
     <>
       <HeroPanel icon={Baby} className="p-5">
@@ -119,19 +148,99 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
               Petitbout
             </h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Un carnet pour bébé, local ou partagé.
+              Retrouve un carnet existant ou commence un nouveau suivi.
             </p>
           </div>
         </div>
       </HeroPanel>
 
-      {step === "profile" ? (
+      {step === "choice" ? (
         <section className="paper-surface soft-ring rounded-hero p-5">
           <div className="mb-4">
-            <p className="eyebrow">Étape 1</p>
+            <p className="eyebrow">Démarrage</p>
+            <h2 className="text-xl font-bold tracking-normal">Que veux-tu faire ?</h2>
+          </div>
+
+          <div className="grid gap-3">
+            <StartChoiceButton
+              icon={Users}
+              title="Rejoindre un espace famille"
+              description="J’ai déjà un code et un PIN."
+              onClick={() => setStep("join")}
+            />
+            <StartChoiceButton
+              icon={Plus}
+              title="Créer un nouveau carnet"
+              description="Profil bébé, puis local ou partagé."
+              onClick={() => setStep("profile")}
+            />
+          </div>
+        </section>
+      ) : step === "join" ? (
+        <section className="paper-surface soft-ring rounded-hero p-5">
+          <div className="mb-4">
+            <p className="eyebrow">Espace famille</p>
+            <h2 className="text-xl font-bold tracking-normal">Rejoindre un carnet</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Saisis le code famille et le PIN transmis séparément.
+            </p>
+          </div>
+
+          <form className="grid gap-3" onSubmit={(event) => void joinExistingFamily(event)}>
+            <label className="grid gap-1.5 text-sm font-medium">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Code famille</span>
+              <Input
+                autoComplete="off"
+                className="h-12 bg-background/70"
+                maxLength={familyCodeMaxLength}
+                minLength={familyCodeMinLength}
+                placeholder="Ex. famille-alba-2026"
+                value={familyCode}
+                onChange={(event) => setFamilyCode(event.target.value)}
+              />
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">PIN profil bébé</span>
+              <Input
+                autoComplete="off"
+                className="h-12 bg-background/70 text-lg"
+                inputMode="numeric"
+                maxLength={profilePinLength}
+                minLength={profilePinLength}
+                pattern={`\\d{${profilePinLength}}`}
+                placeholder="Ex. 4821"
+                type="password"
+                value={profilePin}
+                onChange={(event) => setProfilePin(normalizeProfilePin(event.target.value))}
+              />
+            </label>
+            <Button type="submit" className="h-12 rounded-xl" disabled={isSubmitting || !canJoinFamily}>
+              <Link2 data-icon="inline-start" aria-hidden="true" />
+              {isSubmitting ? "Connexion..." : "Rejoindre l’espace famille"}
+            </Button>
+            {!store.isConfigured && (
+              <p className="rounded-lg border bg-muted/65 p-3 text-sm leading-5 text-muted-foreground">
+                Le serveur PetitBout n’est pas configuré sur cette installation.
+              </p>
+            )}
+          </form>
+
+          <Button
+            type="button"
+            variant="ghost"
+            className="mt-3 h-11 w-full text-muted-foreground"
+            onClick={() => setStep("choice")}
+          >
+            Retour
+          </Button>
+        </section>
+      ) : step === "profile" ? (
+        <section className="paper-surface soft-ring rounded-hero p-5">
+          <div className="mb-4">
+            <p className="eyebrow">Nouveau carnet</p>
             <h2 className="text-xl font-bold tracking-normal">Profil de bébé</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Ces informations adaptent les repères et suggestions. Aucun compte n’est créé.
+              Ces informations adaptent les repères et suggestions.
             </p>
           </div>
           <form className="grid gap-4" onSubmit={nextStep}>
@@ -166,6 +275,14 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
               Continuer
             </Button>
           </form>
+          <Button
+            type="button"
+            variant="ghost"
+            className="mt-3 h-11 w-full text-muted-foreground"
+            onClick={() => setStep("choice")}
+          >
+            Retour
+          </Button>
         </section>
       ) : (
         <section className="paper-surface soft-ring rounded-hero p-5">
@@ -242,7 +359,7 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
               </Button>
               {!store.isConfigured && (
                 <p className="rounded-lg border bg-muted/65 p-3 text-sm leading-5 text-muted-foreground">
-                  Le serveur PetitBout n’est pas configuré sur cette installation. Choisis l’espace local pour commencer.
+                  Le serveur PetitBout n’est pas configuré sur cette installation. Choisis local pour commencer.
                 </p>
               )}
             </form>
@@ -259,6 +376,34 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
         </section>
       )}
     </>
+  )
+}
+
+function StartChoiceButton({
+  description,
+  icon: Icon,
+  onClick,
+  title,
+}: {
+  description: string
+  icon: typeof Users
+  onClick: () => void
+  title: string
+}) {
+  return (
+    <button
+      type="button"
+      className="flex min-h-[5.75rem] w-full items-center gap-3 rounded-2xl border bg-card/85 p-4 text-left shadow-sm transition-all duration-200 ease-out hover:border-primary/25 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      onClick={onClick}
+    >
+      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <Icon className="size-5" aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold text-foreground">{title}</span>
+        <span className="mt-1 block text-sm leading-5 text-muted-foreground">{description}</span>
+      </span>
+    </button>
   )
 }
 
