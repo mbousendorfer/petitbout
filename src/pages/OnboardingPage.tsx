@@ -163,16 +163,16 @@ export function OnboardingPage({ store }: { store: ReturnType<typeof useBabyStor
 
           <div className="grid gap-3">
             <StartChoiceButton
-              icon={Users}
-              title="Rejoindre un espace famille"
-              description="J’ai déjà un code et un PIN."
-              onClick={() => setStep("join")}
-            />
-            <StartChoiceButton
               icon={Plus}
               title="Créer un nouveau carnet"
               description="Profil bébé, puis local ou partagé."
               onClick={() => setStep("profile")}
+            />
+            <StartChoiceButton
+              icon={Users}
+              title="Rejoindre un espace famille"
+              description="J’ai déjà un code et un PIN."
+              onClick={() => setStep("join")}
             />
           </div>
         </section>
