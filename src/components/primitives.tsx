@@ -43,7 +43,7 @@ export function HeroPanel({
   icon: LucideIcon
 }) {
   return (
-    <section className={cn("paper-surface soft-ring overflow-hidden rounded-[1.625rem] p-4", className)}>
+    <section className={cn("paper-surface soft-ring overflow-hidden rounded-card p-4", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">{children}</div>
         <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm" aria-hidden="true">

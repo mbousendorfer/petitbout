@@ -57,7 +57,7 @@ export function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
 
   return (
     <div
-      className="grid w-full grid-cols-12 gap-1"
+      className="grid w-full grid-cols-12 gap-1.5"
       aria-label={`Mois de saison : ${monthNames(activeMonths)}`}
     >
       {seasonMonthAbbreviations.map((month, index) => {
@@ -68,20 +68,25 @@ export function SeasonMonthsGrid({ activeMonths }: { activeMonths: number[] }) {
         return (
           <span
             key={month}
+            // Pastilles rondes type sélecteur de jours iOS, deux canaux distincts :
+            // — DE SAISON : disque sauge plein vs cercle fantôme (contour fin, vide).
+            // — MOIS COURANT : anneau clay DÉTACHÉ (ring + offset couleur-fond), façon
+            //   « aujourd'hui » d'un calendrier — l'anneau flotte autour du disque sans
+            //   toucher le fond, donc pas de clash orange/vert. Toujours visible qu'on
+            //   soit de saison ou non.
             className={cn(
-              "flex h-7 min-w-0 items-center justify-center rounded-sm border px-0.5 text-[0.625rem] font-semibold leading-none",
+              "flex aspect-square min-w-0 items-center justify-center rounded-full text-eyebrow font-bold uppercase leading-none",
               isActive
-                ? "border-status-season-month bg-status-season-month text-status-season-month-foreground shadow-sm"
-                : "border-border bg-muted/45 text-muted-foreground",
-              isCurrentMonth && (
-                isActive
-                  ? "border-[hsl(38_66%_38%)] bg-[hsl(38_66%_38%)] text-white dark:border-[hsl(43_72%_64%)] dark:bg-[hsl(43_72%_64%)] dark:text-[hsl(30_25%_12%)]"
-                  : "border-foreground/30 bg-muted text-foreground"
-              ),
+                ? "bg-status-season text-status-season-foreground shadow-sm"
+                : isCurrentMonth
+                  ? "text-foreground"
+                  : "border-2 border-border text-muted-foreground",
+              isCurrentMonth && "ring-2 ring-status-season ring-offset-2 ring-offset-card",
             )}
-            aria-hidden="true"
+            aria-label={isCurrentMonth ? `${month} (mois actuel)` : undefined}
+            aria-hidden={isCurrentMonth ? undefined : true}
           >
-            {month}
+            {month.charAt(0)}
           </span>
         )
       })}

@@ -22,7 +22,7 @@ export function StageFact({ icon: Icon, label, tint, value }: { icon: LucideIcon
     <div className="flex items-start gap-3">
       <Icon className={cn("mt-0.5 size-[1.15rem] shrink-0", tint)} aria-hidden="true" />
       <div className="min-w-0">
-        <p className="text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+        <p className="text-eyebrow font-bold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
         <p className="mt-0.5 text-sm leading-5 text-foreground/85">{value}</p>
       </div>
     </div>
@@ -34,7 +34,7 @@ function StageSectionLabel({ icon: Icon, tint, children }: { icon: LucideIcon; t
   return (
     <div className="flex items-center gap-2">
       <Icon className={cn("size-4 shrink-0", tint)} aria-hidden="true" />
-      <p className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">{children}</p>
+      <p className="text-label font-bold uppercase tracking-[0.08em] text-muted-foreground">{children}</p>
     </div>
   )
 }
@@ -79,10 +79,10 @@ export function GuidanceStageHeroCard({
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className={cn("text-[0.7rem] font-bold uppercase tracking-[0.1em]", meta.text)}>
+              <span className={cn("text-label font-bold uppercase tracking-[0.1em]", meta.text)}>
                 Étape {currentStageIndex + 1}
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-card/90 px-2.5 py-0.5 text-[0.7rem] font-bold text-status-tested ring-1 ring-status-tested/15">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-card/90 px-2.5 py-0.5 text-label font-bold text-status-tested ring-1 ring-status-tested/15">
                 <span className="size-1.5 rounded-full bg-status-tested" aria-hidden="true" />
                 Actuel
               </span>

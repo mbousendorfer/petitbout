@@ -390,7 +390,7 @@ function StatusPanel({
   return (
     <div
       className={cn(
-        "rounded-[1.35rem] border p-4 shadow-sm",
+        "rounded-card border p-4 shadow-sm",
         accent === "primary" && "border-primary/25 bg-primary/[0.08]",
         accent === "warning" && "border-accent/25 bg-accent/[0.08]",
         accent === "muted" && "bg-card/85",
@@ -426,7 +426,7 @@ function SignalTile({
   title: string
 }) {
   return (
-    <div className="min-h-[8.25rem] rounded-[1.2rem] border bg-card/85 p-3 shadow-sm">
+    <div className="min-h-[8.25rem] rounded-card border bg-card/85 p-3 shadow-sm">
       <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <Icon className="size-5" aria-hidden="true" />
       </span>
@@ -438,7 +438,7 @@ function SignalTile({
 
 function InlineNotice({ text, title }: { text: string; title: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-[1.2rem] border bg-card/85 p-3 text-sm shadow-sm">
+    <div className="flex items-center gap-3 rounded-card border bg-card/85 p-3 text-sm shadow-sm">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
         <Server className="size-5" aria-hidden="true" />
       </span>

@@ -55,7 +55,7 @@ export default defineConfig({
         cacheId: `petitbout-${appBuildId}`,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest,woff2}"],
         globIgnores: ["env-config.js"],
         navigateFallback: null,
         runtimeCaching: [

@@ -71,7 +71,7 @@ function App() {
   if (isAdminRoute) {
     return (
       <div className="safe-shell soft-surface">
-        <main className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 lg:py-8">
+        <main className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col gap-8 px-4 py-5 sm:px-6 lg:py-8">
           <Suspense fallback={<PageLoading label="Admin" />}>
             <AdminFoodsPage />
           </Suspense>
@@ -84,7 +84,7 @@ function App() {
   if (!store.hasCompletedOnboarding) {
     return (
       <div className="safe-shell soft-surface">
-        <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-5 px-4 py-5 sm:px-6">
+        <main className="mx-auto flex min-h-[100svh] w-full max-w-xl flex-col justify-center gap-8 px-4 py-5 sm:px-6">
           <PwaStatus />
           <OnboardingPage store={store} />
         </main>
@@ -97,7 +97,7 @@ function App() {
     <>
       <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
         <DesktopNav />
-        <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-5 sm:px-6 lg:mx-0 lg:max-w-6xl lg:px-0 lg:py-8">
+        <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-5 sm:px-6 lg:mx-0 lg:max-w-6xl lg:px-0 lg:py-8">
           <PwaStatus />
           <Routes>
             <Route path="/" element={<HomePage store={store} suggestions={suggestions} />} />

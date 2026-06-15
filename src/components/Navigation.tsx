@@ -58,7 +58,7 @@ export function BottomNav() {
             end={item.to === "/"}
             className={({ isActive }) =>
               cn(
-                "flex min-h-12 touch-manipulation flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 text-[0.625rem] font-semibold text-muted-foreground transition-all duration-200 hover:bg-muted/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "flex min-h-12 touch-manipulation flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 text-eyebrow font-semibold text-muted-foreground transition-all duration-200 hover:bg-muted/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 isActive && "bg-secondary text-secondary-foreground shadow-sm",
               )
             }

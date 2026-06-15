@@ -177,11 +177,11 @@ function StageCarouselCard({ index, isCurrent, stage }: { index: number; isCurre
               </span>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className={cn("text-[0.7rem] font-bold uppercase tracking-[0.1em]", meta.text)}>
+                  <span className={cn("text-label font-bold uppercase tracking-[0.1em]", meta.text)}>
                     Étape {index + 1}
                   </span>
                   {isCurrent && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-card/90 px-2 py-0.5 text-[0.7rem] font-bold text-status-tested ring-1 ring-status-tested/15">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-card/90 px-2 py-0.5 text-label font-bold text-status-tested ring-1 ring-status-tested/15">
                       <span className="size-1.5 rounded-full bg-status-tested" aria-hidden="true" />
                       Actuel
                     </span>
@@ -373,7 +373,7 @@ function SourceRow({ last, source }: { last: boolean; source: GuidanceSource }) 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-1.5">
           <span className="truncate text-xs font-semibold text-muted-foreground">{source.publisher}</span>
-          <span className="shrink-0 text-[0.6875rem] font-medium text-muted-foreground/70">{source.year}</span>
+          <span className="shrink-0 text-label font-medium text-muted-foreground/70">{source.year}</span>
         </div>
         <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-5 text-foreground underline-offset-4 group-hover:underline">
           {source.title}

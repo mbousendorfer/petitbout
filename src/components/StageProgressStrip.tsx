@@ -18,7 +18,7 @@ export function StageProgressStrip({ currentStageIndex }: { currentStageIndex: n
             />
             <span
               className={cn(
-                "truncate text-[0.625rem] font-semibold leading-none",
+                "truncate text-eyebrow font-semibold leading-none",
                 isCurrent ? "text-status-tested" : "text-muted-foreground",
               )}
             >

@@ -55,11 +55,12 @@
     --bottom-nav-reserved: 5.75rem;
     --radius: 1.125rem; /* 18px — softer Argile corners */
     /* Typography (DiversiType): rounded display vs. text body. SF Pro is the
-       native face on Apple; elsewhere the system humanist-rounded fallback
-       renders (no webfont shipped — see design decision). */
-    --font-rounded: ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito Sans",
+       native face on Apple; elsewhere Nunito (self-hosted via @fontsource,
+       imported in main.tsx) renders the humanist-rounded brand face, per the
+       Argile design system ("fonts système Apple, repli Nunito hors Apple"). */
+    --font-rounded: ui-rounded, "SF Pro Rounded", "Avenir Next", "Nunito",
       system-ui, sans-serif;
-    --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Nunito Sans",
+    --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Nunito",
       system-ui, sans-serif;
   }
 

@@ -49,44 +49,48 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
     <>
       <Header eyebrow="Catalogue" title="Aliments" />
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-        <Input
-          className="pl-10"
-          aria-label="Rechercher un aliment"
-          placeholder="Chercher un aliment"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </div>
+      {/* Recherche + filtres : un même bloc de contrôles, resserré (l'espacement
+          de section gap-8 ne s'applique qu'autour du bloc, pas à l'intérieur). */}
+      <div className="flex flex-col gap-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input
+            className="pl-10"
+            aria-label="Rechercher un aliment"
+            placeholder="Chercher un aliment"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
 
-      <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex gap-2">
-          <CategoryChip label="Tout" active={category === "all"} onClick={() => setCategory("all")} />
-          {categories.map((item) => (
-            <CategoryChip key={item} label={item} active={category === item} onClick={() => setCategory(item)} />
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-2">
+            <CategoryChip label="Tout" active={category === "all"} onClick={() => setCategory("all")} />
+            {categories.map((item) => (
+              <CategoryChip key={item} label={item} active={category === item} onClick={() => setCategory(item)} />
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-1 rounded-lg border bg-muted/60 p-1" role="tablist" aria-label="Filtrer par statut">
+          {statusOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === option.id}
+              className={cn(
+                "flex min-h-10 items-center justify-center rounded-md px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                statusFilter === option.id
+                  ? "bg-card text-primary ring-1 ring-primary/30 shadow-sm"
+                  : "text-muted-foreground hover:bg-card/70 hover:text-foreground",
+              )}
+              onClick={() => setStatusFilter(option.id)}
+            >
+              {option.label}
+            </button>
           ))}
         </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-1 rounded-lg border bg-muted/60 p-1" role="tablist" aria-label="Filtrer par statut">
-        {statusOptions.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            role="tab"
-            aria-selected={statusFilter === option.id}
-            className={cn(
-              "flex min-h-10 items-center justify-center rounded-md px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              statusFilter === option.id
-                ? "bg-card text-primary ring-1 ring-primary/30 shadow-sm"
-                : "text-muted-foreground hover:bg-card/70 hover:text-foreground",
-            )}
-            onClick={() => setStatusFilter(option.id)}
-          >
-            {option.label}
-          </button>
-        ))}
       </div>
 
       {filteredFoods.length > 0 ? (

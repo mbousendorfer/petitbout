@@ -360,7 +360,7 @@ function BadgeIcon({ badge, variant, size }: { badge: DiscoveryBadge; variant: B
           <Check style={{ width: size * 0.18, height: size * 0.18 }} strokeWidth={3} />
         </span>
       ) : (
-        <span className="absolute -bottom-0.5 -right-0.5 rounded-full border bg-card px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">
+        <span className="absolute -bottom-0.5 -right-0.5 rounded-full border bg-card px-1.5 py-0.5 text-eyebrow font-bold tabular-nums text-muted-foreground">
           {badge.progressCurrent}/{badge.progressTarget}
         </span>
       )}
@@ -422,11 +422,11 @@ function BadgeCard({ badge, variant }: { badge: DiscoveryBadge; variant: BadgeVa
       <p className="line-clamp-3 text-xs leading-4 text-muted-foreground">{detail}</p>
       {!badge.unlocked &&
         (isRareHidden ? (
-          <span className="mt-auto rounded-full bg-category-protein/12 px-2 py-0.5 text-[11px] font-bold text-category-protein">
+          <span className="mt-auto rounded-full bg-category-protein/12 px-2 py-0.5 text-label font-bold text-category-protein">
             Rare
           </span>
         ) : (
-          <span className={cn("mt-auto rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold tabular-nums", meta.text)}>
+          <span className={cn("mt-auto rounded-full bg-muted px-2 py-0.5 text-label font-bold tabular-nums", meta.text)}>
             {badge.progressCurrent}/{badge.progressTarget}
           </span>
         ))}

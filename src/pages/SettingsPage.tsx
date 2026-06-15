@@ -148,7 +148,7 @@ export function SettingsPage({
 
         <SessionSection onSignOut={() => void signOutApp()} />
       </div>
-      <p className="mt-6 pb-2 text-center text-[10px] leading-none text-muted-foreground/45">
+      <p className="mt-6 pb-2 text-center text-eyebrow leading-none text-muted-foreground/45">
         <button
           type="button"
           className="rounded-sm transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

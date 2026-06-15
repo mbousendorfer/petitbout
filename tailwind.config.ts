@@ -66,6 +66,12 @@ const config = {
         sans: ["var(--font-text)"],
         rounded: ["var(--font-rounded)"],
       },
+      fontSize: {
+        // Argile micro-type (DiversiType): uppercase eyebrows + small labels.
+        // Pure font-size tokens so they stay drop-in with explicit leading-*.
+        eyebrow: "0.625rem", // 10px — uppercase micro labels
+        label: "0.6875rem", // 11px — small labels / captions
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 4px)",
