@@ -56,6 +56,7 @@ export default defineConfig({
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+        globIgnores: ["env-config.js"],
         navigateFallback: null,
         runtimeCaching: [
           {
