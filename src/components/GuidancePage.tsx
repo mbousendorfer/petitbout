@@ -19,7 +19,8 @@ import {
 import { useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 
-import { GuidanceStageHeroCard, StageFact, stageMeta } from "@/components/GuidanceStageHeroCard"
+import { GuidanceStageHeroCard, StageFact } from "@/components/GuidanceStageHeroCard"
+import { stageMeta } from "@/components/guidance-stage-meta"
 import {
   guidanceAvoid,
   guidanceRules,

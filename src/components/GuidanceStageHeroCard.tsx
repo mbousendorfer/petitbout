@@ -1,28 +1,18 @@
 import { NavLink } from "react-router-dom"
 import {
-  Calendar,
   CheckCircle2,
   ChevronRight,
-  Hand,
-  Leaf,
   ListChecks,
   Milk,
   ShieldAlert,
   Soup,
-  Utensils,
   type LucideIcon,
 } from "lucide-react"
 
+import { stageMeta } from "@/components/guidance-stage-meta"
 import { StageProgressStrip } from "@/components/StageProgressStrip"
 import { type GuidanceStage } from "@/data/guidance"
 import { cn } from "@/lib/utils"
-
-export const stageMeta: Array<{ icon: LucideIcon; text: string; iconBg: string; iconBgCurrent: string }> = [
-  { icon: Calendar, text: "text-category-fat", iconBg: "bg-category-fat/10", iconBgCurrent: "bg-category-fat/20" },
-  { icon: Leaf, text: "text-status-tested", iconBg: "bg-status-tested/10", iconBgCurrent: "bg-status-tested/20" },
-  { icon: Hand, text: "text-category-dairy", iconBg: "bg-category-dairy/10", iconBgCurrent: "bg-category-dairy/20" },
-  { icon: Utensils, text: "text-category-protein", iconBg: "bg-category-protein/10", iconBgCurrent: "bg-category-protein/20" },
-]
 
 // Ligne « fait » à plat (Texture, Lait) — icône colorée + libellé + valeur,
 // sans conteneur ni puce, pour alléger la carte. Partagée avec le carrousel
