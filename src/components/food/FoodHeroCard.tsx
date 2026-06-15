@@ -2,7 +2,7 @@ import { type ReactNode } from "react"
 import { AlertTriangle, Calendar, Leaf } from "lucide-react"
 
 import { type Food } from "@/data/foods"
-import { isInSeason } from "@/lib/food-utils"
+import { displayFoodName, isInSeason } from "@/lib/food-utils"
 import { cn } from "@/lib/utils"
 import { categoryMeta, isAllergenFood } from "@/components/food/categoryMeta"
 
@@ -26,6 +26,7 @@ export function FoodHeroCard({
   const CategoryIcon = meta.icon
   const inSeason = isInSeason(food)
   const recommendedAge = food.recommendedAgeInMonths
+  const foodName = displayFoodName(food.name)
 
   return (
     <div
@@ -55,7 +56,7 @@ export function FoodHeroCard({
         {food.category}
       </span>
 
-      <p className={cn("relative line-clamp-2 font-rounded font-extrabold leading-tight tracking-[-0.01em]", nameClassName)}>{food.name}</p>
+      <p className={cn("relative line-clamp-2 font-rounded font-extrabold leading-tight tracking-[-0.01em]", nameClassName)}>{foodName}</p>
       <p className="relative line-clamp-2 text-sm leading-5 text-muted-foreground">{food.shortDescription}</p>
 
       <div className="relative mt-auto flex w-full flex-col gap-2.5 pt-2">

@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { type Food } from "@/data/foods"
 import { guidanceStageFor } from "@/data/guidance"
 import { foodSourceReferences } from "@/data/sources"
-import { ageSummary, isInSeason, monthNames } from "@/lib/food-utils"
+import { ageSummary, displayFoodName, isInSeason, monthNames } from "@/lib/food-utils"
 import { noteMaxLength, reactionDetailMaxLength, reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, type MealTimePresetId } from "@/lib/formatting"
@@ -47,6 +47,7 @@ export function FoodTestDrawer({
   const [isSaving, setIsSaving] = useState(false)
   const reactionSummary = reaction === "Aucune" ? "Rien à signaler" : reactionLabels[reaction]
   const reactionIsSevere = reaction === "Allergie" || reaction === "Vomi"
+  const foodName = displayFoodName(food.name)
 
   function currentTimeValue() {
     const now = new Date()
@@ -106,7 +107,7 @@ export function FoodTestDrawer({
       }
 
       if (didSave) {
-        toast.success(selectedTest ? `Prise de ${food.name} mise à jour` : `Nouvelle prise de ${food.name} ajoutée`)
+        toast.success(selectedTest ? `Prise de ${foodName} mise à jour` : `Nouvelle prise de ${foodName} ajoutée`)
       } else {
         toast.error("La synchronisation a échoué. La modification n’a pas été enregistrée.")
       }
@@ -144,7 +145,7 @@ export function FoodTestDrawer({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={food.name}
+        aria-label={foodName}
         className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[84svh] min-h-[58svh] w-full max-w-2xl flex-col gap-0 overflow-hidden rounded-t-[1.75rem] border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:min-h-0 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(760px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-[1.75rem] lg:border"
         data-side="bottom"
         data-state="open"
@@ -356,6 +357,7 @@ function FoodPanelOverview({ food }: { food: Food }) {
   const inSeason = isInSeason(food)
   const seasonText = food.seasonText || monthNames(food.seasonMonths)
   const isAvailableYearRound = food.seasonMonths.length === 12
+  const foodName = displayFoodName(food.name)
 
   return (
     <section className={cn("relative overflow-hidden rounded-hero border bg-card shadow-card", meta.border)}>
@@ -379,7 +381,7 @@ function FoodPanelOverview({ food }: { food: Food }) {
 
           <div className="min-w-0 flex-1">
             <p className="break-words font-rounded text-[2rem] font-extrabold leading-none tracking-[-0.01em] text-foreground sm:text-4xl">
-              {food.name}
+              {foodName}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span

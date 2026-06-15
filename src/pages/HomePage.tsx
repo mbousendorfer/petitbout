@@ -4,7 +4,7 @@ import { ArrowRight, BadgeCheck, Cake, Carrot, Check, Plus, Sparkles, type Lucid
 import { Button } from "@/components/ui/button"
 import { foods, type Food } from "@/data/foods"
 import { guidanceStageFor, guidanceStageIndexFor } from "@/data/guidance"
-import { isAgeReady } from "@/lib/food-utils"
+import { displayFoodName, isAgeReady } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { SectionHeader, EmptyState, Disclaimer } from "@/components/primitives"
@@ -178,6 +178,7 @@ export function TodayFoodCarousel({ foods: items, store }: { foods: Food[]; stor
 
 export function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const [openTab, setOpenTab] = useState<FoodPanelTab | null>(null)
+  const foodName = displayFoodName(food.name)
 
   return (
     <>
@@ -185,7 +186,7 @@ export function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnTy
         type="button"
         className="group w-[16rem] shrink-0 snap-start rounded-hero text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={() => setOpenTab("add")}
-        aria-label={`Ajouter une prise de ${food.name}`}
+        aria-label={`Ajouter une prise de ${foodName}`}
       >
         <FoodHeroCard
           food={food}

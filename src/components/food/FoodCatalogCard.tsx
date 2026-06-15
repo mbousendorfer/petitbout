@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Check, Plus } from "lucide-react"
 
 import { type Food } from "@/data/foods"
-import { getStatus } from "@/lib/food-utils"
+import { displayFoodName, getStatus } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { FoodHeroCard } from "@/components/food/FoodHeroCard"
@@ -15,6 +15,7 @@ export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType
   const latestTest = store.latestByFood.get(food.id)
   const [openTab, setOpenTab] = useState<FoodPanelTab | null>(null)
   const tested = status !== "non testé"
+  const foodName = displayFoodName(food.name)
 
   const footer =
     status === "non testé" ? (
@@ -35,7 +36,7 @@ export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType
         type="button"
         className="group rounded-hero text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={() => setOpenTab("add")}
-        aria-label={tested ? `Voir ${food.name}` : `Ajouter une prise de ${food.name}`}
+        aria-label={tested ? `Voir ${foodName}` : `Ajouter une prise de ${foodName}`}
       >
         <FoodHeroCard
           food={food}

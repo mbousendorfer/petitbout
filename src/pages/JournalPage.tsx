@@ -4,6 +4,7 @@ import { BookOpen, Carrot, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { foods } from "@/data/foods"
+import { displayFoodName } from "@/lib/food-utils"
 import { reactionDisplay, reactionLabels, testDateTimeLabel } from "@/lib/formatting"
 import { useBabyStore, type FoodTest } from "@/lib/storage"
 import { cn } from "@/lib/utils"
@@ -76,6 +77,7 @@ export function JournalPage({ store }: { store: ReturnType<typeof useBabyStore> 
         {entries.map(({ test, food }) => {
           const isConfirmingRemoval = confirmingRemovalId === test.id
           const reaction = reactionDisplay[test.reaction]
+          const foodName = displayFoodName(food.name)
 
           return (
             <li
@@ -86,11 +88,11 @@ export function JournalPage({ store }: { store: ReturnType<typeof useBabyStore> 
                 type="button"
                 onClick={() => setEditing(test)}
                 className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                aria-label={`Modifier la prise de ${food.name} du ${testDateTimeLabel(test)}`}
+                aria-label={`Modifier la prise de ${foodName} du ${testDateTimeLabel(test)}`}
               >
                 <FoodEmoji food={food} size="sm" />
                 <span className="min-w-0">
-                  <span className="block truncate font-semibold">{food.name}</span>
+                  <span className="block truncate font-semibold">{foodName}</span>
                   <span className="mt-0.5 block truncate text-sm text-muted-foreground">
                     {testDateTimeLabel(test)}
                   </span>
@@ -124,7 +126,7 @@ export function JournalPage({ store }: { store: ReturnType<typeof useBabyStore> 
                       variant="outline"
                       size="sm"
                       className="h-8 px-2 text-xs text-destructive"
-                      onClick={() => void removeTest(test, food.name)}
+                      onClick={() => void removeTest(test, foodName)}
                     >
                       <Trash2 data-icon="inline-start" aria-hidden="true" />
                       Supprimer
@@ -136,8 +138,8 @@ export function JournalPage({ store }: { store: ReturnType<typeof useBabyStore> 
                     variant="ghost"
                     size="icon"
                     className={cn("size-9 text-muted-foreground hover:text-destructive")}
-                    onClick={() => void removeTest(test, food.name)}
-                    aria-label={`Retirer cette prise de ${food.name}`}
+                    onClick={() => void removeTest(test, foodName)}
+                    aria-label={`Retirer cette prise de ${foodName}`}
                     title="Retirer"
                   >
                     <Trash2 aria-hidden="true" />

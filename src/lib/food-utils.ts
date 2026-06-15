@@ -105,6 +105,12 @@ export function ageSummary(food: Food) {
   return `dès ${food.minAgeMonths} mois`
 }
 
+export function displayFoodName(name: string) {
+  const trimmedName = name.trim()
+  if (!trimmedName) return name
+  return trimmedName.charAt(0).toLocaleUpperCase("fr") + trimmedName.slice(1)
+}
+
 export function getStatus(foodId: string, latestByFood: Map<string, FoodTest>) {
   const latest = latestByFood.get(foodId)
   if (!latest) return "non testé"

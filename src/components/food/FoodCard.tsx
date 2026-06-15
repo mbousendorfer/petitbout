@@ -2,7 +2,7 @@ import { useState, memo } from "react"
 import { AlertTriangle } from "lucide-react"
 
 import { type Food } from "@/data/foods"
-import { getStatus } from "@/lib/food-utils"
+import { displayFoodName, getStatus } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { FoodEmoji } from "@/components/food/FoodEmoji"
@@ -15,6 +15,7 @@ export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; st
   const meta = categoryMeta[food.category]
   const CategoryIcon = meta.icon
   const [open, setOpen] = useState(false)
+  const foodName = displayFoodName(food.name)
 
   const statusLabel = status === "non testé" ? "Non testé" : "Testé"
   const statusClass =
@@ -28,11 +29,11 @@ export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; st
         type="button"
         className="flex w-full items-center gap-3 rounded-card border bg-card/90 p-3 text-left shadow-soft transition-colors hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={() => setOpen(true)}
-        aria-label={`Ajouter une prise de ${food.name}`}
+        aria-label={`Ajouter une prise de ${foodName}`}
       >
         <FoodEmoji food={food} size="lg" />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <p className="truncate text-base font-semibold leading-tight">{food.name}</p>
+          <p className="truncate text-base font-semibold leading-tight">{foodName}</p>
           <div className="flex flex-wrap items-center gap-1.5">
             <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold", meta.tile, meta.text)}>
               <CategoryIcon className="size-3" aria-hidden="true" />
