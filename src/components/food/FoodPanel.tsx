@@ -384,7 +384,7 @@ function FoodPanelOverview({ food }: { food: Food }) {
             <div className="mt-3 flex flex-wrap gap-2">
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full border bg-card/80 px-2.5 py-1 text-xs font-bold shadow-[0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-sm",
+                  "inline-flex items-center gap-1 rounded-full border bg-card/80 px-2.5 py-1 text-xs font-bold shadow-[0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm dark:border-white/10 dark:bg-card/60 dark:shadow-none sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-sm",
                   meta.border,
                   meta.text,
                 )}
