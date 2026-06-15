@@ -60,14 +60,14 @@ export function FoodHeroCard({
       <p className="relative line-clamp-2 text-sm leading-5 text-muted-foreground">{food.shortDescription}</p>
 
       <div className="relative mt-auto flex w-full flex-col gap-2.5 pt-2">
-        <div className="flex items-center justify-center gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+        <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5">
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
             <Calendar className="size-3" aria-hidden="true" />
             {recommendedAge}+ mois
           </span>
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
+              "inline-flex max-w-full shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold",
               inSeason ? "bg-status-season/15 text-status-season" : "bg-muted text-muted-foreground",
             )}
           >

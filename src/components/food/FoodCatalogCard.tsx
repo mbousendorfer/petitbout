@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Check, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 
 import { type Food } from "@/data/foods"
 import { displayFoodName, getStatus } from "@/lib/food-utils"
@@ -12,23 +12,23 @@ import { FoodTestDrawer, type FoodPanelTab } from "@/components/food/FoodPanel"
 // avec un pied de carte qui reflète le statut de l'aliment.
 export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const status = getStatus(food.id, store.latestByFood)
-  const latestTest = store.latestByFood.get(food.id)
   const [openTab, setOpenTab] = useState<FoodPanelTab | null>(null)
   const tested = status !== "non testé"
   const foodName = displayFoodName(food.name)
 
-  const footer =
-    status === "non testé" ? (
-      <span className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary font-bold text-primary-foreground shadow-sm">
-        <Plus className="size-4" aria-hidden="true" />
-        Ajouter
-      </span>
-    ) : (
-      <span className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-status-tested/12 font-bold text-status-tested">
-        <Check className="size-4" aria-hidden="true" />
-        Testé
-      </span>
-    )
+  const footer = (
+    <span
+      className={cn(
+        "inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl font-bold shadow-sm",
+        tested
+          ? "border border-primary/18 bg-primary/10 text-primary shadow-none"
+          : "bg-primary text-primary-foreground",
+      )}
+    >
+      <Plus className="size-4" aria-hidden="true" />
+      Ajouter
+    </span>
+  )
 
   return (
     <>
@@ -36,7 +36,7 @@ export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType
         type="button"
         className="group rounded-hero text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={() => setOpenTab("add")}
-        aria-label={tested ? `Voir ${foodName}` : `Ajouter une prise de ${foodName}`}
+        aria-label={`Ajouter une prise de ${foodName}`}
       >
         <FoodHeroCard
           food={food}
@@ -50,7 +50,6 @@ export function FoodCatalogCard({ food, store }: { food: Food; store: ReturnType
         <FoodTestDrawer
           food={food}
           store={store}
-          test={latestTest}
           initialTab={openTab}
           open
           onOpenChange={(next) => {

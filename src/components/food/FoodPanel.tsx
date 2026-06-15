@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
-import { AlertTriangle, BookOpen, Calendar, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, Plus, Scale, ShieldCheck, Utensils, X, type LucideIcon } from "lucide-react"
+import { AlertTriangle, BookOpen, Calendar, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, Plus, Save, Scale, ShieldCheck, Utensils, X, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { foodSourceReferences } from "@/data/sources"
 import { ageSummary, displayFoodName, isInSeason, monthNames } from "@/lib/food-utils"
 import { noteMaxLength, reactionDetailMaxLength, reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
-import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, type MealTimePresetId } from "@/lib/formatting"
+import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, testDateTimeLabel, type MealTimePresetId } from "@/lib/formatting"
 import { SeasonMonthsGrid } from "@/components/food/FoodBadges"
 import { categoryMeta, isAllergenFood } from "@/components/food/categoryMeta"
 
@@ -44,10 +44,13 @@ export function FoodTestDrawer({
   const [showReaction, setShowReaction] = useState(
     () => Boolean(selectedTest && selectedTest.reaction !== "Aucune"),
   )
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const reactionSummary = reaction === "Aucune" ? "Rien à signaler" : reactionLabels[reaction]
   const reactionIsSevere = reaction === "Allergie" || reaction === "Vomi"
   const foodName = displayFoodName(food.name)
+  const tested = store.tests.some((item) => item.foodId === food.id)
+  const previousTests = store.tests.filter((item) => item.foodId === food.id && item.id !== selectedTest?.id)
 
   function currentTimeValue() {
     const now = new Date()
@@ -160,7 +163,7 @@ export function FoodTestDrawer({
         </button>
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="px-3 pb-3 pt-3">
-            <FoodPanelOverview food={food} />
+            <FoodPanelOverview food={food} tested={tested} />
           </div>
           <div className="flex min-w-0 flex-col gap-4 px-5 pb-4 pt-2">
             <div className="flex min-w-0 flex-col gap-5">
@@ -334,13 +337,31 @@ export function FoodTestDrawer({
                   )}
                 </div>
               </div>
+              {previousTests.length > 0 && (
+                <FoodPanelHistory
+                  open={historyOpen}
+                  tests={previousTests}
+                  onOpenChange={setHistoryOpen}
+                />
+              )}
             </div>
           </div>
         </div>
         <div className="shrink-0 border-t bg-background/95 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur lg:pb-4">
           <div className="grid gap-2">
-            <Button type="button" className="h-12 w-full" onClick={saveTest} disabled={isSaving}>
-              {isSaving && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}
+            <Button
+              type="button"
+              className="h-12 w-full"
+              onClick={saveTest}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+              ) : isEditing ? (
+                <Save className="size-4" aria-hidden="true" />
+              ) : (
+                <Plus className="size-4" aria-hidden="true" />
+              )}
               {isSaving ? "Enregistrement…" : isEditing ? "Enregistrer les modifications" : "Ajouter"}
             </Button>
           </div>
@@ -351,7 +372,7 @@ export function FoodTestDrawer({
   )
 }
 
-function FoodPanelOverview({ food }: { food: Food }) {
+function FoodPanelOverview({ food, tested }: { food: Food; tested: boolean }) {
   const meta = categoryMeta[food.category]
   const CategoryIcon = meta.icon
   const inSeason = isInSeason(food)
@@ -404,6 +425,12 @@ function FoodPanelOverview({ food }: { food: Food }) {
                 <Calendar className="size-3.5 sm:size-4" aria-hidden="true" />
                 {food.recommendedAgeInMonths}+ mois
               </span>
+              {tested && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-status-tested/12 px-2.5 py-1 text-xs font-bold text-status-tested sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-sm">
+                  <CircleCheck className="size-3.5 sm:size-4" aria-hidden="true" />
+                  Testé
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -429,6 +456,57 @@ function FoodPanelOverview({ food }: { food: Food }) {
           {!isAvailableYearRound && <SeasonMonthsGrid activeMonths={food.seasonMonths} />}
         </div>
       </div>
+    </section>
+  )
+}
+
+function FoodPanelHistory({
+  onOpenChange,
+  open,
+  tests,
+}: {
+  onOpenChange: (open: boolean) => void
+  open: boolean
+  tests: FoodTest[]
+}) {
+  return (
+    <section className="grid gap-2">
+      <button
+        type="button"
+        className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        onClick={() => onOpenChange(!open)}
+        aria-expanded={open}
+      >
+        <CalendarClock className="size-4 shrink-0" aria-hidden="true" />
+        <span className="truncate">Historique</span>
+        <span className="shrink-0 text-xs font-medium text-muted-foreground">
+          {tests.length} {tests.length > 1 ? "ajouts" : "ajout"}
+        </span>
+        <ChevronDown
+          className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")}
+          aria-hidden="true"
+        />
+      </button>
+      {open && (
+        <ul className="grid gap-2">
+          {tests.map((test) => {
+            const reaction = reactionDisplay[test.reaction]
+
+            return (
+              <li key={test.id} className="rounded-xl bg-muted/35 px-3 py-2.5">
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-base leading-none" aria-hidden="true">{reaction.emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{testDateTimeLabel(test)}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{reaction.label}</p>
+                    {test.note && <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted-foreground">{test.note}</p>}
+                  </div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </section>
   )
 }

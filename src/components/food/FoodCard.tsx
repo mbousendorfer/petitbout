@@ -11,7 +11,6 @@ import { categoryMeta, isAllergenFood } from "@/components/food/categoryMeta"
 
 export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; store: ReturnType<typeof useBabyStore> }) {
   const status = getStatus(food.id, store.latestByFood)
-  const latestTest = store.latestByFood.get(food.id)
   const meta = categoryMeta[food.category]
   const CategoryIcon = meta.icon
   const [open, setOpen] = useState(false)
@@ -53,7 +52,6 @@ export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; st
         <FoodTestDrawer
           food={food}
           store={store}
-          test={latestTest}
           initialTab="add"
           open={open}
           onOpenChange={setOpen}
