@@ -19,6 +19,8 @@ VITE_FEEDBACK_EMAIL=feedback@example.com
 VITE_PLAUSIBLE_DOMAIN=
 VITE_PLAUSIBLE_SCRIPT_URL=
 VITE_PLAUSIBLE_API_URL=
+VITE_ADMIN_USERNAME=admin
+VITE_ADMIN_PASSWORD=change-me
 ```
 
 Apres publication d'une nouvelle image par GitHub Actions, mettre a jour le service depuis ce dossier :
@@ -39,6 +41,27 @@ Le reverse proxy doit pointer vers :
 ```txt
 http://127.0.0.1:1337/
 ```
+
+## Admin aliments
+
+L'editeur du catalogue est disponible sur :
+
+```txt
+https://app.petitbout.app/#/admin
+```
+
+Il est actif uniquement si `VITE_ADMIN_USERNAME` et `VITE_ADMIN_PASSWORD` sont renseignes dans le `.env` du service.
+
+Le processus de mise a jour reste volontairement statique :
+
+1. se connecter a `/#/admin` ;
+2. modifier les aliments ;
+3. exporter `FoodCatalog.csv` ;
+4. remplacer `src/data/FoodCatalog.csv` dans le depot ;
+5. commit, push, attendre la nouvelle image GHCR ;
+6. lancer `docker compose pull` puis `docker compose up -d` sur le VPS.
+
+Ces identifiants sont disponibles dans le bundle navigateur via `/env-config.js`. Pour une protection forte en production, ajouter aussi un controle d'acces au niveau du reverse proxy ou du reseau.
 
 Si le package GitHub Container Registry est prive, se connecter une fois au registry depuis le VPS avant `docker compose pull` :
 

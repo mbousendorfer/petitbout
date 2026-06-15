@@ -99,13 +99,51 @@ En Docker, ces valeurs peuvent être remplacées au démarrage via `env-config.j
 VITE_PLAUSIBLE_DOMAIN=app.petitbout.app
 VITE_PLAUSIBLE_SCRIPT_URL=https://analytics.edenpulse.com/js/script.js
 VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
-VITE_ADMIN_USERNAME=admin
-VITE_ADMIN_PASSWORD=change-me
 ```
 
 - `VITE_PLAUSIBLE_DOMAIN` doit correspondre au domaine déclaré dans Plausible.
 - `VITE_PLAUSIBLE_SCRIPT_URL` pointe vers votre instance Plausible. Si la variable est vide, l'app utilise `https://analytics.edenpulse.com/js/script.js`.
 - `VITE_PLAUSIBLE_API_URL` est optionnelle, mais utile avec une instance self-hosted ou un proxy.
+
+## Admin aliments
+
+L'app expose une route admin simple sur :
+
+```txt
+/#/admin
+```
+
+Elle sert à éditer le catalogue d'aliments embarqué dans l'app. Comme Petitbout est une app statique, l'admin ne réécrit pas directement le dépôt ni le serveur : il conserve un brouillon local dans le navigateur et exporte un CSV.
+
+Flux de mise à jour du catalogue :
+
+1. Ouvrir `/#/admin`.
+2. Se connecter avec les identifiants définis dans l'environnement.
+3. Modifier les aliments avec les champs du formulaire.
+4. Cliquer sur `Exporter le CSV`.
+5. Remplacer `src/data/FoodCatalog.csv` par le fichier téléchargé.
+6. Lancer `npm run build`.
+7. Committer, pousser et redéployer.
+
+Champs éditables :
+
+- nom, emoji, catégorie et libellé source
+- statuts 4 / 6 / 9 / 12 mois
+- âge conseillé
+- saisons, quantités, restriction / précaution
+- allergène
+- description courte
+
+Variables d'activation :
+
+```bash
+VITE_ADMIN_USERNAME=admin
+VITE_ADMIN_PASSWORD=change-me
+```
+
+Si une des deux variables est vide, `/#/admin` affiche un message de configuration et l'éditeur reste désactivé. En Docker, ces variables sont lues au démarrage via `/env-config.js`.
+
+Note de sécurité : ces identifiants protègent l'interface côté navigateur, mais l'app reste statique. Ce n'est pas une sécurité serveur forte ; évite d'exposer cette route comme un back-office critique sans contrôle d'accès au niveau reverse proxy ou réseau.
 
 ## Checklist de validation
 
@@ -120,6 +158,7 @@ VITE_ADMIN_PASSWORD=change-me
 - Vérifier que les données restent après une mise à jour.
 - Exporter un JSON depuis Réglages.
 - Importer ce JSON sur un autre navigateur/appareil et confirmer que les données apparaissent.
+- Ouvrir `/#/admin` avec `VITE_ADMIN_USERNAME` / `VITE_ADMIN_PASSWORD`, se connecter, modifier un aliment et exporter `FoodCatalog.csv`.
 - Tester une première visite en ligne, puis un relancement hors ligne.
 
 ## Déploiement Docker sur VPS
@@ -180,6 +219,8 @@ VITE_FEEDBACK_EMAIL=feedback@example.com
 VITE_PLAUSIBLE_DOMAIN=app.example.com
 VITE_PLAUSIBLE_SCRIPT_URL=https://analytics.edenpulse.com/js/script.js
 VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
+VITE_ADMIN_USERNAME=admin
+VITE_ADMIN_PASSWORD=change-me
 ```
 
 Puis :
