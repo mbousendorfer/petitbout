@@ -2,30 +2,24 @@ import {
   ArrowLeft,
   ArrowUpRight,
   BriefcaseMedical,
-  Calendar,
   CircleCheck,
   Cross,
   FileSearch,
   FileText,
   Globe,
-  Hand,
   Landmark,
-  Leaf,
   ListChecks,
   Milk,
   ShieldAlert,
   Soup,
-  Sparkles,
   Star,
-  Utensils,
   Waypoints,
   type LucideIcon,
 } from "lucide-react"
 import { useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { StageProgressStrip } from "@/components/StageProgressStrip"
+import { GuidanceStageHeroCard, StageFact, stageMeta } from "@/components/GuidanceStageHeroCard"
 import {
   guidanceAvoid,
   guidanceRules,
@@ -86,33 +80,13 @@ function GuidanceHero({
         </p>
       </header>
 
-      <Card className="paper-surface soft-ring overflow-hidden rounded-hero">
-        <CardContent className="flex flex-col gap-5 p-5">
-          <div className="flex items-start gap-4">
-            <span
-              aria-hidden="true"
-              className="flex size-16 shrink-0 items-center justify-center rounded-full bg-status-tested/15 text-status-tested"
-            >
-              <Sparkles className="size-7" />
-            </span>
-            <div className="min-w-0">
-              <p className="eyebrow text-status-tested">Repère actuel</p>
-              <p className="mt-1 font-rounded text-2xl font-extrabold tracking-[-0.01em]">{stage.ageRange}</p>
-              <p className="mt-1 text-sm font-semibold text-muted-foreground">
-                {childName} · {ageMonths} mois
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <p className="text-lg font-bold tracking-[-0.01em]">{stage.title}</p>
-            <p className="text-sm leading-6 text-muted-foreground">{stage.texture}</p>
-            <p className="text-sm leading-6 text-muted-foreground">{stage.milk}</p>
-          </div>
-
-          <StageProgressStrip currentStageIndex={currentStageIndex} />
-        </CardContent>
-      </Card>
+      <GuidanceStageHeroCard
+        ageMonths={ageMonths}
+        childName={childName}
+        currentStageIndex={currentStageIndex}
+        stage={stage}
+        className="paper-surface soft-ring"
+      />
     </section>
   )
 }
@@ -171,43 +145,6 @@ function GuidanceStagesCarousel({ currentStageIndex }: { currentStageIndex: numb
   )
 }
 
-// Teinte + icône par étape (cf. iOS GuidanceStageCarouselCard : olive / leaf / sky / berry).
-// Classes littérales complètes pour rester sûres au purge Tailwind.
-const stageMeta: Array<{ icon: LucideIcon; text: string; iconBg: string; iconBgCurrent: string }> = [
-  { icon: Calendar, text: "text-category-fat", iconBg: "bg-category-fat/10", iconBgCurrent: "bg-category-fat/20" },
-  { icon: Leaf, text: "text-status-tested", iconBg: "bg-status-tested/10", iconBgCurrent: "bg-status-tested/20" },
-  { icon: Hand, text: "text-category-dairy", iconBg: "bg-category-dairy/10", iconBgCurrent: "bg-category-dairy/20" },
-  { icon: Utensils, text: "text-category-protein", iconBg: "bg-category-protein/10", iconBgCurrent: "bg-category-protein/20" },
-]
-
-// Ligne d'info à puce-icône (recto des cartes d'étape) : Texture, Lait…
-function StageInfoRow({
-  icon: Icon,
-  label,
-  tint,
-  value,
-}: {
-  icon: LucideIcon
-  label: string
-  tint: string
-  value: string
-}) {
-  return (
-    <div className="flex items-start gap-2.5">
-      <span
-        aria-hidden="true"
-        className={cn("flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/60", tint)}
-      >
-        <Icon className="size-4" />
-      </span>
-      <div className="min-w-0">
-        <p className="text-[0.6875rem] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
-        <p className="line-clamp-2 text-sm leading-5 text-foreground/85">{value}</p>
-      </div>
-    </div>
-  )
-}
-
 function StageCarouselCard({ index, isCurrent, stage }: { index: number; isCurrent: boolean; stage: GuidanceStage }) {
   const [flipped, setFlipped] = useState(false)
   const reduceMotion = useReducedMotion()
@@ -223,7 +160,7 @@ function StageCarouselCard({ index, isCurrent, stage }: { index: number; isCurre
     "flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-muted/40 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 
   return (
-    <div className="relative h-[21rem] w-[17rem] shrink-0 snap-start [perspective:1400px]">
+    <div className="relative h-[23.5rem] w-[17rem] shrink-0 snap-start [perspective:1400px]">
       <motion.div
         className="relative size-full [transform-style:preserve-3d]"
         animate={{ rotateY: flipped ? 180 : 0 }}
@@ -231,30 +168,46 @@ function StageCarouselCard({ index, isCurrent, stage }: { index: number; isCurre
       >
         {/* Recto — en-tête teinté + infos de l'étape */}
         <div className={faceBase} style={faceStyle} aria-hidden={flipped}>
-          <div className={cn("flex items-center gap-3 p-4", isCurrent ? meta.iconBgCurrent : meta.iconBg)}>
-            <span
+          <div className={cn("relative overflow-hidden p-4", isCurrent ? meta.iconBgCurrent : meta.iconBg)}>
+            <div
               aria-hidden="true"
-              className={cn("flex size-14 shrink-0 items-center justify-center rounded-full bg-card shadow-sm", meta.text)}
-            >
-              <Icon className="size-7" />
-            </span>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={cn("text-xs font-bold uppercase tracking-wide", meta.text)}>Étape {index + 1}</span>
-                {isCurrent && (
-                  <span className="rounded-full bg-card/85 px-2 py-0.5 text-[11px] font-bold text-status-tested">
-                    Actuel
-                  </span>
+              className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-card/30 to-transparent"
+            />
+            <div className="relative flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "flex size-12 shrink-0 items-center justify-center rounded-2xl bg-card shadow-sm ring-1 ring-border/40",
+                  meta.text,
                 )}
+              >
+                <Icon className="size-6" />
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className={cn("text-[0.7rem] font-bold uppercase tracking-[0.1em]", meta.text)}>
+                    Étape {index + 1}
+                  </span>
+                  {isCurrent && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-card/90 px-2 py-0.5 text-[0.7rem] font-bold text-status-tested ring-1 ring-status-tested/15">
+                      <span className="size-1.5 rounded-full bg-status-tested" aria-hidden="true" />
+                      Actuel
+                    </span>
+                  )}
+                </div>
+                <p className={cn("mt-0.5 font-rounded text-2xl font-extrabold leading-none tracking-[-0.01em]", meta.text)}>
+                  {stage.ageRange}
+                </p>
               </div>
-              <p className="font-rounded text-2xl font-extrabold leading-none tracking-[-0.01em]">{stage.ageRange}</p>
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col gap-2.5 p-4 pt-3.5">
-            <p className="line-clamp-2 font-bold leading-snug">{stage.title}</p>
-            <StageInfoRow icon={Soup} label="Texture" value={stage.texture} tint={meta.text} />
-            <StageInfoRow icon={Milk} label="Lait" value={stage.milk} tint={meta.text} />
+          <div className="flex flex-1 flex-col gap-3 p-4 pt-3.5">
+            <p className="line-clamp-2 text-base font-bold leading-snug tracking-[-0.01em]">{stage.title}</p>
+            <div className="flex flex-col gap-3">
+              <StageFact icon={Soup} label="Texture" value={stage.texture} tint={meta.text} />
+              <StageFact icon={Milk} label="Lait" value={stage.milk} tint={meta.text} />
+            </div>
 
             <button
               type="button"

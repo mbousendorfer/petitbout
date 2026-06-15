@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { NavLink } from "react-router-dom"
-import { ArrowRight, BadgeCheck, Cake, Carrot, Check, ChevronRight, FileSearch, Plus, Sparkles, type LucideIcon } from "lucide-react"
+import { ArrowRight, BadgeCheck, Cake, Carrot, Check, Plus, Sparkles, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { foods, type Food } from "@/data/foods"
 import { guidanceStageFor, guidanceStageIndexFor } from "@/data/guidance"
@@ -9,7 +9,7 @@ import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { SectionHeader, EmptyState, Disclaimer } from "@/components/primitives"
 import { BabyAvatar } from "@/components/BabyAvatar"
-import { StageProgressStrip } from "@/components/StageProgressStrip"
+import { GuidanceStageHeroCard } from "@/components/GuidanceStageHeroCard"
 import { FoodHeroCard } from "@/components/food/FoodHeroCard"
 import { FoodTestDrawer, type FoodPanelTab } from "@/components/food/FoodPanel"
 
@@ -75,7 +75,12 @@ export function HomePage({
         )}
       </section>
 
-      <TodayGuidancePreview stage={stage} currentStageIndex={currentStageIndex} />
+      <TodayGuidancePreview
+        ageMonths={ageMonths}
+        childName={displayName}
+        stage={stage}
+        currentStageIndex={currentStageIndex}
+      />
 
       <Disclaimer compact />
     </>
@@ -211,34 +216,26 @@ export function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnTy
 }
 
 export function TodayGuidancePreview({
+  ageMonths,
+  childName,
   stage,
   currentStageIndex,
 }: {
+  ageMonths: number
+  childName: string
   stage: ReturnType<typeof guidanceStageFor>
   currentStageIndex: number
 }) {
   return (
-    <NavLink
-      to="/guidance"
-      className="flex flex-col gap-4 rounded-card border bg-card/85 p-5 shadow-soft transition-colors hover:border-status-tested/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-status-tested">
-          <FileSearch className="size-4 shrink-0" aria-hidden="true" />
-          Repère actuel
-        </span>
-        <span className="shrink-0 rounded-full bg-status-tested/10 px-2 py-0.5 text-xs font-bold text-status-tested">
-          {stage.ageRange}
-        </span>
-        <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground/65" aria-hidden="true" />
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <p className="font-semibold leading-tight">{stage.title}</p>
-        <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{stage.texture}</p>
-      </div>
-
-      <StageProgressStrip currentStageIndex={currentStageIndex} />
-    </NavLink>
+    <section className="flex flex-col gap-3">
+      <SectionHeader eyebrow="Repère actuel" title="Où en est la diversification ?" />
+      <GuidanceStageHeroCard
+        ageMonths={ageMonths}
+        childName={childName}
+        currentStageIndex={currentStageIndex}
+        stage={stage}
+        to="/guidance"
+      />
+    </section>
   )
 }

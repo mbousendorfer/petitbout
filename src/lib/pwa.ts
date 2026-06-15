@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { registerSW } from "virtual:pwa-register"
 
 let hasReloadedForUpdate = false
+let installPrompt: BeforeInstallPromptEvent | null = null
+const installPromptListeners = new Set<() => void>()
 const appScope =
   typeof window !== "undefined"
     ? new URL(import.meta.env.BASE_URL, window.location.origin).href
@@ -10,6 +12,32 @@ const appScope =
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>
+}
+
+function notifyInstallPromptListeners() {
+  installPromptListeners.forEach((listener) => listener())
+}
+
+function setInstallPromptEvent(event: BeforeInstallPromptEvent | null) {
+  installPrompt = event
+  notifyInstallPromptListeners()
+}
+
+function isAndroidDevice() {
+  if (typeof navigator === "undefined") return false
+
+  return /Android/i.test(navigator.userAgent)
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault()
+    setInstallPromptEvent(event as BeforeInstallPromptEvent)
+  })
+
+  window.addEventListener("appinstalled", () => {
+    setInstallPromptEvent(null)
+  })
 }
 
 function reloadForUpdate() {
@@ -64,8 +92,9 @@ export function isPwaStandalone() {
 }
 
 export function usePwaInstallPrompt() {
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [availableInstallPrompt, setAvailableInstallPrompt] = useState<BeforeInstallPromptEvent | null>(installPrompt)
   const [isStandalone, setIsStandalone] = useState(isPwaStandalone)
+  const [isAndroid] = useState(isAndroidDevice)
 
   useEffect(() => {
     const standaloneQuery = window.matchMedia("(display-mode: standalone)")
@@ -75,48 +104,48 @@ export function usePwaInstallPrompt() {
       setIsStandalone(isPwaStandalone())
     }
 
-    function handleBeforeInstallPrompt(event: Event) {
-      event.preventDefault()
-      setInstallPrompt(event as BeforeInstallPromptEvent)
+    function updateInstallPromptState() {
+      setAvailableInstallPrompt(installPrompt)
     }
 
     function handleAppInstalled() {
-      setInstallPrompt(null)
       setIsStandalone(true)
     }
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
     window.addEventListener("appinstalled", handleAppInstalled)
     standaloneQuery.addEventListener("change", updateStandaloneState)
     fullscreenQuery.addEventListener("change", updateStandaloneState)
+    installPromptListeners.add(updateInstallPromptState)
+    updateInstallPromptState()
     updateStandaloneState()
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
       window.removeEventListener("appinstalled", handleAppInstalled)
       standaloneQuery.removeEventListener("change", updateStandaloneState)
       fullscreenQuery.removeEventListener("change", updateStandaloneState)
+      installPromptListeners.delete(updateInstallPromptState)
     }
   }, [])
 
   const install = useCallback(async () => {
-    if (!installPrompt) return false
+    if (!availableInstallPrompt) return false
 
     try {
-      await installPrompt.prompt()
-      const choice = await installPrompt.userChoice
-      setInstallPrompt(null)
+      await availableInstallPrompt.prompt()
+      const choice = await availableInstallPrompt.userChoice
+      setInstallPromptEvent(null)
       return choice.outcome === "accepted"
     } catch (error) {
       console.warn("PWA install prompt failed", error)
-      setInstallPrompt(null)
+      setInstallPromptEvent(null)
       return false
     }
-  }, [installPrompt])
+  }, [availableInstallPrompt])
 
   return {
-    canInstall: Boolean(installPrompt) && !isStandalone,
+    canInstall: Boolean(availableInstallPrompt) && !isStandalone,
     install,
+    isAndroid,
     isStandalone,
   }
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
 import { Home, RefreshCw, WifiOff } from "lucide-react"
-import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { pwaUpdate } from "@/lib/pwa"
@@ -23,20 +22,14 @@ export function PwaStatus() {
       setHasUpdate(true)
     }
 
-    function handleOfflineReady() {
-      toast.success("Petitbout est prêt hors ligne")
-    }
-
     window.addEventListener("online", handleOnline)
     window.addEventListener("offline", handleOffline)
     window.addEventListener("petitbout:pwa-update", handleUpdate)
-    window.addEventListener("petitbout:pwa-offline-ready", handleOfflineReady)
 
     return () => {
       window.removeEventListener("online", handleOnline)
       window.removeEventListener("offline", handleOffline)
       window.removeEventListener("petitbout:pwa-update", handleUpdate)
-      window.removeEventListener("petitbout:pwa-offline-ready", handleOfflineReady)
     }
   }, [])
 

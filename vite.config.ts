@@ -29,6 +29,9 @@ const appVersion = `${packageJson.version}+${appBuildId}`
 
 export default defineConfig({
   base: "/",
+  server: {
+    port: process.env.PORT ? Number(process.env.PORT) : 5173,
+  },
   define: {
     "import.meta.env.VITE_APP_BUILD_ID": JSON.stringify(appBuildId),
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),

@@ -51,17 +51,6 @@ export function SettingsPage({
     bornLabel ? `né le ${bornLabel}` : null,
   ].filter(Boolean)
 
-  function leaveFamilySpace() {
-    const confirmed = window.confirm(
-      "Se déconnecter de l’espace famille sur cet appareil ? Le carnet local reste disponible, mais il ne sera plus synchronisé.",
-    )
-
-    if (!confirmed) return
-
-    store.leaveFamilySpaceOnDevice()
-    navigate("/family-space")
-  }
-
   async function signOutApp() {
     const confirmed = window.confirm(
       "Se déconnecter de Petitbout sur cet appareil ? Toutes les données locales seront supprimées et tu reviendras à l’écran de démarrage.",
@@ -142,17 +131,6 @@ export function SettingsPage({
                 Gérer l’espace famille
               </NavLink>
             </Button>
-            {hasFamilySpace && (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 justify-start rounded-lg px-4 text-base text-muted-foreground"
-                onClick={leaveFamilySpace}
-              >
-                <LogOut data-icon="inline-start" aria-hidden="true" />
-                Se déconnecter de cet appareil
-              </Button>
-            )}
           </div>
         </SettingsSection>
 
@@ -266,11 +244,16 @@ function DataManagementSection() {
 
 
 export function InstallHelpSection() {
-  const { canInstall, install, isStandalone } = usePwaInstallPrompt()
+  const { canInstall, install, isAndroid, isStandalone } = usePwaInstallPrompt()
 
   if (isStandalone) return null
 
   async function handleInstall() {
+    if (!canInstall) {
+      toast.warning("Si Chrome ne propose pas encore l’installation, utilise le menu en haut à droite.")
+      return
+    }
+
     const didInstall = await install()
     if (didInstall) {
       toast.success("Petitbout est installé")
@@ -310,10 +293,16 @@ export function InstallHelpSection() {
           <li>Touche le menu (trois points) en haut à droite.</li>
           <li>Choisis « Installer l’application » ou « Ajouter à l’écran d’accueil ».</li>
         </ol>
-        {canInstall && (
-          <Button type="button" className="mt-3 w-full justify-center" onClick={() => void handleInstall()}>
+        {(canInstall || isAndroid) && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3 h-9 justify-center rounded-md px-3 text-sm font-medium text-muted-foreground shadow-none hover:text-foreground"
+            onClick={() => void handleInstall()}
+          >
             <Download data-icon="inline-start" aria-hidden="true" />
-            Installer Petitbout
+            Installer
           </Button>
         )}
       </div>
