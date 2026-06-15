@@ -173,11 +173,10 @@ export function GuidanceStageCard({
   )
 }
 
-// Groupe « À retenir » / « Points de vigilance » du détail — carte teintée avec
-// pastilles de coche pleines (porté depuis GuidanceStageDetailSheet.detailGroup).
-function DetailGroup({
+// Groupe interne du bloc étape — pas une carte séparée, mais une zone éditoriale
+// avec titre, compteur et repères scannables.
+function DetailChecklist({
   badgeBg,
-  border,
   icon: Icon,
   items,
   symbol,
@@ -185,7 +184,6 @@ function DetailGroup({
   title,
 }: {
   badgeBg: string
-  border: string
   icon: LucideIcon
   items: string[]
   symbol: "check" | "alert"
@@ -193,28 +191,118 @@ function DetailGroup({
   title: string
 }) {
   return (
-    <section className={cn("flex flex-col gap-3 rounded-card border bg-card p-4 shadow-soft", border)}>
-      <div className="flex items-center gap-1.5">
-        <Icon className={cn("size-3.5", tint)} aria-hidden="true" />
-        <h3 className={cn("text-label font-bold uppercase tracking-[0.08em]", tint)}>{title}</h3>
+    <section className="min-w-0">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-xl bg-current/10", tint)}>
+            <Icon className="size-4" aria-hidden="true" />
+          </span>
+          <h3 className={cn("truncate text-label font-bold uppercase tracking-[0.08em]", tint)}>{title}</h3>
+        </div>
+        <span className="shrink-0 rounded-full bg-muted/65 px-2.5 py-1 text-label font-bold tabular-nums text-muted-foreground">
+          {items.length}
+        </span>
       </div>
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-2.5">
         {items.map((item, itemIndex) => (
-          <li key={itemIndex} className="flex items-start gap-2.5 text-sm leading-5 text-foreground">
+          <li key={itemIndex} className="flex items-start gap-3 text-sm leading-5 text-foreground">
             <span
               aria-hidden="true"
-              className={cn("mt-px flex size-5 shrink-0 items-center justify-center rounded-full text-card", badgeBg)}
+              className={cn("mt-px flex size-6 shrink-0 items-center justify-center rounded-full text-card shadow-sm", badgeBg)}
             >
               {symbol === "check" ? (
-                <Check className="size-3" strokeWidth={3} />
+                <Check className="size-3.5" strokeWidth={3} />
               ) : (
-                <span className="text-[0.7rem] font-extrabold leading-none">!</span>
+                <span className="text-[0.75rem] font-extrabold leading-none">!</span>
               )}
             </span>
-            <span>{item}</span>
+            <span className="pt-0.5">{item}</span>
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+function StageDetailOverview({
+  index,
+  isCurrent,
+  meta,
+  stage,
+}: {
+  index: number
+  isCurrent: boolean
+  meta: StageMeta
+  stage: GuidanceStage
+}) {
+  const Icon = meta.icon
+
+  return (
+    <section className={cn("relative overflow-hidden rounded-hero border bg-card shadow-card", meta.chipBorder)}>
+      <div
+        aria-hidden="true"
+        className={cn("pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b to-transparent", meta.gradientFrom)}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-16 -top-16 size-44 rounded-full border border-card/70 bg-card/35"
+      />
+
+      <div className="relative p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "flex size-16 shrink-0 items-center justify-center rounded-2xl bg-card/90 shadow-soft ring-1 ring-border/40",
+              meta.text,
+            )}
+          >
+            <Icon className="size-7" />
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={cn("text-label font-bold uppercase tracking-[0.14em]", meta.text)}>
+                Étape {index + 1}
+              </span>
+              {isCurrent && <StageBadge state="current" />}
+            </div>
+            <p className="mt-2 font-rounded text-3xl font-extrabold leading-none tracking-[-0.01em] text-foreground sm:text-4xl">
+              {stage.ageRange}
+            </p>
+            <p className="mt-2 text-base font-semibold leading-6 text-muted-foreground">{stage.title}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <StageInfoRow icon={Grid2x2} label="Texture" value={stage.texture} tint={meta.text} />
+          <StageInfoRow icon={Droplet} label="Lait" value={stage.milk} tint={meta.text} filled />
+        </div>
+
+        <div className="mt-6 grid gap-5 border-t border-border/45 pt-5 lg:grid-cols-[1fr_0.72fr]">
+          <DetailChecklist
+            title="À retenir"
+            icon={ListChecks}
+            items={stage.principles}
+            symbol="check"
+            tint={meta.text}
+            badgeBg={meta.solidBg}
+          />
+
+          {stage.watchPoints.length > 0 && (
+            <div className="border-t border-status-attention/25 pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+              <DetailChecklist
+                title="Vigilance"
+                icon={Eye}
+                items={stage.watchPoints}
+                symbol="alert"
+                tint="text-status-attention"
+                badgeBg="bg-status-attention"
+              />
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   )
 }
@@ -279,7 +367,6 @@ function GuidanceStageDetailSheet({
   stage: GuidanceStage
   state: StageState
 }) {
-  const Icon = meta.icon
   const isCurrent = state === "current"
   const sources = guidanceSourcesForStageIndex(index)
 
@@ -322,54 +409,7 @@ function GuidanceStageDetailSheet({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3">
           <div className="flex flex-col gap-5">
-            {/* Héros centré — pastille, étape, tranche d'âge, sous-titre. */}
-            <div className="relative overflow-hidden rounded-hero border border-border/40 bg-card px-4 pb-5 pt-7 text-center shadow-soft">
-              <div
-                aria-hidden="true"
-                className={cn("pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b to-transparent", meta.gradientFrom)}
-              />
-              <div className="relative flex flex-col items-center gap-2.5">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "flex size-[4.75rem] items-center justify-center rounded-full bg-card shadow-soft ring-1 ring-border/40",
-                    meta.text,
-                  )}
-                >
-                  <Icon className="size-8" />
-                </span>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <span className={cn("text-label font-bold uppercase tracking-[0.1em]", meta.text)}>
-                    Étape {index + 1}
-                  </span>
-                  {isCurrent && <StageBadge state="current" />}
-                </div>
-                <p className="font-rounded text-3xl font-extrabold tracking-[-0.01em] text-foreground">{stage.ageRange}</p>
-                <p className="text-sm leading-5 text-muted-foreground">{stage.title}</p>
-              </div>
-            </div>
-
-            <DetailGroup
-              title="À retenir"
-              icon={ListChecks}
-              items={stage.principles}
-              symbol="check"
-              tint={meta.text}
-              badgeBg={meta.solidBg}
-              border={meta.chipBorder}
-            />
-
-            {stage.watchPoints.length > 0 && (
-              <DetailGroup
-                title="Points de vigilance"
-                icon={Eye}
-                items={stage.watchPoints}
-                symbol="alert"
-                tint="text-status-attention"
-                badgeBg="bg-status-attention"
-                border="border-status-attention/25"
-              />
-            )}
+            <StageDetailOverview index={index} isCurrent={isCurrent} meta={meta} stage={stage} />
 
             <section className="flex flex-col gap-3">
               <div className="flex items-center gap-1.5">
