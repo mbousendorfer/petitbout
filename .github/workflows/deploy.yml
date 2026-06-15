@@ -78,38 +78,57 @@ jobs:
     name: Deploy to VPS
     runs-on: ubuntu-latest
     needs: build-and-push
+    env:
+      GHCR_USER: ${{ github.actor }}
+      GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
     steps:
-      # L'etape SSH est enveloppee dans un retry : les runners GitHub changent
-      # d'IP a chaque tentative et le VPS peut blackholer certaines IP (firewall
-      # / fail2ban), d'ou un "dial tcp :22 i/o timeout" intermittent. 3 essais
-      # espaces de 30s absorbent ces coups durs sans toucher au build.
+      # SSH maison avec retry : les runners GitHub changent d'IP a chaque essai et
+      # le VPS peut blackholer certaines IP (firewall / fail2ban), d'ou un
+      # "dial tcp :22 i/o timeout" intermittent. 3 essais espaces de 30s
+      # absorbent ces coups durs sans toucher au build (deja termine via needs).
       - name: Pull the new image and restart the service over SSH
-        uses: Wandalen/wretry.action@v3
-        with:
-          action: appleboy/ssh-action@v1
-          attempt_limit: 3
-          attempt_delay: 30000
-          with: |
-            host: ${{ secrets.VPS_HOST }}
-            username: ${{ secrets.VPS_USER }}
-            key: ${{ secrets.VPS_SSH_KEY }}
-            port: ${{ secrets.VPS_PORT || '22' }}
-            timeout: 60s
-            command_timeout: 10m
-            envs: GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
-            script: |
-              set -euo pipefail
-              # Authentifie le pull avec le token ephemere du job : fonctionne que le
-              # package GHCR soit public ou prive, sans PAT stocke sur le VPS.
-              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-              # Chemin du compose de prod : fourni par le secret VPS_DEPLOY_PATH
-              # (jamais ecrit en clair dans le depot, masque dans les logs).
-              cd "$DEPLOY_PATH"
-              docker compose pull
-              docker compose up -d
-              docker logout ghcr.io
-              docker image prune -f
-        env:
-          GHCR_USER: ${{ github.actor }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Script execute sur le VPS. Heredoc non quote => les secrets sont
+          # injectes ici par le runner puis transmis via stdin (jamais sur la
+          # ligne de commande distante, donc invisibles dans `ps`).
+          cat > "$RUNNER_TEMP/remote.sh" <<REMOTE
+          set -euo pipefail
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          cd "$DEPLOY_PATH"
+          docker compose pull
+          docker compose up -d
+          docker logout ghcr.io
+          docker image prune -f
+          REMOTE
+
+          for attempt in 1 2 3; do
+            echo "::group::Deploiement VPS - essai $attempt/3"
+            if ssh -i ~/.ssh/deploy_key \
+                   -o StrictHostKeyChecking=accept-new \
+                   -o BatchMode=yes \
+                   -o ConnectTimeout=30 \
+                   -o ServerAliveInterval=15 \
+                   -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/remote.sh"; then
+              echo "::endgroup::"
+              echo "Deploiement reussi a l'essai $attempt."
+              exit 0
+            fi
+            echo "::endgroup::"
+            if [ "$attempt" -lt 3 ]; then
+              echo "Essai $attempt en echec, nouvelle tentative dans 30s..."
+              sleep 30
+            fi
+          done
+          echo "Les 3 tentatives de deploiement ont echoue." >&2
+          exit 1
