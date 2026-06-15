@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Monitor,
   Moon,
-  Pencil,
   ShieldCheck,
   Sun,
 } from "lucide-react"
@@ -18,7 +17,6 @@ import { saveTextFile } from "@/lib/formatting"
 import { useBabyStore } from "@/lib/storage"
 import { appVersion } from "@/lib/buildInfo"
 import { refreshPwaCaches, usePwaInstallPrompt } from "@/lib/pwa"
-import { useAdminAccess } from "@/lib/admin"
 import { cn } from "@/lib/utils"
 import { type ThemeMode } from "@/app/useTheme"
 import { Header } from "@/components/primitives"
@@ -148,8 +146,6 @@ export function SettingsPage({
 
         <FeedbackSection />
 
-        <AdminSection />
-
         <SessionSection onSignOut={() => void signOutApp()} />
       </div>
       <p className="mt-6 pb-2 text-center text-[10px] leading-none text-muted-foreground/45">
@@ -180,25 +176,6 @@ function SessionSection({ onSignOut }: { onSignOut: () => void }) {
       >
         <LogOut data-icon="inline-start" aria-hidden="true" />
         Se déconnecter de l’application
-      </Button>
-    </SettingsSection>
-  )
-}
-
-function AdminSection() {
-  const { revealed } = useAdminAccess()
-  if (!revealed) return null
-
-  return (
-    <SettingsSection
-      description="Édite les fiches d’aliment et exporte le catalogue. Réservé à l’administrateur."
-      title="Mode admin"
-    >
-      <Button asChild variant="outline" className="h-12 justify-start rounded-lg px-4 text-base">
-        <NavLink to="/admin">
-          <Pencil data-icon="inline-start" aria-hidden="true" />
-          Éditer le catalogue
-        </NavLink>
       </Button>
     </SettingsSection>
   )

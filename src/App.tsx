@@ -57,6 +57,7 @@ const AdminFoodsPage = lazy(() =>
 
 function App() {
   const store = useBabyStore()
+  const location = useLocation()
   useScrollToTopOnRoute(store.familySession?.familyCodeHash ?? "")
   const [theme, setTheme] = useTheme()
   const {
@@ -65,6 +66,20 @@ function App() {
     unlockDates: badgeUnlockDates,
   } = useBadgeUnlockDates(store.tests, store.syncStatus)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
+  const isAdminRoute = location.pathname === "/admin"
+
+  if (isAdminRoute) {
+    return (
+      <div className="safe-shell soft-surface">
+        <main className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 lg:py-8">
+          <Suspense fallback={<PageLoading label="Admin" />}>
+            <AdminFoodsPage />
+          </Suspense>
+        </main>
+        <Toaster />
+      </div>
+    )
+  }
 
   if (!store.hasCompletedOnboarding) {
     return (

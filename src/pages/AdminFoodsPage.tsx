@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Navigate, NavLink } from "react-router-dom"
+import { NavLink } from "react-router-dom"
 import { ArrowLeft, Download, Lock, Plus, RotateCcw, Search, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -93,29 +93,46 @@ function readDraft(): EditableRow[] | null {
 export function AdminFoodsPage() {
   const access = useAdminAccess()
 
-  if (!access.enabled) return <Navigate to="/" replace />
   if (!access.ready) return <PageLoading label="Admin" />
-  if (!access.revealed) return <Navigate to="/" replace />
-  if (!access.unlocked) return <AdminPinGate onUnlock={access.unlock} />
+  if (!access.enabled) return <AdminNotConfigured />
+  if (!access.unlocked) return <AdminLoginGate onLogin={access.login} />
 
-  return <AdminCatalogEditor onLock={access.lock} onRevoke={access.revoke} />
+  return <AdminCatalogEditor onLogout={access.logout} />
 }
 
-function AdminPinGate({ onUnlock }: { onUnlock: (pin: string) => Promise<boolean> }) {
-  const [pin, setPin] = useState("")
-  const [pending, setPending] = useState(false)
+function AdminNotConfigured() {
+  return (
+    <>
+      <Header eyebrow="Configuration" title="Admin indisponible" />
+      <div className="paper-surface mt-2 grid gap-3 rounded-hero p-5 text-sm leading-6 text-muted-foreground">
+        <p>
+          Ajoute <span className="font-semibold text-foreground">VITE_ADMIN_USERNAME</span> et{" "}
+          <span className="font-semibold text-foreground">VITE_ADMIN_PASSWORD</span> dans l’environnement Docker pour
+          activer l’éditeur.
+        </p>
+        <Button asChild type="button" variant="outline">
+          <NavLink to="/">
+            <ArrowLeft data-icon="inline-start" aria-hidden="true" />
+            Retour à l’app
+          </NavLink>
+        </Button>
+      </div>
+    </>
+  )
+}
+
+function AdminLoginGate({ onLogin }: { onLogin: (username: string, password: string) => boolean }) {
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState(false)
 
-  async function submit(event: React.FormEvent) {
+  function submit(event: React.FormEvent) {
     event.preventDefault()
-    if (!pin.trim() || pending) return
-    setPending(true)
     setError(false)
-    const ok = await onUnlock(pin)
-    setPending(false)
+    const ok = onLogin(username, password)
     if (!ok) {
       setError(true)
-      setPin("")
+      setPassword("")
     }
   }
 
@@ -123,34 +140,48 @@ function AdminPinGate({ onUnlock }: { onUnlock: (pin: string) => Promise<boolean
     <>
       <Header eyebrow="Espace réservé" title="Mode admin" />
       <form onSubmit={(event) => void submit(event)} className="paper-surface mt-2 grid gap-3 rounded-hero p-5">
-        <label htmlFor="admin-pin" className="text-sm font-semibold">
-          Code admin
+        <label htmlFor="admin-username" className="text-sm font-semibold">
+          Identifiant
         </label>
         <Input
-          id="admin-pin"
-          type="password"
-          inputMode="numeric"
-          autoComplete="off"
+          id="admin-username"
+          type="text"
+          autoComplete="username"
           autoFocus
-          value={pin}
+          value={username}
           onChange={(event) => {
-            setPin(event.target.value)
+            setUsername(event.target.value)
             setError(false)
           }}
-          placeholder="••••"
+          placeholder="admin"
           aria-invalid={error}
         />
-        {error && <p className="text-sm text-destructive">Code incorrect.</p>}
-        <Button type="submit" disabled={pending || !pin.trim()}>
+        <label htmlFor="admin-password" className="text-sm font-semibold">
+          Mot de passe
+        </label>
+        <Input
+          id="admin-password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => {
+            setPassword(event.target.value)
+            setError(false)
+          }}
+          placeholder="••••••••"
+          aria-invalid={error}
+        />
+        {error && <p className="text-sm text-destructive">Identifiant ou mot de passe incorrect.</p>}
+        <Button type="submit" disabled={!username.trim() || !password}>
           <Lock data-icon="inline-start" aria-hidden="true" />
-          Déverrouiller
+          Se connecter
         </Button>
       </form>
     </>
   )
 }
 
-function AdminCatalogEditor({ onLock, onRevoke }: { onLock: () => void; onRevoke: () => void }) {
+function AdminCatalogEditor({ onLogout }: { onLogout: () => void }) {
   const [rows, setRows] = useState<EditableRow[]>(() => readDraft() ?? wrap(rawCatalogRows.map((record) => ({ ...record }))))
   const [query, setQuery] = useState("")
   const [selectedKey, setSelectedKey] = useState<string | null>(() => null)
@@ -254,9 +285,9 @@ function AdminCatalogEditor({ onLock, onRevoke }: { onLock: () => void; onRevoke
           {rows.length} aliment{rows.length > 1 ? "s" : ""}
           {hasChanges ? " · modifié" : " · à jour"}
         </span>
-        <Button type="button" size="sm" variant="ghost" onClick={onLock}>
+        <Button type="button" size="sm" variant="ghost" onClick={onLogout}>
           <Lock data-icon="inline-start" aria-hidden="true" />
-          Verrouiller
+          Déconnexion
         </Button>
       </div>
 
@@ -314,17 +345,6 @@ function AdminCatalogEditor({ onLock, onRevoke }: { onLock: () => void; onRevoke
         )}
       </div>
 
-      <p className="mt-6 pb-2 text-center text-[10px] leading-none text-muted-foreground/45">
-        <button
-          type="button"
-          className="rounded-sm transition-colors hover:text-muted-foreground"
-          onClick={() => {
-            if (window.confirm("Oublier l’accès admin sur cet appareil ?")) onRevoke()
-          }}
-        >
-          révoquer l’accès admin
-        </button>
-      </p>
     </>
   )
 }

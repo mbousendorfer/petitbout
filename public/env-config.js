@@ -1,1 +1,4 @@
-window.__PETITBOUT_CONFIG__ = window.__PETITBOUT_CONFIG__ || {}
+window.__PETITBOUT_CONFIG__ = window.__PETITBOUT_CONFIG__ || {
+  VITE_ADMIN_USERNAME: "",
+  VITE_ADMIN_PASSWORD: ""
+}

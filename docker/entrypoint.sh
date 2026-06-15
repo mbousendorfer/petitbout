@@ -14,7 +14,9 @@ window.__PETITBOUT_CONFIG__ = {
   VITE_FEEDBACK_EMAIL: "$(json_escape "${VITE_FEEDBACK_EMAIL:-}")",
   VITE_PLAUSIBLE_DOMAIN: "$(json_escape "${VITE_PLAUSIBLE_DOMAIN:-}")",
   VITE_PLAUSIBLE_SCRIPT_URL: "$(json_escape "${VITE_PLAUSIBLE_SCRIPT_URL:-}")",
-  VITE_PLAUSIBLE_API_URL: "$(json_escape "${VITE_PLAUSIBLE_API_URL:-}")"
+  VITE_PLAUSIBLE_API_URL: "$(json_escape "${VITE_PLAUSIBLE_API_URL:-}")",
+  VITE_ADMIN_USERNAME: "$(json_escape "${VITE_ADMIN_USERNAME:-}")",
+  VITE_ADMIN_PASSWORD: "$(json_escape "${VITE_ADMIN_PASSWORD:-}")"
 };
 EOF
 

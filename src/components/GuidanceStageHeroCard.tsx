@@ -53,9 +53,8 @@ export function GuidanceStageHeroCard({
   const meta = stageMeta[currentStageIndex] ?? stageMeta[0]
   const Icon = meta.icon
   const cardClassName = cn(
-    "group block overflow-hidden rounded-hero border bg-card text-left shadow-soft transition-[transform,box-shadow,border-color] duration-200",
-    to &&
-      "hover:-translate-y-0.5 hover:border-status-tested/50 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    "group block overflow-hidden rounded-hero border bg-card text-left shadow-soft",
+    to && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
     className,
   )
   const divider = <div className="my-4 h-px bg-border/45" aria-hidden="true" />

@@ -99,6 +99,8 @@ En Docker, ces valeurs peuvent être remplacées au démarrage via `env-config.j
 VITE_PLAUSIBLE_DOMAIN=app.petitbout.app
 VITE_PLAUSIBLE_SCRIPT_URL=https://analytics.edenpulse.com/js/script.js
 VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
+VITE_ADMIN_USERNAME=admin
+VITE_ADMIN_PASSWORD=change-me
 ```
 
 - `VITE_PLAUSIBLE_DOMAIN` doit correspondre au domaine déclaré dans Plausible.
@@ -142,8 +144,10 @@ Variables disponibles :
 - `VITE_PLAUSIBLE_DOMAIN` : domaine déclaré dans Plausible
 - `VITE_PLAUSIBLE_SCRIPT_URL` : URL du script Plausible
 - `VITE_PLAUSIBLE_API_URL` : endpoint d'événement Plausible, optionnel
+- `VITE_ADMIN_USERNAME` : identifiant pour ouvrir l’éditeur sur `/#/admin`
+- `VITE_ADMIN_PASSWORD` : mot de passe pour ouvrir l’éditeur sur `/#/admin`
 
-Les variables `VITE_SUPABASE_*`, `VITE_FEEDBACK_EMAIL` et `VITE_PLAUSIBLE_*` ne sont pas figées dans l'image Docker. Au démarrage, le conteneur génère `/env-config.js` depuis l'environnement Docker, ce qui permet de réutiliser la même image avec plusieurs projets Supabase ou domaines de tracking.
+Les variables `VITE_SUPABASE_*`, `VITE_FEEDBACK_EMAIL`, `VITE_PLAUSIBLE_*` et `VITE_ADMIN_*` ne sont pas figées dans l'image Docker. Au démarrage, le conteneur génère `/env-config.js` depuis l'environnement Docker, ce qui permet de réutiliser la même image avec plusieurs projets Supabase, domaines de tracking ou identifiants admin.
 
 Build local :
 
