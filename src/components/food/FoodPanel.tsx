@@ -173,7 +173,7 @@ export function FoodTestDrawer({
                   <p className="mt-0.5 text-sm text-muted-foreground">Date et moment du repas.</p>
                 </div>
                 {isEditing && (
-                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={resetFormForNewTest}>
+                  <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={resetFormForNewTest}>
                     <Plus data-icon="inline-start" aria-hidden="true" />
                     Nouvelle prise
                   </Button>
@@ -341,7 +341,7 @@ export function FoodTestDrawer({
           <div className="grid gap-2">
             <Button type="button" className="h-12 w-full" onClick={saveTest} disabled={isSaving}>
               {isSaving && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}
-              {isSaving ? "Enregistrement…" : isEditing ? "Enregistrer" : "Ajouter"}
+              {isSaving ? "Enregistrement…" : isEditing ? "Enregistrer les modifications" : "Ajouter"}
             </Button>
           </div>
         </div>
