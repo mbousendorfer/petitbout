@@ -79,26 +79,36 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
+      # L'etape SSH est enveloppee dans un retry : les runners GitHub changent
+      # d'IP a chaque tentative et le VPS peut blackholer certaines IP (firewall
+      # / fail2ban), d'ou un "dial tcp :22 i/o timeout" intermittent. 3 essais
+      # espaces de 30s absorbent ces coups durs sans toucher au build.
       - name: Pull the new image and restart the service over SSH
-        uses: appleboy/ssh-action@v1
+        uses: Wandalen/wretry.action@v3
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || '22' }}
-          envs: GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
-          script: |
-            set -euo pipefail
-            # Authentifie le pull avec le token ephemere du job : fonctionne que le
-            # package GHCR soit public ou prive, sans PAT stocke sur le VPS.
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            # Chemin du compose de prod : fourni par le secret VPS_DEPLOY_PATH
-            # (jamais ecrit en clair dans le depot, masque dans les logs).
-            cd "$DEPLOY_PATH"
-            docker compose pull
-            docker compose up -d
-            docker logout ghcr.io
-            docker image prune -f
+          action: appleboy/ssh-action@v1
+          attempt_limit: 3
+          attempt_delay: 30000
+          with: |
+            host: ${{ secrets.VPS_HOST }}
+            username: ${{ secrets.VPS_USER }}
+            key: ${{ secrets.VPS_SSH_KEY }}
+            port: ${{ secrets.VPS_PORT || '22' }}
+            timeout: 60s
+            command_timeout: 10m
+            envs: GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
+            script: |
+              set -euo pipefail
+              # Authentifie le pull avec le token ephemere du job : fonctionne que le
+              # package GHCR soit public ou prive, sans PAT stocke sur le VPS.
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+              # Chemin du compose de prod : fourni par le secret VPS_DEPLOY_PATH
+              # (jamais ecrit en clair dans le depot, masque dans les logs).
+              cd "$DEPLOY_PATH"
+              docker compose pull
+              docker compose up -d
+              docker logout ghcr.io
+              docker image prune -f
         env:
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
