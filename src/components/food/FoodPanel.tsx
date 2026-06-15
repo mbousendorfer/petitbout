@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
-import { AlertTriangle, BookOpen, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, Plus, Scale, ShieldCheck, Utensils, X, type LucideIcon } from "lucide-react"
+import { AlertTriangle, BookOpen, Calendar, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, Plus, Scale, ShieldCheck, Utensils, X, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,12 +8,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { type Food } from "@/data/foods"
 import { guidanceStageFor } from "@/data/guidance"
 import { foodSourceReferences } from "@/data/sources"
-import { ageSummary, monthNames } from "@/lib/food-utils"
+import { ageSummary, isInSeason, monthNames } from "@/lib/food-utils"
 import { noteMaxLength, reactionDetailMaxLength, reactions, useBabyStore, type FoodTest, type Reaction } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { mealTimePresets, defaultMealTimePreset, reactionLabels, reactionDisplay, mealTimePresetFor, type MealTimePresetId } from "@/lib/formatting"
-import { FoodHeroCard } from "@/components/food/FoodHeroCard"
 import { SeasonMonthsGrid } from "@/components/food/FoodBadges"
+import { categoryMeta, isAllergenFood } from "@/components/food/categoryMeta"
 
 export type FoodPanelTab = "add"
 export function FoodTestDrawer({
@@ -159,11 +159,10 @@ export function FoodTestDrawer({
         </button>
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="px-3 pb-3 pt-3">
-            <FoodHeroCard food={food} nameClassName="text-3xl" />
+            <FoodPanelOverview food={food} />
           </div>
-          <div className="flex min-w-0 flex-col gap-4 px-5 pb-4 pt-4">
+          <div className="flex min-w-0 flex-col gap-4 px-5 pb-4 pt-2">
             <div className="flex min-w-0 flex-col gap-5">
-              <FoodPanelSeasonCard food={food} />
               {food.isAllergen && <FoodPanelAllergenCard />}
               <FoodInfoInlineNotes food={food} />
 
@@ -351,20 +350,84 @@ export function FoodTestDrawer({
   )
 }
 
-function FoodPanelSeasonCard({ food }: { food: Food }) {
+function FoodPanelOverview({ food }: { food: Food }) {
+  const meta = categoryMeta[food.category]
+  const CategoryIcon = meta.icon
+  const inSeason = isInSeason(food)
+  const seasonText = food.seasonText || monthNames(food.seasonMonths)
+  const isAvailableYearRound = food.seasonMonths.length === 12
+
   return (
-    <div className="rounded-card border bg-card/90 p-4 shadow-soft">
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <p className="flex items-center gap-1.5 text-sm font-bold text-status-season">
-          <Leaf className="size-4" aria-hidden="true" />
-          Saison
-        </p>
-        <p className="truncate text-xs font-medium text-muted-foreground">
-          {food.seasonText || monthNames(food.seasonMonths)}
-        </p>
+    <section className={cn("relative overflow-hidden rounded-hero border bg-card shadow-card", meta.border)}>
+      <div
+        aria-hidden="true"
+        className={cn("pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b to-transparent", meta.gradientFrom)}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-16 -top-16 size-44 rounded-full border border-card/70 bg-card/35"
+      />
+
+      <div className="relative p-4 sm:p-6">
+        <div className="flex items-start gap-3 pr-10 sm:gap-5 sm:pr-0">
+          <span
+            aria-hidden="true"
+            className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-card/90 text-[2.25rem] leading-none shadow-soft ring-1 ring-border/40 sm:size-20 sm:text-[3.15rem]"
+          >
+            {food.emoji}
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <p className="break-words font-rounded text-[2rem] font-extrabold leading-none tracking-[-0.01em] text-foreground sm:text-4xl">
+              {food.name}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border bg-card/80 px-2.5 py-1 text-xs font-bold shadow-[0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-sm",
+                  meta.border,
+                  meta.text,
+                )}
+              >
+                <CategoryIcon className="size-3.5 sm:size-4" aria-hidden="true" />
+                {food.category}
+              </span>
+              {isAllergenFood(food) && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/15 px-2.5 py-1 text-xs font-bold text-destructive shadow-sm shadow-destructive/10 ring-1 ring-destructive/10 sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-sm">
+                  <AlertTriangle className="size-3.5 sm:size-4" aria-hidden="true" />
+                  Allergène
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-sm">
+                <Calendar className="size-3.5 sm:size-4" aria-hidden="true" />
+                {food.recommendedAgeInMonths}+ mois
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className={cn("mt-6 border-t border-border/45 pt-5", isAvailableYearRound && "pb-0")}>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-status-season/10 text-status-season">
+                <Leaf className="size-4" aria-hidden="true" />
+              </span>
+              <h3 className="truncate text-label font-bold uppercase tracking-[0.08em] text-status-season">Calendrier de saison</h3>
+            </div>
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-label font-bold",
+                inSeason ? "bg-status-season/12 text-status-season" : "bg-muted/65 text-muted-foreground",
+              )}
+            >
+              {inSeason && <CircleCheck className="size-3.5" strokeWidth={2.4} aria-hidden="true" />}
+              {seasonText}
+            </span>
+          </div>
+          {!isAvailableYearRound && <SeasonMonthsGrid activeMonths={food.seasonMonths} />}
+        </div>
       </div>
-      <SeasonMonthsGrid activeMonths={food.seasonMonths} />
-    </div>
+    </section>
   )
 }
 

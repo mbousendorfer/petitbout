@@ -39,7 +39,7 @@ export const FoodCard = memo(function FoodCard({ food, store }: { food: Food; st
               {food.category}
             </span>
             {isAllergenFood(food) && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-destructive/12 px-2 py-0.5 text-xs font-semibold text-destructive">
+              <span className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/15 px-2 py-0.5 text-xs font-bold text-destructive shadow-sm shadow-destructive/10 ring-1 ring-destructive/10">
                 <AlertTriangle className="size-3" aria-hidden="true" />
                 Allergène
               </span>

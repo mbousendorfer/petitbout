@@ -43,7 +43,7 @@ export function FoodHeroCard({
       <div className="relative flex h-20 w-full items-center justify-center">
         <span className="text-[3.25rem] leading-none" aria-hidden="true">{food.emoji}</span>
         {isAllergenFood(food) && (
-          <span className="absolute right-0 top-0 inline-flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 text-eyebrow font-bold text-destructive shadow-sm">
+          <span className="absolute right-0 top-0 inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/15 px-2 py-1 text-eyebrow font-bold text-destructive shadow-sm shadow-destructive/10 ring-1 ring-destructive/10 backdrop-blur-sm">
             <AlertTriangle className="size-3" aria-hidden="true" />
             Allergène
           </span>
