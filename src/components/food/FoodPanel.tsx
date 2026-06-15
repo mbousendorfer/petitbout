@@ -159,7 +159,7 @@ export function FoodTestDrawer({
         </button>
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="px-4 pb-3 pt-4">
-            <FoodHeroCard food={food} />
+            <FoodHeroCard food={food} nameClassName="text-3xl" />
           </div>
           <div className="flex min-w-0 flex-col gap-4 px-5 pb-4 pt-4">
             <div className="flex min-w-0 flex-col gap-5">

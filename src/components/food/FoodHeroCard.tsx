@@ -13,10 +13,14 @@ export function FoodHeroCard({
   className,
   food,
   footer,
+  nameClassName = "text-xl",
 }: {
   className?: string
   food: Food
   footer?: ReactNode
+  // Taille du nom : text-xl par défaut (carte du carrousel) ; le panneau le passe
+  // plus grand car il y sert de titre.
+  nameClassName?: string
 }) {
   const meta = categoryMeta[food.category]
   const CategoryIcon = meta.icon
@@ -51,7 +55,7 @@ export function FoodHeroCard({
         {food.category}
       </span>
 
-      <p className="relative line-clamp-2 font-rounded text-xl font-extrabold leading-tight tracking-[-0.01em]">{food.name}</p>
+      <p className={cn("relative line-clamp-2 font-rounded font-extrabold leading-tight tracking-[-0.01em]", nameClassName)}>{food.name}</p>
       <p className="relative line-clamp-2 text-sm leading-5 text-muted-foreground">{food.shortDescription}</p>
 
       <div className="relative mt-auto flex w-full flex-col gap-2.5 pt-2">
