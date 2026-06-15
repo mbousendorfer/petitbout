@@ -1,36 +1,26 @@
 import {
-  ArrowLeft,
   ArrowUpRight,
   BriefcaseMedical,
-  CircleCheck,
-  Cross,
   FileSearch,
   FileText,
   Globe,
   Landmark,
-  ListChecks,
-  Milk,
   ShieldAlert,
-  Soup,
   Star,
   Waypoints,
   type LucideIcon,
 } from "lucide-react"
-import { useState } from "react"
-import { motion, useReducedMotion } from "framer-motion"
 
-import { GuidanceStageHeroCard, StageFact } from "@/components/GuidanceStageHeroCard"
-import { stageMeta } from "@/components/guidance-stage-meta"
+import { GuidanceStageCard } from "@/components/GuidanceStageCard"
+import { Disclaimer } from "@/components/primitives"
 import {
   guidanceAvoid,
   guidanceRules,
   guidanceSources,
-  guidanceStageFor,
   guidanceStageIndexFor,
   guidanceStages,
   type GuidanceRule,
   type GuidanceSource,
-  type GuidanceStage,
 } from "@/data/guidance"
 import { cn } from "@/lib/utils"
 
@@ -40,46 +30,28 @@ type GuidancePageProps = {
 }
 
 export function GuidancePage({ ageMonths }: GuidancePageProps) {
-  const currentStage = guidanceStageFor(ageMonths)
   const currentStageIndex = guidanceStageIndexFor(ageMonths)
 
   return (
     <>
-      <GuidanceHero
-        stage={currentStage}
-        currentStageIndex={currentStageIndex}
-      />
+      <GuidanceHero />
       <GuidanceStagesCarousel currentStageIndex={currentStageIndex} />
       <GuidanceRules />
       <GuidanceAvoid />
       <GuidanceSources />
-      <GuidanceDisclaimer />
+      <Disclaimer />
     </>
   )
 }
 
-function GuidanceHero({
-  stage,
-  currentStageIndex,
-}: {
-  stage: GuidanceStage
-  currentStageIndex: number
-}) {
+function GuidanceHero() {
   return (
-    <section className="flex flex-col gap-5">
-      <header className="flex flex-col gap-2 pt-2">
-        <h1 className="font-rounded text-[2rem] font-extrabold leading-[1.1] tracking-[-0.01em]">Repères</h1>
-        <p className="text-sm leading-6 text-muted-foreground">
-          Des repères simples pour suivre la diversification, sans remplacer un avis médical.
-        </p>
-      </header>
-
-      <GuidanceStageHeroCard
-        currentStageIndex={currentStageIndex}
-        stage={stage}
-        className="paper-surface soft-ring"
-      />
-    </section>
+    <header className="flex flex-col gap-2 pt-2">
+      <h1 className="font-rounded text-[2rem] font-extrabold leading-[1.1] tracking-[-0.01em]">Repères</h1>
+      <p className="text-sm leading-6 text-muted-foreground">
+        Des repères simples pour suivre la diversification, sans remplacer un avis médical.
+      </p>
+    </header>
   )
 }
 
@@ -124,128 +96,17 @@ function GuidanceStagesCarousel({ currentStageIndex }: { currentStageIndex: numb
       <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
         <div className="flex snap-x snap-mandatory gap-4">
           {guidanceStages.map((stage, index) => (
-            <StageCarouselCard
+            <GuidanceStageCard
               key={stage.ageRange}
               stage={stage}
               index={index}
-              isCurrent={index === currentStageIndex}
+              currentStageIndex={currentStageIndex}
+              fixedWidth
             />
           ))}
         </div>
       </div>
     </section>
-  )
-}
-
-function StageCarouselCard({ index, isCurrent, stage }: { index: number; isCurrent: boolean; stage: GuidanceStage }) {
-  const [flipped, setFlipped] = useState(false)
-  const reduceMotion = useReducedMotion()
-  const meta = stageMeta[index] ?? stageMeta[0]
-  const Icon = meta.icon
-
-  const faceBase = cn(
-    "absolute inset-0 flex flex-col overflow-hidden rounded-hero border bg-card [backface-visibility:hidden]",
-    isCurrent ? "border-status-tested/40" : "border-border shadow-soft",
-  )
-  const faceStyle = isCurrent ? { boxShadow: "0 10px 26px -14px hsl(var(--status-tested) / 0.55)" } : undefined
-  const toggleClassName =
-    "flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-muted/40 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-
-  return (
-    <div className="relative h-[23.5rem] w-[17rem] shrink-0 snap-start [perspective:1400px]">
-      <motion.div
-        className="relative size-full [transform-style:preserve-3d]"
-        animate={{ rotateY: flipped ? 180 : 0 }}
-        transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 30 }}
-      >
-        {/* Recto — en-tête teinté + infos de l'étape */}
-        <div className={faceBase} style={faceStyle} aria-hidden={flipped}>
-          <div className={cn("relative overflow-hidden p-4", isCurrent ? meta.iconBgCurrent : meta.iconBg)}>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-card/30 to-transparent"
-            />
-            <div className="relative flex items-center gap-3">
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "flex size-12 shrink-0 items-center justify-center rounded-2xl bg-card shadow-sm ring-1 ring-border/40",
-                  meta.text,
-                )}
-              >
-                <Icon className="size-6" />
-              </span>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className={cn("text-label font-bold uppercase tracking-[0.1em]", meta.text)}>
-                    Étape {index + 1}
-                  </span>
-                  {isCurrent && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-card/90 px-2 py-0.5 text-label font-bold text-status-tested ring-1 ring-status-tested/15">
-                      <span className="size-1.5 rounded-full bg-status-tested" aria-hidden="true" />
-                      Actuel
-                    </span>
-                  )}
-                </div>
-                <p className={cn("mt-0.5 font-rounded text-2xl font-extrabold leading-none tracking-[-0.01em]", meta.text)}>
-                  {stage.ageRange}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-1 flex-col gap-3 p-4 pt-3.5">
-            <p className="line-clamp-2 text-base font-bold leading-snug tracking-[-0.01em]">{stage.title}</p>
-            <div className="flex flex-col gap-3">
-              <StageFact icon={Soup} label="Texture" value={stage.texture} tint={meta.text} />
-              <StageFact icon={Milk} label="Lait" value={stage.milk} tint={meta.text} />
-            </div>
-
-            <button
-              type="button"
-              className={cn(toggleClassName, "mt-auto")}
-              onClick={() => setFlipped(true)}
-              aria-expanded={flipped}
-              tabIndex={flipped ? -1 : 0}
-              aria-label={`Voir les ${stage.principles.length} repères à retenir pour ${stage.ageRange}`}
-            >
-              <ListChecks className={cn("size-4", meta.text)} aria-hidden="true" />
-              À retenir · {stage.principles.length}
-            </button>
-          </div>
-        </div>
-
-        {/* Verso — les repères à retenir de l'étape */}
-        <div className={cn(faceBase, "gap-4 p-5 [transform:rotateY(180deg)]")} style={faceStyle} aria-hidden={!flipped}>
-          <div className="flex items-center justify-between gap-2">
-            <span className={cn("inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide", meta.text)}>
-              <ListChecks className="size-3.5" aria-hidden="true" />
-              À retenir
-            </span>
-            <span className="shrink-0 text-sm font-semibold text-muted-foreground">{stage.ageRange}</span>
-          </div>
-
-          <ul className="-mr-1 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
-            {stage.principles.map((principle, principleIndex) => (
-              <li key={principleIndex} className="flex items-start gap-2 text-sm leading-6 text-foreground/80">
-                <CircleCheck className={cn("mt-0.5 size-4 shrink-0", meta.text)} aria-hidden="true" />
-                <span>{principle}</span>
-              </li>
-            ))}
-          </ul>
-
-          <button
-            type="button"
-            className={toggleClassName}
-            onClick={() => setFlipped(false)}
-            tabIndex={flipped ? 0 : -1}
-          >
-            <ArrowLeft className="size-4 text-muted-foreground" aria-hidden="true" />
-            Retour
-          </button>
-        </div>
-      </motion.div>
-    </div>
   )
 }
 
@@ -387,14 +248,3 @@ function SourceRow({ last, source }: { last: boolean; source: GuidanceSource }) 
   )
 }
 
-function GuidanceDisclaimer() {
-  return (
-    <div className="flex items-start gap-2 px-1">
-      <Cross className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
-      <p className="text-xs leading-5 text-muted-foreground">
-        Repères généraux, pas diagnostic. En cas de doute, de réaction ou de situation particulière, demande conseil
-        à un professionnel de santé.
-      </p>
-    </div>
-  )
-}

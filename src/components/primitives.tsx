@@ -1,5 +1,5 @@
 import { type ReactNode } from "react"
-import { Cross, type LucideIcon } from "lucide-react"
+import { BriefcaseMedical, type LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -111,25 +111,29 @@ export function Header({ eyebrow, title }: { eyebrow: string; title: string }) {
   )
 }
 
+// Mention médicale — portée depuis iOS (MedicalDisclaimer) : panneau sablé chaud,
+// pastille terracotta avec trousse de secours, texte secondaire.
 export function Disclaimer({ compact = false }: { compact?: boolean }) {
   return (
     <div
       role="note"
       className={cn(
-        "flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm",
-        compact && "gap-2.5 p-3",
+        "flex items-start gap-3 rounded-lg border border-border/60 bg-muted p-4",
+        compact && "gap-3 p-3.5",
       )}
     >
       <span
         aria-hidden="true"
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary",
-          compact ? "size-7" : "size-8",
+          "flex shrink-0 items-center justify-center rounded-full bg-primary/[0.14] text-primary",
+          compact ? "size-7" : "size-[1.875rem]",
         )}
       >
-        <Cross className={compact ? "size-3.5" : "size-4"} />
+        <BriefcaseMedical className={compact ? "size-3.5" : "size-4"} />
       </span>
-      <p className={cn("text-sm leading-6 text-foreground/80", compact && "text-xs leading-5")}>{disclaimer}</p>
+      <p className={cn("text-sm leading-snug text-muted-foreground", compact && "text-[0.8125rem] leading-[1.2rem]")}>
+        {disclaimer}
+      </p>
     </div>
   )
 }

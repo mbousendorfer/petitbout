@@ -240,3 +240,18 @@ export function guidanceStageIndexFor(ageInMonths: number): number {
 export function guidanceStageFor(ageInMonths: number): GuidanceStage {
   return guidanceStages[guidanceStageIndexFor(ageInMonths)]
 }
+
+// Sous-ensemble de `guidanceSources` pertinent pour une étape donnée — porté
+// depuis iOS (GuidanceContent.sources(forStageIndex:)). Index dans le tableau :
+// 0 PNNS · 1 Assurance Maladie · 2 HCSP · 3 1000 premiers jours · 4 OMS ·
+// 5 ESPGHAN · 6 NEJM LEAP (arachide) · 7 NEJM EAT (allergènes).
+export function guidanceSourcesForStageIndex(index: number): GuidanceSource[] {
+  const map: Record<number, number[]> = {
+    0: [3, 1, 0, 6], // 4-6 mois : démarrage + allergènes précoces
+    1: [0, 4, 5, 7], // 6-9 mois : élargissement, fer, allergènes
+    2: [0, 4, 5, 2], // 9-12 mois : textures et autonomie
+    3: [0, 2, 4], // 12-36 mois : vers les repas familiaux
+  }
+  const indices = map[index] ?? map[3]
+  return indices.flatMap((i) => (guidanceSources[i] ? [guidanceSources[i]] : []))
+}

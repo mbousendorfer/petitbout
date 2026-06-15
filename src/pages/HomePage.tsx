@@ -9,7 +9,7 @@ import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { SectionHeader, EmptyState, Disclaimer } from "@/components/primitives"
 import { BabyAvatar } from "@/components/BabyAvatar"
-import { GuidanceStageHeroCard } from "@/components/GuidanceStageHeroCard"
+import { GuidanceStageCard } from "@/components/GuidanceStageCard"
 import { FoodHeroCard } from "@/components/food/FoodHeroCard"
 import { FoodTestDrawer, type FoodPanelTab } from "@/components/food/FoodPanel"
 
@@ -223,10 +223,10 @@ export function TodayGuidancePreview({
   return (
     <section className="flex flex-col gap-3">
       <SectionHeader eyebrow="Repère actuel" title="Où en est la diversification ?" />
-      <GuidanceStageHeroCard
-        currentStageIndex={currentStageIndex}
+      <GuidanceStageCard
         stage={stage}
-        to="/guidance"
+        index={currentStageIndex}
+        currentStageIndex={currentStageIndex}
       />
     </section>
   )
