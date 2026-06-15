@@ -2,10 +2,10 @@
 
 Le workflow GitHub Actions de production construit et publie uniquement l'image Docker sur GitHub Container Registry. Il ne copie plus de fichiers sur le VPS et ne redemarre plus le service.
 
-Ce dossier est prevu pour etre copie dans :
+Ce dossier est prevu pour etre copie dans le repertoire de service du VPS, par exemple :
 
 ```txt
-/home/edenpulse/webserver/domains/petitbout.app/
+/chemin/vers/petitbout.app/
 ```
 
 Sur le VPS, creer le fichier `.env`, puis renseigner l'image GHCR, les vraies valeurs Supabase et l'email de feedback.
@@ -23,7 +23,33 @@ VITE_ADMIN_USERNAME=admin
 VITE_ADMIN_PASSWORD=change-me
 ```
 
-Apres publication d'une nouvelle image par GitHub Actions, mettre a jour le service depuis ce dossier :
+## Deploiement automatique (SSH depuis GitHub Actions)
+
+A chaque push sur `main`, le workflow `Build Docker image` construit l'image, la publie sur GHCR, puis le job `deploy` se connecte au VPS en SSH et execute `docker compose pull && docker compose up -d` automatiquement.
+
+Secrets a definir dans le depot GitHub (Settings -> Secrets and variables -> Actions) :
+
+| Nom | Valeur |
+| --- | --- |
+| `VPS_HOST` | IP ou hostname du VPS |
+| `VPS_USER` | utilisateur SSH du VPS |
+| `VPS_SSH_KEY` | cle privee SSH (PEM complet) autorisee sur le VPS |
+| `VPS_DEPLOY_PATH` | chemin absolu du dossier contenant le compose de prod |
+| `VPS_PORT` | port SSH si different de `22` (optionnel) |
+
+Tout (hote, utilisateur, chemin) passe par des secrets : aucun detail de l'infra VPS n'apparait en clair dans le depot.
+
+Prerequis cote VPS :
+
+- la cle publique correspondante est dans `~/.ssh/authorized_keys` de `VPS_USER` ;
+- l'utilisateur peut lancer `docker` (membre du groupe `docker`) ;
+- le fichier compose de prod se trouve dans le dossier indique par `VPS_DEPLOY_PATH`.
+
+Le job s'authentifie au registry avec le token ephemere du run (`docker login ghcr.io`), donc aucun PAT n'a besoin d'etre stocke sur le VPS, que le package soit public ou prive.
+
+### Mise a jour manuelle (repli)
+
+Si besoin de deployer a la main depuis ce dossier :
 
 ```bash
 docker compose pull
