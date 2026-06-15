@@ -309,7 +309,7 @@ function GuidanceStageDetailSheet({
         aria-label={`${stage.ageRange} — ${stage.title}`}
         data-side="bottom"
         data-state="open"
-        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[88svh] min-h-[58svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(620px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:border"
+        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[88svh] min-h-[58svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[2.625rem] border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(620px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-[2.625rem] lg:border"
       >
         <button
           type="button"
@@ -320,7 +320,7 @@ function GuidanceStageDetailSheet({
           <X className="size-5" aria-hidden="true" />
         </button>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3">
           <div className="flex flex-col gap-5">
             {/* Héros centré — pastille, étape, tranche d'âge, sous-titre. */}
             <div className="relative overflow-hidden rounded-hero border border-border/40 bg-card px-4 pb-5 pt-7 text-center shadow-soft">

@@ -145,7 +145,7 @@ export function FoodTestDrawer({
         role="dialog"
         aria-modal="true"
         aria-label={food.name}
-        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[84svh] min-h-[58svh] w-full max-w-2xl flex-col gap-0 overflow-hidden rounded-t-2xl border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:min-h-0 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(760px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:border"
+        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[84svh] min-h-[58svh] w-full max-w-2xl flex-col gap-0 overflow-hidden rounded-t-[2.625rem] border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:min-h-0 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(760px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-[2.625rem] lg:border"
         data-side="bottom"
         data-state="open"
       >
@@ -158,7 +158,7 @@ export function FoodTestDrawer({
           <X className="size-5" aria-hidden="true" />
         </button>
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="px-4 pb-3 pt-4">
+          <div className="px-3 pb-3 pt-3">
             <FoodHeroCard food={food} nameClassName="text-3xl" />
           </div>
           <div className="flex min-w-0 flex-col gap-4 px-5 pb-4 pt-4">
