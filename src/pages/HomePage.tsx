@@ -76,8 +76,6 @@ export function HomePage({
       </section>
 
       <TodayGuidancePreview
-        ageMonths={ageMonths}
-        childName={displayName}
         stage={stage}
         currentStageIndex={currentStageIndex}
       />
@@ -216,13 +214,9 @@ export function TodayFoodHeroCard({ food, store }: { food: Food; store: ReturnTy
 }
 
 export function TodayGuidancePreview({
-  ageMonths,
-  childName,
   stage,
   currentStageIndex,
 }: {
-  ageMonths: number
-  childName: string
   stage: ReturnType<typeof guidanceStageFor>
   currentStageIndex: number
 }) {
@@ -230,8 +224,6 @@ export function TodayGuidancePreview({
     <section className="flex flex-col gap-3">
       <SectionHeader eyebrow="Repère actuel" title="Où en est la diversification ?" />
       <GuidanceStageHeroCard
-        ageMonths={ageMonths}
-        childName={childName}
         currentStageIndex={currentStageIndex}
         stage={stage}
         to="/guidance"

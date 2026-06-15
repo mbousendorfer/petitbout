@@ -40,15 +40,11 @@ function StageSectionLabel({ icon: Icon, tint, children }: { icon: LucideIcon; t
 }
 
 export function GuidanceStageHeroCard({
-  ageMonths,
-  childName,
   className,
   currentStageIndex,
   stage,
   to,
 }: {
-  ageMonths: number
-  childName: string
   className?: string
   currentStageIndex: number
   stage: GuidanceStage
@@ -66,23 +62,23 @@ export function GuidanceStageHeroCard({
   const content = (
     <>
       {/* En-tête héro — bandeau teinté par l'étape, avec l'âge et le titre mis en avant. */}
-      <div className={cn("relative overflow-hidden px-4 pb-5 pt-4 sm:px-5", meta.iconBgCurrent)}>
+      <div className={cn("relative overflow-hidden px-4 py-3.5 sm:px-5 sm:py-4", meta.iconBgCurrent)}>
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-card/30 to-transparent"
         />
 
-        <div className="relative flex items-start gap-3">
+        <div className="relative flex items-center gap-3">
           <span
             aria-hidden="true"
             className={cn(
-              "flex size-12 shrink-0 items-center justify-center rounded-2xl bg-card shadow-sm ring-1 ring-border/40 sm:size-[3.25rem]",
+              "flex size-11 shrink-0 items-center justify-center rounded-2xl bg-card shadow-sm ring-1 ring-border/40 sm:size-12",
               meta.text,
             )}
           >
-            <Icon className="size-6" />
+            <Icon className="size-5" />
           </span>
-          <div className="min-w-0 flex-1 pt-0.5">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className={cn("text-[0.7rem] font-bold uppercase tracking-[0.1em]", meta.text)}>
                 Étape {currentStageIndex + 1}
@@ -92,9 +88,14 @@ export function GuidanceStageHeroCard({
                 Actuel
               </span>
             </div>
-            <p className="mt-1 text-sm font-semibold text-foreground/65">
-              {childName} · {ageMonths} mois
-            </p>
+            <div className="mt-1 flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
+              <p className={cn("font-rounded text-xl font-extrabold leading-none tracking-[-0.01em]", meta.text)}>
+                {stage.ageRange}
+              </p>
+              <p className="min-w-0 text-base font-bold leading-snug tracking-[-0.01em] text-foreground">
+                {stage.title}
+              </p>
+            </div>
           </div>
           {to && (
             <span
@@ -104,15 +105,6 @@ export function GuidanceStageHeroCard({
               <ChevronRight className="size-5" />
             </span>
           )}
-        </div>
-
-        <div className="relative mt-4">
-          <p className={cn("font-rounded text-[1.75rem] font-extrabold leading-none tracking-[-0.01em] sm:text-3xl", meta.text)}>
-            {stage.ageRange}
-          </p>
-          <p className="mt-1.5 text-lg font-bold leading-snug tracking-[-0.01em] text-foreground sm:text-xl">
-            {stage.title}
-          </p>
         </div>
       </div>
 

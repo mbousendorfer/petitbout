@@ -39,16 +39,13 @@ type GuidancePageProps = {
   childName: string
 }
 
-export function GuidancePage({ ageMonths, childName }: GuidancePageProps) {
-  const displayName = childName.trim() ? childName.trim() : "bébé"
+export function GuidancePage({ ageMonths }: GuidancePageProps) {
   const currentStage = guidanceStageFor(ageMonths)
   const currentStageIndex = guidanceStageIndexFor(ageMonths)
 
   return (
     <>
       <GuidanceHero
-        ageMonths={ageMonths}
-        childName={displayName}
         stage={currentStage}
         currentStageIndex={currentStageIndex}
       />
@@ -62,13 +59,9 @@ export function GuidancePage({ ageMonths, childName }: GuidancePageProps) {
 }
 
 function GuidanceHero({
-  ageMonths,
-  childName,
   stage,
   currentStageIndex,
 }: {
-  ageMonths: number
-  childName: string
   stage: GuidanceStage
   currentStageIndex: number
 }) {
@@ -82,8 +75,6 @@ function GuidanceHero({
       </header>
 
       <GuidanceStageHeroCard
-        ageMonths={ageMonths}
-        childName={childName}
         currentStageIndex={currentStageIndex}
         stage={stage}
         className="paper-surface soft-ring"
