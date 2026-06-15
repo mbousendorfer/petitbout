@@ -76,9 +76,9 @@ const config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 4px)",
         sm: "calc(var(--radius) - 6px)",
-        // Argile card radii (DiversiRadius): md 18, lg 26, hero 30
-        card: "1.625rem",
-        hero: "1.875rem",
+        // Argile card radii (DiversiRadius): calmer, less pillowy surfaces.
+        card: "1.25rem",
+        hero: "1.5rem",
       },
       boxShadow: {
         // Argile elevation: short, subtle, warm — replaces the long soft shadows.

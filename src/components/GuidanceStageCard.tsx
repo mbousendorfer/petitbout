@@ -309,7 +309,7 @@ function GuidanceStageDetailSheet({
         aria-label={`${stage.ageRange} — ${stage.title}`}
         data-side="bottom"
         data-state="open"
-        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[88svh] min-h-[58svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[2.625rem] border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(620px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-[2.625rem] lg:border"
+        className="sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[88svh] min-h-[58svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[1.75rem] border-t bg-background shadow-lg lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:max-h-[min(820px,calc(100vh-4rem))] lg:w-[min(620px,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-[1.75rem] lg:border"
       >
         <button
           type="button"
