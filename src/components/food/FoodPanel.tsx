@@ -512,27 +512,45 @@ function FoodPanelHistory({
 }
 
 function FoodPanelAllergenCard() {
+  const [open, setOpen] = useState(false)
+
   return (
     <div className="rounded-card border border-destructive/20 bg-destructive/10 p-3.5 shadow-soft">
-      <p className="flex items-center gap-2 font-semibold text-destructive">
-        <AlertTriangle className="size-4" aria-hidden="true" />
+      <button
+        type="button"
+        className="flex w-full items-center gap-2 rounded text-left font-semibold text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+      >
+        <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
         Repère allergène
-      </p>
-      <p className="mt-1.5 text-sm leading-snug text-muted-foreground">
-        Les repères actuels recommandent de ne pas retarder les allergènes courants une fois la diversification lancée. Introduire progressivement, en petite quantité, sous une forme adaptée à l'âge.
-      </p>
-      <ul className="mt-2.5 grid gap-1.5 text-sm leading-snug text-muted-foreground">
-        {[
-          "Proposer quand bébé va bien, sur un repas calme.",
-          "Éviter les formes dures, entières ou collantes.",
-          "En cas de terrain allergique connu, demander un avis médical.",
-        ].map((item) => (
-          <li key={item} className="flex items-start gap-2">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+        <span className="ml-auto flex shrink-0 items-center gap-1 text-xs font-semibold text-destructive/80">
+          {open ? "Masquer" : "Voir les infos"}
+          <ChevronDown
+            className={cn("size-4 transition-transform", open && "rotate-180")}
+            aria-hidden="true"
+          />
+        </span>
+      </button>
+      {open && (
+        <>
+          <p className="mt-2.5 text-sm leading-snug text-muted-foreground">
+            Les repères actuels recommandent de ne pas retarder les allergènes courants une fois la diversification lancée. Introduire progressivement, en petite quantité, sous une forme adaptée à l'âge.
+          </p>
+          <ul className="mt-2.5 grid gap-1.5 text-sm leading-snug text-muted-foreground">
+            {[
+              "Proposer quand bébé va bien, sur un repas calme.",
+              "Éviter les formes dures, entières ou collantes.",
+              "En cas de terrain allergique connu, demander un avis médical.",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   )
 }
