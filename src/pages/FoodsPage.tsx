@@ -3,7 +3,7 @@ import { Search } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import { categories, foods, type FoodCategory } from "@/data/foods"
-import { getStatus } from "@/lib/food-utils"
+import { getStatus, isAllergen } from "@/lib/food-utils"
 import { useBabyStore } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { EmptyState, Header } from "@/components/primitives"
@@ -34,7 +34,8 @@ export function FoodsPage({ store }: { store: ReturnType<typeof useBabyStore> })
     () =>
       catalogFoods.filter((food) => {
         const matchesQuery = food.name.toLowerCase().includes(normalizedQuery)
-        const matchesCategory = category === "all" || food.category === category
+        const matchesCategory =
+          category === "all" || food.category === category || (category === "Allergènes" && isAllergen(food))
         const status = getStatus(food.id, store.latestByFood)
         const matchesStatus =
           statusFilter === "all" ||

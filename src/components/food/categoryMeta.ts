@@ -1,6 +1,7 @@
 import { AlertTriangle, Apple, Carrot, Droplet, Egg, Ellipsis, Milk, Wheat, type LucideIcon } from "lucide-react"
 
 import type { FoodCategory } from "@/data/foods"
+import { isAllergen } from "@/lib/food-utils"
 
 // Teinte éditoriale Argile + icône par famille d'aliment (cf. FoodCategory.tint /
 // symbolName côté iOS). Classes Tailwind complètes pour rester sûres au purge.
@@ -72,5 +73,5 @@ export const categoryMeta: Record<FoodCategory, CategoryMeta> = {
 }
 
 export function isAllergenFood(food: { isAllergen?: boolean; tags: string[] }): boolean {
-  return Boolean(food.isAllergen) || food.tags.includes("allergène")
+  return isAllergen({ isAllergen: Boolean(food.isAllergen), tags: food.tags })
 }

@@ -25,6 +25,10 @@ export type FoodFilterContext = {
   latestByFood: Map<string, FoodTest>
 }
 
+export function isAllergen(food: Pick<Food, "isAllergen" | "tags">) {
+  return food.isAllergen || food.tags.includes("allergène")
+}
+
 export function applyFoodFilters(
   foods: Food[],
   filters: FoodFilters,
@@ -46,7 +50,7 @@ export function applyFoodFilters(
         (filters.introduction === "conseillee" && food.level === "conseillé") ||
         (filters.introduction === "possible" && food.level === "possible")
       const matchesSeason = !filters.seasonOnly || isInSeason(food)
-      const matchesAllergens = !filters.allergensOnly || food.tags.includes("allergène")
+      const matchesAllergens = !filters.allergensOnly || isAllergen(food)
 
       return (
         matchesCategory &&

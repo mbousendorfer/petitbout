@@ -261,6 +261,18 @@ describe("applyFoodFilters", () => {
     expect(result.map((food) => food.id)).toEqual(["carotte"])
   })
 
+  it("filters allergens from isAllergen even when the allergen tag is missing", () => {
+    const allergen = makeFood({ id: "oeuf", name: "Oeuf", isAllergen: true, tags: [] })
+    const tagged = makeFood({ id: "ble", name: "Blé", isAllergen: false, tags: ["allergène"] })
+    const regular = makeFood({ id: "carotte", name: "Carotte", isAllergen: false, tags: [] })
+    const result = applyFoodFilters(
+      [regular, allergen, tagged],
+      makeFilters({ allergensOnly: true }),
+      context(),
+    )
+    expect(result.map((food) => food.id)).toEqual(["ble", "oeuf"])
+  })
+
   it("returns an empty array when filters exclude everything", () => {
     const carotte = makeFood({ id: "carotte", category: "Légumes" })
     const result = applyFoodFilters(
