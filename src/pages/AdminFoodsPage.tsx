@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { NavLink } from "react-router-dom"
-import { ArrowLeft, Download, Lock, Plus, RotateCcw, Search, Trash2 } from "lucide-react"
+import { ArrowLeft, Copy, Download, Lock, Plus, RotateCcw, Search, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import {
   rawCatalogRows,
   serializeCatalog,
 } from "@/data/foods"
-import { saveTextFile } from "@/lib/formatting"
+import { downloadTextFile } from "@/lib/formatting"
 import { useAdminAccess } from "@/lib/admin"
 import { cn } from "@/lib/utils"
 
@@ -69,6 +69,30 @@ function emptyRecord(): CatalogRecord {
 
 function wrap(records: CatalogRecord[]): EditableRow[] {
   return records.map((record) => ({ key: nextKey(), record }))
+}
+
+function slugifyCatalogName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/œ/g, "oe")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase()
+}
+
+function duplicateNameFor(sourceName: string, rows: EditableRow[]) {
+  const baseName = (sourceName.trim() || "Nouvel aliment").replace(/\s+copie(?:\s+\d+)?$/i, "")
+  const usedSlugs = new Set(rows.map((row) => slugifyCatalogName(row.record.name ?? "")))
+
+  let candidate = `${baseName} copie`
+  let suffix = 2
+  while (usedSlugs.has(slugifyCatalogName(candidate))) {
+    candidate = `${baseName} copie ${suffix}`
+    suffix += 1
+  }
+
+  return candidate
 }
 
 function readDraft(): EditableRow[] | null {
@@ -227,6 +251,27 @@ function AdminCatalogEditor({ onLogout }: { onLogout: () => void }) {
     setQuery("")
   }
 
+  function duplicateFood(key: string) {
+    const sourceIndex = rows.findIndex((row) => row.key === key)
+    const source = rows[sourceIndex]
+    if (!source) return
+
+    const created: EditableRow = {
+      key: nextKey(),
+      record: {
+        ...source.record,
+        name: duplicateNameFor(source.record.name ?? "", rows),
+      },
+    }
+
+    setRows((current) => {
+      const nextRows = [...current]
+      nextRows.splice(sourceIndex + 1, 0, created)
+      return nextRows
+    })
+    setSelectedKey(created.key)
+  }
+
   function deleteFood(key: string) {
     const target = rows.find((row) => row.key === key)
     const label = target?.record.name?.trim() || "cet aliment"
@@ -241,12 +286,11 @@ function AdminCatalogEditor({ onLogout }: { onLogout: () => void }) {
     setSelectedKey(null)
   }
 
-  async function exportCsv() {
+  function exportCsv() {
     const exportable = rows.map((row) => row.record).filter((record) => (record.name ?? "").trim().length > 0)
     const skipped = rows.length - exportable.length
     try {
-      const didSave = await saveTextFile(serializeCatalog(exportable), "FoodCatalog.csv", "text/csv")
-      if (!didSave) return
+      downloadTextFile(serializeCatalog(exportable), "FoodCatalog.csv", "text/csv")
       toast.success("FoodCatalog.csv exporté", {
         description:
           `Remplace src/data/FoodCatalog.csv et committe.${skipped > 0 ? ` ${skipped} ligne(s) sans nom ignorée(s).` : ""}`,
@@ -269,7 +313,7 @@ function AdminCatalogEditor({ onLogout }: { onLogout: () => void }) {
       </div>
 
       <div className="paper-surface mt-2 flex flex-wrap items-center gap-2 rounded-hero p-3">
-        <Button type="button" size="sm" onClick={() => void exportCsv()}>
+        <Button type="button" size="sm" onClick={exportCsv}>
           <Download data-icon="inline-start" aria-hidden="true" />
           Exporter le CSV
         </Button>
@@ -336,6 +380,7 @@ function AdminCatalogEditor({ onLogout }: { onLogout: () => void }) {
             key={selectedRow.key}
             row={selectedRow}
             onChange={(column, value) => updateField(selectedRow.key, column, value)}
+            onDuplicate={() => duplicateFood(selectedRow.key)}
             onDelete={() => deleteFood(selectedRow.key)}
           />
         ) : (
@@ -352,10 +397,12 @@ function AdminCatalogEditor({ onLogout }: { onLogout: () => void }) {
 function FoodEditor({
   row,
   onChange,
+  onDuplicate,
   onDelete,
 }: {
   row: EditableRow
   onChange: (column: string, value: string) => void
+  onDuplicate: () => void
   onDelete: () => void
 }) {
   const { record } = row
@@ -375,10 +422,16 @@ function FoodEditor({
             <p className="mt-0.5 text-xs text-destructive">Renseigne un nom pour publier cette fiche.</p>
           )}
         </div>
-        <Button type="button" size="sm" variant="ghost" className="shrink-0 text-destructive" onClick={onDelete}>
-          <Trash2 data-icon="inline-start" aria-hidden="true" />
-          Supprimer
-        </Button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={onDuplicate}>
+            <Copy data-icon="inline-start" aria-hidden="true" />
+            Dupliquer
+          </Button>
+          <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={onDelete}>
+            <Trash2 data-icon="inline-start" aria-hidden="true" />
+            Supprimer
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
