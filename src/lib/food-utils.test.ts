@@ -33,6 +33,7 @@ function makeFood(overrides: Partial<Food> = {}): Food {
     shortDescription: "Douce et lisse.",
     preparation: "Cuite et écrasée.",
     quantityNotes: "",
+    quantityByAge: [],
     restrictionNotes: "",
     isAllergen: false,
     level: "conseillé",
