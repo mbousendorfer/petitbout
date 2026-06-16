@@ -99,9 +99,9 @@ function App() {
 
   return (
     <>
-      <div className="safe-shell soft-surface lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8 lg:px-8">
+      <div className="safe-shell soft-surface lg:mx-auto lg:grid lg:max-w-[90rem] lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 lg:px-8 xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-10 xl:px-10">
         <DesktopNav />
-        <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-5 sm:px-6 lg:mx-0 lg:max-w-6xl lg:px-0 lg:py-8">
+        <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-5 sm:px-6 lg:mx-0 lg:max-w-none lg:px-0 lg:py-8">
           <PwaStatus />
           <Routes>
             <Route path="/" element={<HomePage store={store} suggestions={suggestions} />} />

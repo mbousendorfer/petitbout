@@ -113,13 +113,14 @@ export function Header({ eyebrow, title }: { eyebrow: string; title: string }) {
 
 // Mention médicale — portée depuis iOS (MedicalDisclaimer) : panneau sablé chaud,
 // pastille terracotta avec trousse de secours, texte secondaire.
-export function Disclaimer({ compact = false }: { compact?: boolean }) {
+export function Disclaimer({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
     <div
       role="note"
       className={cn(
         "flex items-start gap-3 rounded-lg border border-border/60 bg-muted p-4",
         compact && "gap-3 p-3.5",
+        className,
       )}
     >
       <span
