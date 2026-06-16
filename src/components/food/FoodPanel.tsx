@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
-import { AlertTriangle, BookOpen, Calendar, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Leaf, LoaderCircle, Plus, Save, Scale, ShieldCheck, Utensils, X, type LucideIcon } from "lucide-react"
+import { AlertTriangle, BookOpen, Calendar, CalendarClock, ChevronDown, CircleCheck, Clock, CrossIcon, FileSearch, Info, Leaf, LoaderCircle, Plus, Save, Scale, ShieldCheck, Utensils, X, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -540,13 +540,23 @@ function FoodPanelAllergenCard() {
 function FoodInfoInlineNotes({ food }: { food: Food }) {
   if (!food.quantityNotes && !food.restrictionNotes) return null
 
+  // Les vraies restrictions (« pas avant X ans », « jamais cru »…) sont taguées
+  // « à éviter » en amont — elles méritent un repère « attention » discret.
+  // Le reste est une simple information à garder en tête, pas une alerte.
+  const restrictionIsAvoidance = food.tags.includes("à éviter")
+
   return (
-    <div className="grid gap-3 px-1">
+    <div className="grid gap-2.5">
       {food.quantityNotes && (
-        <FoodInfoInlineNote icon={Scale} title="Quantités" value={food.quantityNotes} />
+        <FoodInfoInlineNote icon={Scale} title="Quantités" value={food.quantityNotes} tone="info" />
       )}
       {food.restrictionNotes && (
-        <FoodInfoInlineNote icon={AlertTriangle} title="À noter" value={food.restrictionNotes} tone="destructive" />
+        <FoodInfoInlineNote
+          icon={restrictionIsAvoidance ? AlertTriangle : Info}
+          title={restrictionIsAvoidance ? "À éviter" : "À noter"}
+          value={food.restrictionNotes}
+          tone={restrictionIsAvoidance ? "attention" : "info"}
+        />
       )}
     </div>
   )
@@ -555,25 +565,40 @@ function FoodInfoInlineNotes({ food }: { food: Food }) {
 function FoodInfoInlineNote({
   icon: Icon,
   title,
-  tone = "muted",
+  tone = "info",
   value,
 }: {
   icon: LucideIcon
   title: string
-  tone?: "destructive" | "muted"
+  tone?: "attention" | "info"
   value: string
 }) {
+  const styles =
+    tone === "attention"
+      ? {
+          container: "border-status-attention/30 bg-status-attention/10",
+          iconWrap: "bg-status-attention/15 text-status-attention",
+          title: "text-status-attention-foreground dark:text-status-attention",
+          body: "text-status-attention-foreground dark:text-amber-100/90",
+        }
+      : {
+          container: "border-border/60 bg-muted/40",
+          iconWrap: "bg-background/80 text-muted-foreground",
+          title: "text-muted-foreground",
+          body: "text-foreground/80",
+        }
+
   return (
-    <div className="flex items-start gap-3">
-      <Icon
-        className={cn("mt-0.5 size-5 shrink-0", tone === "destructive" ? "text-destructive" : "text-muted-foreground")}
+    <div className={cn("flex items-start gap-3 rounded-xl border p-3", styles.container)}>
+      <span
         aria-hidden="true"
-      />
+        className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", styles.iconWrap)}
+      >
+        <Icon className="size-4" />
+      </span>
       <div className="min-w-0">
-        <p className={cn("text-xs font-bold uppercase", tone === "destructive" ? "text-destructive" : "text-muted-foreground")}>
-          {title}
-        </p>
-        <p className="mt-0.5 text-sm leading-5 text-muted-foreground">{value}</p>
+        <p className={cn("text-xs font-bold uppercase tracking-wide", styles.title)}>{title}</p>
+        <p className={cn("mt-0.5 text-sm leading-5", styles.body)}>{value}</p>
       </div>
     </div>
   )
