@@ -31,6 +31,7 @@ export type Food = {
   shortDescription: string
   preparation: string
   quantityNotes: string
+  quantityByAge: { age: string; amount: string }[]
   restrictionNotes: string
   isAllergen: boolean
   level: RecommendationLevel
@@ -142,7 +143,7 @@ function parseMonths(value: string | undefined) {
     .filter((month) => Number.isInteger(month) && month >= 1 && month <= 12)
 }
 
-function quantitySummary(row: CatalogRow) {
+function quantityByAge(row: CatalogRow) {
   return [
     ["4 mois", row.quantity4],
     ["6 mois", row.quantity6],
@@ -150,7 +151,12 @@ function quantitySummary(row: CatalogRow) {
     ["12 mois", row.quantity12],
   ]
     .filter((entry): entry is [string, string] => Boolean(entry[1]))
-    .map(([label, value]) => `${label} : ${value}`)
+    .map(([age, amount]) => ({ age, amount }))
+}
+
+function quantitySummary(row: CatalogRow) {
+  return quantityByAge(row)
+    .map(({ age, amount }) => `${age} : ${amount}`)
     .join(" · ")
 }
 
@@ -259,6 +265,7 @@ export function makeFood(row: CatalogRow): Food | null {
     shortDescription: row.shortDescription || "",
     preparation: row.shortDescription || "Introduire en respectant l'âge indiqué par les repères.",
     quantityNotes: quantitySummary(row),
+    quantityByAge: quantityByAge(row),
     cautionLevel: sourceNote ? "attention" : undefined,
     lastReviewedAt: sourceNote ? "mai 2026" : undefined,
     sourceIds: sourceIdsForFood(draft),
