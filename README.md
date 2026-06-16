@@ -85,25 +85,24 @@ Le schéma Supabase garde les tables derrière RLS sans policy publique et expos
 
 ## Plausible
 
-L'app charge explicitement Plausible pour `app.petitbout.app` via :
+L'app charge explicitement Plausible pour `app.petitbout.app` via un tag statique dans `index.html` :
 
 ```html
-<script defer data-domain="app.petitbout.app" src="https://analytics.edenpulse.com/js/script.js"></script>
+<script defer data-domain="app.petitbout.app" src="https://analytics.edenpulse.com/js/script.hash.js"></script>
 ```
 
-Le suivi reste volontairement basique : pages vues uniquement, sans données de profil, sans code famille et sans événement métier.
+⚠️ On utilise la variante **`script.hash.js`** (et non `script.js`) parce que l'app route en
+`HashRouter` : les pages internes sont des URLs en `/#/foods`, `/#/journal`, etc. Le script
+standard ne suit que l'History API et n'enregistrerait qu'une seule page vue (`/`). La variante
+hash transmet le fragment à chaque changement de route, donc chaque page apparaît distinctement
+dans Plausible.
 
-En Docker, ces valeurs peuvent être remplacées au démarrage via `env-config.js` :
+Le suivi reste volontairement basique : pages vues uniquement, sans données de profil, sans code
+famille et sans événement métier.
 
-```bash
-VITE_PLAUSIBLE_DOMAIN=app.petitbout.app
-VITE_PLAUSIBLE_SCRIPT_URL=https://analytics.edenpulse.com/js/script.js
-VITE_PLAUSIBLE_API_URL=https://plausible.example.com/api/event
-```
-
-- `VITE_PLAUSIBLE_DOMAIN` doit correspondre au domaine déclaré dans Plausible.
-- `VITE_PLAUSIBLE_SCRIPT_URL` pointe vers votre instance Plausible. Si la variable est vide, l'app utilise `https://analytics.edenpulse.com/js/script.js`.
-- `VITE_PLAUSIBLE_API_URL` est optionnelle, mais utile avec une instance self-hosted ou un proxy.
+> Note : les variables `VITE_PLAUSIBLE_*` sont encore injectées dans `env-config.js` au démarrage
+> du conteneur mais ne sont **plus lues** par l'app depuis le passage au tag statique. Pour changer
+> de domaine ou d'instance, éditer directement le tag ci-dessus dans `index.html`.
 
 ## Admin aliments
 
