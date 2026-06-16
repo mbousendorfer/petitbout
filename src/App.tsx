@@ -99,7 +99,11 @@ function App() {
 
   return (
     <>
-      <div className="safe-shell soft-surface lg:mx-auto lg:grid lg:max-w-[90rem] lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 lg:px-8 xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-10 xl:px-10">
+      {/* Le dégradé `soft-surface` couvre toute la largeur (fond pleine page) ;
+          seule la grille interne est centrée et plafonnée — sinon les gouttières
+          au-delà de 90rem laissent apparaître le fond uni du body. */}
+      <div className="safe-shell soft-surface">
+       <div className="lg:mx-auto lg:grid lg:max-w-[90rem] lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 lg:px-8 xl:grid-cols-[16rem_minmax(0,1fr)] xl:gap-10 xl:px-10">
         <DesktopNav
           avatarEmoji={store.profile.avatarEmoji}
           childName={store.profile.childName}
@@ -207,6 +211,7 @@ function App() {
             />
           </Routes>
         </main>
+       </div>
       </div>
       <BottomNav />
       <BadgeUnlockCelebration badge={celebrationBadge} onDismiss={dismissBadgeCelebration} />
