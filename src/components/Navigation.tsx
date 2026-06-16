@@ -86,8 +86,8 @@ export function DesktopNav({
         {/* Carnet de bébé ancré en bas : équilibre la colonne et offre un accès
             direct au profil. */}
         <NavLink
-          to="/profile"
-          aria-label={`Profil de ${displayName}`}
+          to="/settings"
+          aria-label={`Réglages — profil de ${displayName}`}
           className="group mt-auto flex items-center gap-2.5 rounded-xl border border-border/55 bg-card/55 p-2 transition-colors hover:border-primary/30 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <BabyAvatar emoji={avatarEmoji} size={36} />
