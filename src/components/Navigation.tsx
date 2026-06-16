@@ -21,6 +21,10 @@ export function DesktopNav({
   childName: string
 }) {
   const displayName = childName.trim() ? childName.trim() : "bébé"
+  // Sur desktop, le carnet de bébé en bas mène déjà aux Réglages : on retire la
+  // ligne « Réglages » du rail pour éviter le doublon. (Le BottomNav mobile, lui,
+  // garde ses 5 items puisqu'il n'a pas ce raccourci profil.)
+  const railItems = navigationItems.filter((item) => item.to !== "/settings")
 
   return (
     <aside className="sticky top-0 hidden h-dvh py-8 lg:block">
@@ -47,7 +51,7 @@ export function DesktopNav({
 
         <p className="eyebrow mb-1.5 px-3 text-[0.625rem]">Menu</p>
         <div className="grid gap-1">
-          {navigationItems.map((item) => (
+          {railItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
