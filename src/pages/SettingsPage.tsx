@@ -91,7 +91,10 @@ export function SettingsPage({
         <ChevronRight className="size-5 shrink-0 text-muted-foreground/65" aria-hidden="true" />
       </NavLink>
 
-      <div className="grid gap-1 lg:grid-cols-2 lg:gap-4">
+      {/* Mobile : liste verticale unique (inchangée). Desktop : flux deux colonnes
+          équilibré — chaque section reste insécable et se range sans verrouiller
+          les lignes (fini les grands vides sous les sections courtes). */}
+      <div className="grid gap-1 lg:block lg:columns-2 lg:gap-x-8">
         <SettingsSection
           description={
             hasFamilySpace
@@ -342,7 +345,7 @@ export function SettingsSection({
   title: string
 }) {
   return (
-    <section className="border-t border-border/60 py-4 first:border-t-0">
+    <section className="break-inside-avoid border-t border-border/60 py-4 first:border-t-0 lg:first:border-t">
       <h2 className="font-semibold">{title}</h2>
       <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
       <div className="mt-3 grid gap-3">{children}</div>
