@@ -513,15 +513,15 @@ function FoodPanelHistory({
 
 function FoodPanelAllergenCard() {
   return (
-    <div className="rounded-card border border-destructive/20 bg-destructive/10 p-4 shadow-soft">
+    <div className="rounded-card border border-destructive/20 bg-destructive/10 p-3.5 shadow-soft">
       <p className="flex items-center gap-2 font-semibold text-destructive">
         <AlertTriangle className="size-4" aria-hidden="true" />
         Repère allergène
       </p>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+      <p className="mt-1.5 text-sm leading-snug text-muted-foreground">
         Les repères actuels recommandent de ne pas retarder les allergènes courants une fois la diversification lancée. Introduire progressivement, en petite quantité, sous une forme adaptée à l'âge.
       </p>
-      <ul className="mt-3 grid gap-1.5 text-sm leading-5 text-muted-foreground">
+      <ul className="mt-2.5 grid gap-1.5 text-sm leading-snug text-muted-foreground">
         {[
           "Proposer quand bébé va bien, sur un repas calme.",
           "Éviter les formes dures, entières ou collantes.",
