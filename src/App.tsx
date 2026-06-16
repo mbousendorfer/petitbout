@@ -23,6 +23,10 @@ const GuidancePage = lazy(() =>
   import("@/components/GuidancePage").then((module) => ({ default: module.GuidancePage })),
 )
 
+const GuidanceSourcesPage = lazy(() =>
+  import("@/pages/GuidanceSourcesPage").then((module) => ({ default: module.GuidanceSourcesPage })),
+)
+
 const JournalPage = lazy(() =>
   import("@/pages/JournalPage").then((module) => ({ default: module.JournalPage })),
 )
@@ -64,7 +68,7 @@ function App() {
     celebrationBadge,
     dismissBadgeCelebration,
     unlockDates: badgeUnlockDates,
-  } = useBadgeUnlockDates(store.tests, store.syncStatus)
+  } = useBadgeUnlockDates(store.tests, store.syncStatus, store.familySession?.familyCodeHash ?? null)
   const suggestions = weeklySuggestions(foods, store.profile.ageMonths, store.testedFoodIds)
   const isAdminRoute = location.pathname === "/admin"
 
@@ -109,6 +113,14 @@ function App() {
               element={
                 <Suspense fallback={<PageLoading label="Repères" />}>
                   <GuidancePage ageMonths={store.profile.ageMonths} childName={store.profile.childName} />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/guidance/sources"
+              element={
+                <Suspense fallback={<PageLoading label="Sources" />}>
+                  <GuidanceSourcesPage />
                 </Suspense>
               }
             />
