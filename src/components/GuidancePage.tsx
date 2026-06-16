@@ -31,8 +31,12 @@ export function GuidancePage({ ageMonths }: GuidancePageProps) {
     <>
       <GuidanceHero />
       <GuidanceStagesCarousel currentStageIndex={currentStageIndex} />
-      <GuidanceRules />
-      <GuidanceAvoid />
+      {/* Desktop : « Règles d'or » et « À éviter » côte à côte pour densifier la
+          lecture ; `contents` rend la grille transparente en mobile (pile gap-8). */}
+      <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+        <GuidanceRules />
+        <GuidanceAvoid />
+      </div>
       <GuidanceSourcesLink />
       <Disclaimer />
     </>
