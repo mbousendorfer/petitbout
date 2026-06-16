@@ -201,8 +201,13 @@ function sourceNoteForFood(food: Pick<Food, "id" | "isAllergen" | "restrictionNo
 
 function tagsForFood(food: Pick<Food, "isAllergen" | "level" | "restrictionNotes">) {
   const tags = [food.level === "conseillé" ? "introduction conseillée" : "introduction possible"]
+  const restriction = food.restrictionNotes.toLocaleLowerCase("fr")
   if (food.isAllergen) tags.push("allergène")
-  if (food.restrictionNotes) tags.push("à éviter")
+  if (restriction.includes("pas avant") || restriction.includes("jamais") || restriction.includes("éviter")) {
+    tags.push("à éviter")
+  } else if (food.restrictionNotes) {
+    tags.push("précaution")
+  }
   return tags
 }
 

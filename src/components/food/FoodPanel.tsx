@@ -667,7 +667,7 @@ export function FoodReferenceChip({
 
 export function FoodSourceNote({ food }: { food: Food }) {
   const cautionTags = food.tags.filter((tag) =>
-    ["allergène", "gluten", "à éviter", "pas avant 3 ans", "pas avant 5 ans"].includes(tag),
+    ["allergène", "gluten", "à éviter", "précaution", "pas avant 3 ans", "pas avant 5 ans"].includes(tag),
   )
   const primarySource = food.sourceIds
     .map((id) => foodSourceReferences.find((source) => source.id === id))

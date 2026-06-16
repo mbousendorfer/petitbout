@@ -50,7 +50,7 @@ export const guidanceRules: GuidanceRule[] = [
   {
     title: "Introduire les allergènes sans tarder",
     detail:
-      "Une fois la diversification lancée, proposer progressivement oeuf bien cuit, arachide en purée fine, laitages, gluten, poisson, fruits à coque en purée et sésame.",
+      "Une fois la diversification lancée, proposer progressivement oeuf bien cuit, arachide en purée fine, laitages, gluten, poisson, fruits à coque en poudre ou purée fine et sésame.",
     icon: AlertTriangle,
   },
   {
@@ -112,7 +112,7 @@ export const guidanceStages: GuidanceStage[] = [
     ageRange: "6-9 mois",
     title: "On élargit, on apporte du fer",
     principles: [
-      "Installer progressivement 4 moments de repas.",
+      "Installer progressivement les repas, avec 4 moments surtout autour de 8 mois.",
       "Introduire viande, poisson, oeuf et légumineuses en petites quantités.",
       "Continuer à reproposer les aliments refusés.",
       "Faire évoluer les textures selon les capacités de bébé.",
@@ -169,8 +169,13 @@ export const guidanceAvoid: GuidanceRule[] = [
   },
   {
     title: "Petits aliments durs ou ronds",
-    detail: "Adapter raisins, tomates cerises, noix entières, morceaux durs ou collants.",
+    detail: "Couper les raisins et tomates cerises. Ne pas donner noix, noisettes ou arachides entières : uniquement poudre ou purée fine adaptée.",
     icon: Ban,
+  },
+  {
+    title: "Produits au soja",
+    detail: "Éviter les produits riches en soja chez le jeune enfant, notamment avant 3 ans, sauf avis médical.",
+    icon: AlertTriangle,
   },
   {
     title: "Boissons sucrées",
@@ -184,25 +189,25 @@ export const guidanceSources: GuidanceSource[] = [
     title: "Pas à pas, votre enfant mange comme un grand",
     publisher: "Santé publique France / PNNS",
     year: "2021",
-    url: "https://www.mangerbouger.fr/manger-mieux/a-tout-age-et-a-chaque-etape-de-la-vie/enfants",
+    url: "https://www.santepubliquefrance.fr/content/download/804042/5008037?version=1",
   },
   {
     title: "La diversification alimentaire",
     publisher: "Assurance Maladie",
-    year: "2025",
+    year: "2024",
     url: "https://www.ameli.fr/assure/sante/themes/alimentation/alimentation-0-3-ans/debut-diversification-alimentaire",
   },
   {
     title: "Avis relatif à la révision des repères alimentaires pour les enfants de moins de 3 ans",
     publisher: "HCSP",
     year: "2020",
-    url: "https://www.hcsp.fr",
+    url: "https://www.hcsp.fr/explore.cgi/avisrapportsdomaine?clefr=924",
   },
   {
-    title: "L'alimentation de 4 à 6 mois",
-    publisher: "1000 premiers jours",
-    year: "2023",
-    url: "https://www.1000-premiers-jours.fr",
+    title: "De 8 mois à 3 ans : des repas équilibrés et bien répartis",
+    publisher: "Assurance Maladie",
+    year: "2024",
+    url: "https://www.ameli.fr/assure/sante/themes/alimentation/alimentation-0-3-ans/repas-equilibres-repartis",
   },
   {
     title: "Complementary feeding guideline",
@@ -214,7 +219,7 @@ export const guidanceSources: GuidanceSource[] = [
     title: "Complementary Feeding Position Paper",
     publisher: "ESPGHAN",
     year: "2017",
-    url: "https://www.espghan.org",
+    url: "https://pubmed.ncbi.nlm.nih.gov/28027215/",
   },
   {
     title: "Introduction précoce de l'arachide",
@@ -243,11 +248,11 @@ export function guidanceStageFor(ageInMonths: number): GuidanceStage {
 
 // Sous-ensemble de `guidanceSources` pertinent pour une étape donnée — porté
 // depuis iOS (GuidanceContent.sources(forStageIndex:)). Index dans le tableau :
-// 0 PNNS · 1 Assurance Maladie · 2 HCSP · 3 1000 premiers jours · 4 OMS ·
-// 5 ESPGHAN · 6 NEJM LEAP (arachide) · 7 NEJM EAT (allergènes).
+// 0 PNNS · 1 Assurance Maladie diversification · 2 HCSP · 3 Assurance Maladie 8 mois-3 ans ·
+// 4 OMS · 5 ESPGHAN · 6 NEJM LEAP (arachide) · 7 NEJM EAT (allergènes).
 export function guidanceSourcesForStageIndex(index: number): GuidanceSource[] {
   const map: Record<number, number[]> = {
-    0: [3, 1, 0, 6], // 4-6 mois : démarrage + allergènes précoces
+    0: [1, 0, 6], // 4-6 mois : démarrage + allergènes précoces
     1: [0, 4, 5, 7], // 6-9 mois : élargissement, fer, allergènes
     2: [0, 4, 5, 2], // 9-12 mois : textures et autonomie
     3: [0, 2, 4], // 12-36 mois : vers les repas familiaux
