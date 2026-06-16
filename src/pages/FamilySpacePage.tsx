@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { NavLink, useNavigate } from "react-router-dom"
-import { ChevronLeft, Copy, KeyRound, Link2, LogOut, Server, ShieldCheck, Smartphone, Trash2 } from "lucide-react"
+import { ChevronLeft, Copy, KeyRound, Link2, LogOut, Server, ShieldCheck, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -219,18 +219,6 @@ export function FamilySpacePage({ store }: { store: ReturnType<typeof useBabySto
       <div className="grid gap-1">
         <SettingsSection description="Code + PIN pour retrouver le carnet sur plusieurs appareils." title="Partage">
           <StatusPanel detail={status.detail} accent={status.accent} title={status.title} />
-          <div className="grid grid-cols-2 gap-2">
-            <SignalTile
-              icon={Smartphone}
-              title="Multi-appareil"
-              text={hasFamilySpace ? "Carnet partagé" : "Disponible après activation"}
-            />
-            <SignalTile
-              icon={Server}
-              title={store.isConfigured ? "Serveur prêt" : "Serveur absent"}
-              text={store.isConfigured ? "Synchro PetitBout" : "Suivi local ici"}
-            />
-          </div>
           <NavLink
             to="/privacy"
             className="inline-flex min-h-11 items-center rounded-lg text-sm font-semibold text-primary underline-offset-4 hover:underline"
@@ -412,26 +400,6 @@ function StatusPanel({
           <p className="mt-0.5 text-sm leading-5 text-muted-foreground">{detail}</p>
         </div>
       </div>
-    </div>
-  )
-}
-
-function SignalTile({
-  icon: Icon,
-  text,
-  title,
-}: {
-  icon: typeof Smartphone
-  text: string
-  title: string
-}) {
-  return (
-    <div className="min-h-[8.25rem] rounded-card border bg-card/85 p-3 shadow-sm">
-      <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        <Icon className="size-5" aria-hidden="true" />
-      </span>
-      <p className="mt-3 text-sm font-semibold leading-5 text-foreground">{title}</p>
-      <p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p>
     </div>
   )
 }
