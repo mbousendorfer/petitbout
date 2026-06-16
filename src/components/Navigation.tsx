@@ -54,7 +54,7 @@ export function DesktopNav({
               end={item.to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "group relative flex min-h-11 items-center gap-2.5 rounded-xl pl-2 pr-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  "group flex min-h-11 items-center gap-2.5 rounded-xl pl-2 pr-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   isActive
                     ? "bg-secondary text-secondary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
@@ -63,14 +63,6 @@ export function DesktopNav({
             >
               {({ isActive }) => (
                 <>
-                  {/* Accent latéral sur l'élément actif. */}
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-primary transition-opacity",
-                      isActive ? "opacity-100" : "opacity-0",
-                    )}
-                  />
                   {/* Icône en pastille : teintée terracotta quand active, sobre sinon
                       (taille fixe → aucun décalage entre états). */}
                   <span
