@@ -580,11 +580,11 @@ function FoodInfoInlineNotes({ food }: { food: Food }) {
 
 function FoodQuantityNote({ quantities }: { quantities: Food["quantityByAge"] }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-muted/40 p-3">
+    <div className="rounded-card border border-border/60 bg-muted/40 p-3">
       <div className="flex items-center gap-2.5">
         <span
           aria-hidden="true"
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background/80 text-muted-foreground"
+          className="flex size-8 shrink-0 items-center justify-center rounded-md bg-background/80 text-muted-foreground"
         >
           <Scale className="size-4" />
         </span>
@@ -592,7 +592,7 @@ function FoodQuantityNote({ quantities }: { quantities: Food["quantityByAge"] })
       </div>
       <dl className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
         {quantities.map(({ age, amount }) => (
-          <div key={age} className="flex flex-col gap-0.5 rounded-lg bg-background/65 px-2.5 py-2">
+          <div key={age} className="flex flex-col gap-0.5 rounded-md bg-background/65 px-2.5 py-2">
             <dt className="text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground">{age}</dt>
             <dd className="text-sm font-semibold leading-tight text-foreground">{amount}</dd>
           </div>
@@ -629,10 +629,10 @@ function FoodInfoInlineNote({
         }
 
   return (
-    <div className={cn("flex items-start gap-3 rounded-xl border p-3", styles.container)}>
+    <div className={cn("flex items-start gap-3 rounded-card border p-3", styles.container)}>
       <span
         aria-hidden="true"
-        className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", styles.iconWrap)}
+        className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", styles.iconWrap)}
       >
         <Icon className="size-4" />
       </span>
